@@ -53,7 +53,6 @@ impl<'a> Command<'a> {
             map(tag("G21 "), |_| Command::G21),
             map(tag("G90 "), |_| Command::G90),
             map(tag("G91 "), |_| Command::G91),
-            // map(tag("G92 "), |_| Command::G92),
             parse_g92,
             // TODO Missing "bezier"
             //
@@ -94,7 +93,7 @@ fn parse_g92(i: &str) -> IResult<&str, Command> {
                 hs.insert(item);
             }
 
-            Command::G1(hs)
+            Command::G92(hs)
         }),
     )(i)
 }

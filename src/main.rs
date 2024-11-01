@@ -21,9 +21,7 @@ use crate::command::Command;
 fn main() -> Result<()> {
     let stdin = stdin();
     for result in stdin.lock().lines() {
-        let line = result?;
-        let decoded = Command::parse_line(&line);
-        match decoded {
+        match Command::parse_line(&result?) {
             Ok((_, Command::G1(payload))) => {
                 println!("G1 payload {payload:?}");
             }

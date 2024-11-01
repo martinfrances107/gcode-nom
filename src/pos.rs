@@ -2,8 +2,8 @@ use std::hash::Hash;
 use std::hash::Hasher;
 
 use nom::bytes::complete::tag;
-use nom::character::complete::digit1;
 use nom::combinator::map;
+use nom::number::complete::double;
 use nom::sequence::preceded;
 use nom::IResult;
 
@@ -17,7 +17,6 @@ pub(crate) enum PosVal {
     E(f64),
     /// sets the federate for all subsequent moved.
     F(f64),
-    G(f64),
     /// Sets the laser power for the move
     S(f64),
 
@@ -25,6 +24,7 @@ pub(crate) enum PosVal {
     U(f64),
     V(f64),
 
+    /// Axis set { W, X, Y, Z }
     W(f64),
     X(f64),
     Y(f64),
@@ -43,7 +43,6 @@ impl PartialEq for PosVal {
                 | (Self::C(_), Self::C(_))
                 | (Self::E(_), Self::E(_))
                 | (Self::F(_), Self::F(_))
-                | (Self::G(_), Self::G(_))
                 | (Self::S(_), Self::S(_))
                 | (Self::U(_), Self::U(_))
                 | (Self::V(_), Self::V(_))
@@ -62,7 +61,6 @@ impl Hash for PosVal {
             Self::C(_) => "C".hash(state),
             Self::E(_) => "E".hash(state),
             Self::F(_) => "F".hash(state),
-            Self::G(_) => "G".hash(state),
             Self::S(_) => "S".hash(state),
             Self::U(_) => "U".hash(state),
             Self::V(_) => "V".hash(state),
@@ -76,80 +74,38 @@ impl Hash for PosVal {
 
 // TODO: can I use a macro here!!
 pub fn parse_a(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("A"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::A cannot decode number.");
-        PosVal::A(number)
-    })(i)
+    map(preceded(tag("A"), double), PosVal::A)(i)
 }
-
 pub fn parse_b(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("B"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::B cannot decode number.");
-        PosVal::B(number)
-    })(i)
+    map(preceded(tag("B"), double), PosVal::B)(i)
 }
-
 pub fn parse_c(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("C"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::C cannot decode number.");
-        PosVal::C(number)
-    })(i)
+    map(preceded(tag("C"), double), PosVal::C)(i)
 }
-
 pub fn parse_e(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("E"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::E cannot decode number.");
-        PosVal::E(number)
-    })(i)
+    map(preceded(tag("E"), double), PosVal::E)(i)
 }
-
 pub fn parse_f(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("F"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::F cannot decode number.");
-        PosVal::F(number)
-    })(i)
+    map(preceded(tag("F"), double), PosVal::F)(i)
 }
-
 pub fn parse_s(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("S"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::S cannot decode number.");
-        PosVal::S(number)
-    })(i)
+    map(preceded(tag("S"), double), PosVal::S)(i)
 }
 pub fn parse_u(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("U"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::U cannot decode number.");
-        PosVal::U(number)
-    })(i)
+    map(preceded(tag("U"), double), PosVal::U)(i)
 }
 pub fn parse_v(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("V"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::V cannot decode number.");
-        PosVal::V(number)
-    })(i)
+    map(preceded(tag("V"), double), PosVal::V)(i)
 }
-
 pub fn parse_w(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("W"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::W cannot decode number.");
-        PosVal::W(number)
-    })(i)
+    map(preceded(tag("W"), double), PosVal::W)(i)
 }
 pub fn parse_x(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("X"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::X cannot decode number.");
-        PosVal::X(number)
-    })(i)
+    map(preceded(tag("X"), double), PosVal::X)(i)
 }
 pub fn parse_y(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("Y"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::Y cannot decode number.");
-        PosVal::Y(number)
-    })(i)
+    map(preceded(tag("Y"), double), PosVal::Y)(i)
 }
 pub fn parse_z(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("Z"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::Z cannot decode number.");
-        PosVal::Z(number)
-    })(i)
+    map(preceded(tag("Z"), double), PosVal::Z)(i)
 }
