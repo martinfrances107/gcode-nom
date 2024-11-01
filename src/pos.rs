@@ -33,26 +33,30 @@ pub(crate) enum PosVal {
 
 impl Eq for PosVal {}
 
-/// Ignore numerical value.
+/// Bit wise comparison cant' compare directly [NAN and inf]
 impl PartialEq for PosVal {
     fn eq(&self, other: &Self) -> bool {
-        matches!(
-            (self, other),
-            (Self::A(_), Self::A(_))
-                | (Self::B(_), Self::B(_))
-                | (Self::C(_), Self::C(_))
-                | (Self::E(_), Self::E(_))
-                | (Self::F(_), Self::F(_))
-                | (Self::S(_), Self::S(_))
-                | (Self::U(_), Self::U(_))
-                | (Self::V(_), Self::V(_))
-                | (Self::W(_), Self::W(_))
-                | (Self::X(_), Self::X(_))
-                | (Self::Y(_), Self::Y(_))
-                | (Self::Z(_), Self::Z(_))
-        )
+        match (self, other) {
+            (Self::A(x), Self::A(y)) => x.to_bits() == y.to_bits(),
+            (Self::B(x), Self::B(y)) => x.to_bits() == y.to_bits(),
+            (Self::C(x), Self::C(y)) => x.to_bits() == y.to_bits(),
+
+            (Self::E(x), Self::E(y)) => x.to_bits() == y.to_bits(),
+            (Self::F(x), Self::F(y)) => x.to_bits() == y.to_bits(),
+            (Self::S(x), Self::S(y)) => x.to_bits() == y.to_bits(),
+
+            (Self::U(x), Self::U(y)) => x.to_bits() == y.to_bits(),
+            (Self::V(x), Self::V(y)) => x.to_bits() == y.to_bits(),
+
+            (Self::W(x), Self::W(y)) => x.to_bits() == y.to_bits(),
+            (Self::X(x), Self::X(y)) => x.to_bits() == y.to_bits(),
+            (Self::Y(x), Self::Y(y)) => x.to_bits() == y.to_bits(),
+            (Self::Z(x), Self::Z(y)) => x.to_bits() == y.to_bits(),
+            _ => false,
+        }
     }
 }
+
 impl Hash for PosVal {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {

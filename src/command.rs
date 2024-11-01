@@ -120,19 +120,6 @@ mod test {
     #[test]
     fn parse_comment() {}
 
-    // #[test]
-    // fn many() {
-    //     let input = "E5";
-    //     let a = pos_many(input);
-    //     println!("a {a:#?}");
-
-    //     let b = parse_g1("G1 E5");
-    //     println!("b {b:#?}");
-
-    //     let c = parse_g1("G1 E5 F3 ; lift nozzle");
-    //     println!("c {c:#?}");
-    // }
-
     #[test]
     fn g1() {
         // let default = PosPayload::<f64>::default();
@@ -143,14 +130,14 @@ mod test {
                 "G1 Z5 F5000 ; lift nozzle",
                 Command::G1([PosVal::Z(5_f64), PosVal::F(5000_f64)].into()),
             ),
-            // (
-            //     "G1 E1.00000 F1800.00000 ; text",
-            //     Command::G1([PosVal::E(1.0_f64), PosVal::F(1800_f64)].into()),
-            // ),
-            // (
-            //     "G1 Z0.350 F7800.000",
-            //     Command::G1([PosVal::Z(0.350_f64), PosVal::F(7800_f64)].into()),
-            // ),
+            (
+                "G1 E1.00000 F1800.00000 ; text",
+                Command::G1([PosVal::E(1.0_f64), PosVal::F(1800_f64)].into()),
+            ),
+            (
+                "G1 Z0.350 F7800.000",
+                Command::G1([PosVal::Z(0.350_f64), PosVal::F(7800_f64)].into()),
+            ),
         ];
 
         for (line, expected) in text_commands {
