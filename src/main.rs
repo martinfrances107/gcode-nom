@@ -1,3 +1,13 @@
+//! gcode2svg
+//!
+#![deny(clippy::all)]
+#![warn(clippy::cargo)]
+#![warn(clippy::complexity)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::nursery)]
+#![warn(clippy::perf)]
+#![warn(missing_debug_implementations)]
+#![warn(missing_docs)]
 use std::io::stdin;
 use std::io::BufRead;
 use std::io::Result;
@@ -23,7 +33,7 @@ fn main() -> Result<()> {
                 println!("G_Drop code {code:#?}, payload {remain}, ");
             }
             Ok((remain, Command::MDrop(code))) => {
-                println!("G_Drop code {code:#?}, payload {remain}, ");
+                println!("M_Drop code {code:#?}, payload {remain}, ");
             }
             Ok(_) => {}
             Err(e) => {

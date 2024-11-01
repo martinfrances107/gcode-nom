@@ -1,18 +1,18 @@
 use crate::command::Command;
 
 #[derive(Debug, Default, Clone)]
-struct SVG {
+struct Svg {
     parts: Vec<String>,
 }
 
 struct ParseError;
 
-impl<'a> TryFrom<Vec<Command<'a>>> for SVG {
+impl<'a> TryFrom<Vec<Command<'a>>> for Svg {
     type Error = ParseError;
 
     fn try_from(commands: Vec<Command<'a>>) -> Result<Self, Self::Error> {
         let mut abs_coords = true;
-        let mut svg = SVG::default();
+        let mut svg = Self::default();
         for command in commands {
             match command {
                 Command::G1(payload) => {
