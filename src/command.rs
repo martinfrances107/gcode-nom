@@ -8,16 +8,35 @@ use nom::multi::separated_list1;
 use nom::sequence::preceded;
 use nom::IResult;
 
+use crate::pos::parse_a;
+use crate::pos::parse_b;
+use crate::pos::parse_c;
+use crate::pos::parse_e;
+use crate::pos::parse_f;
+use crate::pos::parse_s;
+use crate::pos::parse_u;
+use crate::pos::parse_v;
+use crate::pos::parse_w;
+use crate::pos::parse_x;
+use crate::pos::parse_y;
+use crate::pos::parse_z;
 use crate::pos::PosVal;
 
+/// Commands: -
+///
+/// "The G0 and G1 commands add a linear move to the queue to be performed after all previous moves are completed."
+/// [GCODE doc](<https://marlinfw.org/docs/gcode/G000-G001.html>)
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Command<'a> {
-    /// linear move
     G1(HashSet<PosVal>),
     /// Home all axes
     G21,
     /// use absolute coordinates.
     G90,
+    // use relative position
+    G91,
+    // set position
+    G92(HashSet<PosVal>),
     /// Drop - ie no further action.
     GDrop(&'a str),
     MDrop(&'a str),
@@ -33,6 +52,12 @@ impl<'a> Command<'a> {
             parse_g1,
             map(tag("G21 "), |_| Command::G21),
             map(tag("G90 "), |_| Command::G90),
+            map(tag("G91 "), |_| Command::G91),
+            // map(tag("G92 "), |_| Command::G92),
+            parse_g92,
+            // TODO Missing "bezier"
+            //
+            // Dropping "bed leveling", "dock sled", "Retract", "Stepper motor", "Mechanicla Gantry Calibration"
             map(g_drop, Command::GDrop),
             map(m_drop, Command::MDrop),
             map(tag(";"), |_| Command::Nop),
@@ -60,101 +85,29 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
     )(i)
 }
 
+fn parse_g92(i: &str) -> IResult<&str, Command> {
+    preceded(
+        tag("G92 "),
+        map(pos_many, |val: Vec<PosVal>| {
+            let mut hs: HashSet<PosVal> = HashSet::new();
+            for item in val {
+                hs.insert(item);
+            }
+
+            Command::G1(hs)
+        }),
+    )(i)
+}
+
 fn pos_many(i: &str) -> IResult<&str, Vec<PosVal>> {
     separated_list1(tag(" "), pos_val)(i)
 }
 
 fn pos_val(i: &str) -> IResult<&str, PosVal> {
     alt((
-        parse_a, parse_b, parse_c, parse_e, parse_f, parse_g, parse_s, parse_u, parse_v, parse_w,
-        parse_x, parse_y, parse_z,
+        parse_a, parse_b, parse_c, parse_e, parse_f, parse_s, parse_u, parse_v, parse_w, parse_x,
+        parse_y, parse_z,
     ))(i)
-}
-
-// TODO can I use a macro here!!
-fn parse_a(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("A"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::A cannot decode number.");
-        PosVal::A(number)
-    })(i)
-}
-
-fn parse_b(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("B"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::B cannot decode number.");
-        PosVal::B(number)
-    })(i)
-}
-
-fn parse_c(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("C"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::C cannot decode number.");
-        PosVal::C(number)
-    })(i)
-}
-
-fn parse_e(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("E"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::E cannot decode number.");
-        PosVal::E(number)
-    })(i)
-}
-
-fn parse_f(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("F"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::F cannot decode number.");
-        PosVal::F(number)
-    })(i)
-}
-fn parse_g(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("G"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::G cannot decode number.");
-        PosVal::G(number)
-    })(i)
-}
-// here
-fn parse_s(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("S"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::S cannot decode number.");
-        PosVal::S(number)
-    })(i)
-}
-fn parse_u(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("U"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::U cannot decode number.");
-        PosVal::U(number)
-    })(i)
-}
-fn parse_v(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("V"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::V cannot decode number.");
-        PosVal::V(number)
-    })(i)
-}
-
-fn parse_w(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("W"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::W cannot decode number.");
-        PosVal::W(number)
-    })(i)
-}
-fn parse_x(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("X"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::X cannot decode number.");
-        PosVal::X(number)
-    })(i)
-}
-fn parse_y(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("Y"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::Y cannot decode number.");
-        PosVal::Y(number)
-    })(i)
-}
-fn parse_z(i: &str) -> IResult<&str, PosVal> {
-    map(preceded(tag("Z"), digit1), |v: &str| {
-        let number = v.parse::<f64>().expect("PosVal::Z cannot decode number.");
-        PosVal::Z(number)
-    })(i)
 }
 
 fn m_drop(i: &str) -> IResult<&str, &str> {

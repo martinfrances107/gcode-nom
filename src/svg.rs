@@ -22,6 +22,10 @@ impl<'a> TryFrom<Vec<Command<'a>>> for Svg {
                 Command::G90 => {
                     abs_coords = true;
                 }
+                Command::G91 => todo!(),
+                Command::G92(_) => {
+                    todo!();
+                }
                 Command::GDrop(_) | Command::MDrop(_) | Command::Nop => {}
             }
         }

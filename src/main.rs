@@ -15,6 +15,7 @@ use std::io::Result;
 mod command;
 mod pos;
 mod svg;
+
 use crate::command::Command;
 
 fn main() -> Result<()> {
@@ -28,6 +29,12 @@ fn main() -> Result<()> {
             }
             Ok((remain, Command::G21)) => {
                 println!("G21 {remain}");
+            }
+            Ok((remain, Command::G91)) => {
+                println!("G91 {remain}");
+            }
+            Ok((_, Command::G92(payload))) => {
+                println!("G92 payload {payload:?}");
             }
             Ok((remain, Command::GDrop(code))) => {
                 println!("G_Drop code {code:#?}, payload {remain}, ");
