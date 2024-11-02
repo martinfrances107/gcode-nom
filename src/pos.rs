@@ -7,7 +7,7 @@ use nom::number::complete::double;
 use nom::sequence::preceded;
 use nom::IResult;
 
-/// Parameters for Command::G0 and Command::G1
+/// Parameters for `Command::G0` and `Command::G1`
 #[derive(Clone, Debug)]
 pub enum PosVal {
     /// Axis set { A, B, C }
@@ -36,24 +36,23 @@ pub enum PosVal {
 impl Eq for PosVal {}
 
 /// Bit wise comparison cant' compare directly [NAN and inf]
+///
+/// N.B. Equality is not used in production code -  assertion testing only.
 impl PartialEq for PosVal {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::A(x), Self::A(y)) => x.to_bits() == y.to_bits(),
-            (Self::B(x), Self::B(y)) => x.to_bits() == y.to_bits(),
-            (Self::C(x), Self::C(y)) => x.to_bits() == y.to_bits(),
-
-            (Self::E(x), Self::E(y)) => x.to_bits() == y.to_bits(),
-            (Self::F(x), Self::F(y)) => x.to_bits() == y.to_bits(),
-            (Self::S(x), Self::S(y)) => x.to_bits() == y.to_bits(),
-
-            (Self::U(x), Self::U(y)) => x.to_bits() == y.to_bits(),
-            (Self::V(x), Self::V(y)) => x.to_bits() == y.to_bits(),
-
-            (Self::W(x), Self::W(y)) => x.to_bits() == y.to_bits(),
-            (Self::X(x), Self::X(y)) => x.to_bits() == y.to_bits(),
-            (Self::Y(x), Self::Y(y)) => x.to_bits() == y.to_bits(),
-            (Self::Z(x), Self::Z(y)) => x.to_bits() == y.to_bits(),
+            (Self::A(x), Self::A(y))
+            | (Self::B(x), Self::B(y))
+            | (Self::C(x), Self::C(y))
+            | (Self::E(x), Self::E(y))
+            | (Self::F(x), Self::F(y))
+            | (Self::S(x), Self::S(y))
+            | (Self::U(x), Self::U(y))
+            | (Self::V(x), Self::V(y))
+            | (Self::W(x), Self::W(y))
+            | (Self::X(x), Self::X(y))
+            | (Self::Y(x), Self::Y(y))
+            | (Self::Z(x), Self::Z(y)) => x.to_bits() == y.to_bits(),
             _ => false,
         }
     }

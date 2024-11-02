@@ -1,19 +1,25 @@
+use core::marker::PhantomData;
+
 use crate::command::Command;
 
 #[derive(Debug, Default, Clone)]
-struct Svg {
+struct Svg<'a, T> {
+    pd: PhantomData<&'a T>,
     parts: Vec<String>,
 }
 
 struct ParseError;
 
-impl<'a> TryFrom<Vec<Command<'a>>> for Svg {
-    type Error = ParseError;
+impl<'a, T> FromIterator<Command<'a>> for Svg<'a, T>
+where
+    T: Default,
+{
+    fn from_iter<I: IntoIterator<Item = Command<'a>>>(iter: I) -> Self {
+        let mut svg: Svg<'a, T> = Self::default();
 
-    fn try_from(commands: Vec<Command<'a>>) -> Result<Self, Self::Error> {
         let mut abs_coords = true;
         let mut svg = Self::default();
-        for command in commands {
+        for command in iter {
             match command {
                 Command::G1(payload) => {
                     println!("G1 - payload {payload:?}");
@@ -29,6 +35,7 @@ impl<'a> TryFrom<Vec<Command<'a>>> for Svg {
                 Command::GDrop(_) | Command::MDrop(_) | Command::Nop => {}
             }
         }
-        Ok(svg)
+
+        svg
     }
 }
