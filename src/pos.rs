@@ -7,12 +7,14 @@ use nom::number::complete::double;
 use nom::sequence::preceded;
 use nom::IResult;
 
+/// Parameters for Command::G0 and Command::G1
 #[derive(Clone, Debug)]
 pub enum PosVal {
     /// Axis set { A, B, C }
     A(f64),
     B(f64),
     C(f64),
+
     // Extruder
     E(f64),
     /// sets the federate for all subsequent moved.
@@ -57,6 +59,14 @@ impl PartialEq for PosVal {
     }
 }
 
+/// Hash is used to determine if an entry should be added to the Sets
+///
+/// malformed commands with duplicate paramters will be rejected here.
+///
+/// G1 X95.110 X96.233 E2.07708
+///
+/// By ignoring the f64 in hashing the parsed Command will only have one
+/// X value.
 impl Hash for PosVal {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
