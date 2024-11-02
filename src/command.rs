@@ -56,7 +56,7 @@ impl<'a> Command<'a> {
             parse_g92,
             // TODO Missing "bezier"
             //
-            // Dropping "bed leveling", "dock sled", "Retract", "Stepper motor", "Mechanicla Gantry Calibration"
+            // Dropping "bed leveling", "dock sled", "Retract", "Stepper motor", "Mechanical Gantry Calibration"
             map(g_drop, Command::GDrop),
             map(m_drop, Command::MDrop),
             map(tag(";"), |_| Command::Nop),
@@ -73,12 +73,10 @@ fn g_drop(i: &str) -> IResult<&str, &str> {
 fn parse_g1(i: &str) -> IResult<&str, Command> {
     preceded(
         tag("G1 "),
-        map(pos_many, |val: Vec<PosVal>| {
-            let mut hs: HashSet<PosVal> = HashSet::new();
-            for item in val {
-                hs.insert(item);
-            }
-
+        map(pos_many, |vals: Vec<PosVal>| {
+            // Paranoid: deduplication.
+            // eg. There can be only one E<f64>.
+            let hs = HashSet::from_iter(vals);
             Command::G1(hs)
         }),
     )(i)
@@ -88,6 +86,8 @@ fn parse_g92(i: &str) -> IResult<&str, Command> {
     preceded(
         tag("G92 "),
         map(pos_many, |vals: Vec<PosVal>| {
+            // Paranoid: deduplication.
+            // eg. There can be only one E<f63> value.
             let hs = HashSet::from_iter(vals);
             Command::G92(hs)
         }),
