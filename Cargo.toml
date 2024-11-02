@@ -1,7 +1,15 @@
 [package]
-name = "gcode2svg"
-version = "0.1.0"
+authors = ["martin <martinfrances107@hotmail.com>"]
 edition = "2021"
+name = "gcode2svg"
+categories = ["Parsing tools"]
+description = "Visualization tool for inspecting a g-code file."
+homepage = "https://github.com/martinfrances107/gcode2svg"
+keywords = ["visualization"]
+license = "MIT"
+repository = "https://github.com/martinfrances107/gcode2svg"
+rust-version = "1.80"
+version = "0.1.0"
 
 [dependencies]
 nom = "7.1.3"
