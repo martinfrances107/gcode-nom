@@ -30,7 +30,7 @@ impl Display for Svg {
         write!(
             f,
             r#""
-style="fill:none;stroke:green;stroke-width:3" />
+style="fill:none;stroke:green;stroke-width:0.05" />
  </svg>"#
         )?;
         Ok(())
@@ -57,12 +57,11 @@ impl FromIterator<String> for Svg {
         let mut svg = Self::default();
 
         let mut abs_coords = CoordPos::default();
+        let mut z = 0_f64;
         for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command not parseable");
-            // Error if x,y are missing .. Z default to 0!!
             let mut x = f64::NAN;
             let mut y = f64::NAN;
-            let mut z = 0.;
             match command {
                 // A non printable move.
                 Command::G0(mut payload) => {
@@ -73,23 +72,29 @@ impl FromIterator<String> for Svg {
                             PosVal::Y(val) => y = val,
                             PosVal::Z(val) => z = val,
                             PosVal::E(_) | PosVal::F(_) => {
-                                // silently drop
+                                // Silently drop.
                             }
                             pos_bad => {
                                 eprintln!("Unexpected param seen in Command::G1 {pos_bad:?}");
                             }
                         }
                     }
-                    // Convert x,y,z, into projected x,y.
-                    // TODO: Must do something better.
-                    let proj_x = x + z / 2.;
-                    let proj_y = y + z / 2.;
-                    match abs_coords {
-                        CoordPos::Absolute => {
-                            svg.parts.push(format!("M{proj_x} {proj_y}"));
-                        }
-                        CoordPos::Relative => {
-                            svg.parts.push(format!("m{proj_x} {proj_y}"));
+
+                    // Valid `Command::G0` -  Where X and Y and undefined
+                    //
+                    // "G1 E2.72551 F1800.00000"
+                    if !x.is_nan() && !y.is_nan() {
+                        // Convert x,y,z, into projected x,y.
+                        // TODO: Must do something better.
+                        let proj_x = x - z / 2.;
+                        let proj_y = y - z / 2.;
+                        match abs_coords {
+                            CoordPos::Absolute => {
+                                svg.parts.push(format!("M{proj_x} {proj_y}"));
+                            }
+                            CoordPos::Relative => {
+                                svg.parts.push(format!("m{proj_x} {proj_y}"));
+                            }
                         }
                     }
                 }
@@ -116,8 +121,8 @@ impl FromIterator<String> for Svg {
                     //
                     // "G1 E2.72551 F1800.00000"
                     if !x.is_nan() && !y.is_nan() {
-                        let proj_x = x + z / 2.;
-                        let proj_y = y + z / 2.;
+                        let proj_x = x - z / 2.;
+                        let proj_y = y - z / 2.;
                         match abs_coords {
                             CoordPos::Absolute => {
                                 svg.parts.push(format!("L{proj_x} {proj_y}"));
