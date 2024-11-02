@@ -2,9 +2,9 @@ use std::collections::HashSet;
 
 use nom::branch::alt;
 use nom::bytes::complete::tag;
-use nom::character::complete::digit1;
 use nom::combinator::map;
 use nom::multi::separated_list1;
+use nom::number::complete::double;
 use nom::sequence::preceded;
 use nom::IResult;
 
@@ -26,48 +26,73 @@ use crate::pos::PosVal;
 ///
 /// "The G0 and G1 commands add a linear move to the queue to be performed after all previous moves are completed."
 /// [GCODE doc](<https://marlinfw.org/docs/gcode/G000-G001.html>)
+///
+/// Missing Commands :-
+///  "bezier"
+///  ... TODO maybe more.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Command<'a> {
+pub enum Command {
+    ///  "G0 for non-print moves. It makes G-code more adaptable to lasers, engravers, etc."
+    G0(HashSet<PosVal>),
+    /// Printable move
     G1(HashSet<PosVal>),
     /// Home all axes
     G21,
-    /// use absolute coordinates.
+    // "G90 ; Set all axes to absolute"
     G90,
-    // use relative position
+    // "G91 ; Set all axes to relative"
     G91,
-    // set position
+    // Set the current position to the values specified.
+    // eg. "G92 E0"
+    // TODO:  F and S are not permitted here.
     G92(HashSet<PosVal>),
     /// Drop - ie no further action.
-    GDrop(&'a str),
-    MDrop(&'a str),
+    GDrop(u16),
+    MDrop(u16),
 
-    /// No Operation
+    /// No Operation eg a blank line "".
     Nop,
 }
 
-impl<'a> Command<'a> {
-    pub(crate) fn parse_line(line: &str) -> IResult<&str, Command> {
+impl Command {
+    pub fn parse_line(line: &str) -> IResult<&str, Self> {
         // Most common first.
         alt((
             parse_g1,
-            map(tag("G21 "), |_| Command::G21),
-            map(tag("G90 "), |_| Command::G90),
-            map(tag("G91 "), |_| Command::G91),
+            map(tag("G21 "), |_| Self::G21),
+            map(tag("G90 "), |_| Self::G90),
+            map(tag("G91 "), |_| Self::G91),
             parse_g92,
-            // TODO Missing "bezier"
-            //
+            // Command::G0 - Non printing moves are infrequent.
+            //  eg "The benchy" example has none.
+            parse_g0,
             // Dropping "bed leveling", "dock sled", "Retract", "Stepper motor", "Mechanical Gantry Calibration"
-            map(g_drop, Command::GDrop),
-            map(m_drop, Command::MDrop),
-            map(tag(";"), |_| Command::Nop),
-            map(tag(""), |_| Command::Nop),
+            map(g_drop, Self::GDrop),
+            map(m_drop, Self::MDrop),
+            map(tag(";"), |_| Self::Nop),
+            map(tag(""), |_| Self::Nop),
         ))(line)
     }
 }
 
 // G commands that require no further action
-fn g_drop(i: &str) -> IResult<&str, &str> {
-    preceded(tag("G "), digit1)(i)
+pub fn g_drop(i: &str) -> IResult<&str, u16> {
+    map(preceded(tag("G"), double), |val| {
+        let out: u16 = val as u16;
+        out
+    })(i)
+}
+
+fn parse_g0(i: &str) -> IResult<&str, Command> {
+    preceded(
+        tag("G0 "),
+        map(pos_many, |vals: Vec<PosVal>| {
+            // Paranoid: deduplication.
+            // eg. There can be only one E<f64>.
+            let hs = HashSet::from_iter(vals);
+            Command::G0(hs)
+        }),
+    )(i)
 }
 
 fn parse_g1(i: &str) -> IResult<&str, Command> {
@@ -105,8 +130,11 @@ fn pos_val(i: &str) -> IResult<&str, PosVal> {
     ))(i)
 }
 
-fn m_drop(i: &str) -> IResult<&str, &str> {
-    preceded(tag("M"), digit1)(i)
+pub fn m_drop(i: &str) -> IResult<&str, u16> {
+    map(preceded(tag("M"), double), |val| {
+        let out: u16 = val as u16;
+        out
+    })(i)
 }
 
 #[cfg(test)]
