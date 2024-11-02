@@ -1,4 +1,3 @@
-use core::hash::Hash;
 use std::collections::HashSet;
 
 use nom::branch::alt;

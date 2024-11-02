@@ -8,8 +8,6 @@ struct Svg<'a, T> {
     parts: Vec<String>,
 }
 
-struct ParseError;
-
 impl<'a, T> FromIterator<Command<'a>> for Svg<'a, T>
 where
     T: Default,
