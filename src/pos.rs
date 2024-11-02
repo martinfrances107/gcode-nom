@@ -8,7 +8,7 @@ use nom::sequence::preceded;
 use nom::IResult;
 
 #[derive(Clone, Debug)]
-pub(crate) enum PosVal {
+pub enum PosVal {
     /// Axis set { A, B, C }
     A(f64),
     B(f64),

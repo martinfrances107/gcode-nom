@@ -26,8 +26,8 @@ use crate::pos::PosVal;
 ///
 /// "The G0 and G1 commands add a linear move to the queue to be performed after all previous moves are completed."
 /// [GCODE doc](<https://marlinfw.org/docs/gcode/G000-G001.html>)
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) enum Command<'a> {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Command<'a> {
     G1(HashSet<PosVal>),
     /// Home all axes
     G21,
@@ -118,7 +118,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn parse_comment() {}
+    const fn parse_comment() {}
 
     #[test]
     fn g1() {
@@ -155,5 +155,5 @@ mod test {
         }
     }
     #[test]
-    fn parse_g_drop() {}
+    const fn parse_g_drop() {}
 }
