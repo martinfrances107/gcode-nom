@@ -1,3 +1,4 @@
+use core::hash::Hash;
 use std::collections::HashSet;
 
 use nom::branch::alt;
@@ -87,12 +88,8 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
 fn parse_g92(i: &str) -> IResult<&str, Command> {
     preceded(
         tag("G92 "),
-        map(pos_many, |val: Vec<PosVal>| {
-            let mut hs: HashSet<PosVal> = HashSet::new();
-            for item in val {
-                hs.insert(item);
-            }
-
+        map(pos_many, |vals: Vec<PosVal>| {
+            let hs = HashSet::from_iter(vals);
             Command::G92(hs)
         }),
     )(i)
