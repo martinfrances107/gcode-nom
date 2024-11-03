@@ -10,6 +10,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "gcode2obj"
+version = "0.1.0"
+dependencies = [
+ "gcode-nom",
+ "nom",
+]
+
+[[package]]
 name = "gcode2svg"
 version = "0.1.0"
 dependencies = [

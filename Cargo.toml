@@ -1,6 +1,6 @@
 
 [workspace]
-members = ["./lib", "./gcode2svg"]
+members = ["./lib", "./gcode2svg", "gcode2obj"]
 resolver = "2"
 default-members = ["./lib"]
 

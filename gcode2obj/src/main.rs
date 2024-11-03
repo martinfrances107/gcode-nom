@@ -24,7 +24,7 @@ fn main() -> Result<()> {
         lines.push(line);
     }
 
-    let svg = Svg::from_iter(lines);
+    let svg = Obj::from_iter(lines);
     println!("{svg}");
     Ok(())
 }
