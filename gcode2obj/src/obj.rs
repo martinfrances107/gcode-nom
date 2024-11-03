@@ -68,6 +68,7 @@ impl Display for Obj {
                 // The first index is '1'.
                 write!(f, " {}", i + 1)?;
             }
+            writeln!(f, "")?;
         }
         Ok(())
     }
