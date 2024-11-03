@@ -1,12 +1,21 @@
-# gcodeToSvg
+# gcode-nom
 
 Rust 2021 Edition.
 
-A G-code visualization tool written in [rust](https://www.rust-lang.org/)
+Parses strings into G-code comamnds.
 
-A nom based parser, outputs a svg curve which can be imported into blender and a Bevy app for visuallization
+This allows a series of G-code visualization tool.
 
-## How to use
+```bash
+gcode2svg
+gocde2obj
+```
+
+## gcode2svg
+
+A nom based parser, outputs a svg file
+
+### How to use
 
 parses StdIn as a gcode file - the SVG file is send to StdOut :-
 
@@ -16,8 +25,10 @@ cargo run --release -- < ./assets/bency.gcode > bench.svg
 
 This is undergoing rapid development.
 
-see [todo](TODO.md)
+see [TODO](TODO.md)
 
 ## Future work
 
-Maybe output a obj file?
+### gcode2obj
+
+which can be imported into blender and a [Bevy](<https://bevyengine.org/>) app for visuallization
