@@ -86,39 +86,63 @@ impl Hash for PosVal {
 }
 
 // TODO: can I use a macro here!!
+
+/// Extracts A parameter - "G1 A95.110"
 pub fn parse_a(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("A"), double), PosVal::A)(i)
 }
+
+/// Extracts B parameter - "G1 B95.110"
 pub fn parse_b(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("B"), double), PosVal::B)(i)
 }
+
+/// Extracts C parameter - "G1 C95.110"
 pub fn parse_c(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("C"), double), PosVal::C)(i)
 }
+
+/// Extracts E parameter - "G1 E95.110"
 pub fn parse_e(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("E"), double), PosVal::E)(i)
 }
+
+/// Extracts F parameter - "G1 F95.110"
 pub fn parse_f(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("F"), double), PosVal::F)(i)
 }
+
+/// Extracts S parameter - "G1 S95.110"
 pub fn parse_s(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("S"), double), PosVal::S)(i)
 }
+
+/// Extracts U parameter - "G1 U95.110"
 pub fn parse_u(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("U"), double), PosVal::U)(i)
 }
+
+/// Extracts V parameter - "G1 V95.110"
 pub fn parse_v(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("V"), double), PosVal::V)(i)
 }
+
+/// Extracts W parameter - "G1 W95.110"
 pub fn parse_w(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("W"), double), PosVal::W)(i)
 }
+
+/// Extracts X parameter - "G1 X95.110"
 pub fn parse_x(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("X"), double), PosVal::X)(i)
 }
+
+/// Extracts Y parameter - "G1 Y95.110"
 pub fn parse_y(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("Y"), double), PosVal::Y)(i)
 }
+
+/// Extracts Z parameter - "G1 Z95.110"
 pub fn parse_z(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("Z"), double), PosVal::Z)(i)
 }

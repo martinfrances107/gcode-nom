@@ -1,6 +1,7 @@
 use core::fmt::Display;
 
-use crate::{command::Command, pos::PosVal};
+use gcode_nom::command::Command;
+use gcode_nom::pos::PosVal;
 
 #[derive(Debug, Default, Clone)]
 pub struct Svg {

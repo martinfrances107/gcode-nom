@@ -1,6 +1,12 @@
 # TASKS
 
-[x] - input from stdIn
+[] - What is the best "next" target obj, dwg
+
+[] - separate - lib bin for svg, bin for obj?
+
+[] - Develop Ortho projection for svg
+     via cli rotate on Z axis and scale.
+     how to merge sx, sy, sz into a single value?
 
 [] - identify M-code than should not be dropped.
 
@@ -14,4 +20,4 @@ After basic functionality
 
 [] - after working add checksum as a paranoid step.
 
-[] - Adde hero image to README.md
+[] - Add hero image to README.md

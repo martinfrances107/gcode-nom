@@ -12,8 +12,6 @@ use std::io::stdin;
 use std::io::BufRead;
 use std::io::Result;
 
-mod command;
-mod pos;
 mod svg;
 
 use svg::Svg;
@@ -33,7 +31,7 @@ fn main() -> Result<()> {
 
 #[cfg(test)]
 mod test {
-    use crate::command::Command;
+    use gcode_nom::command::Command;
 
     // The first few lines of assets/3dBench.gcode
     static INPUT: &str = r"

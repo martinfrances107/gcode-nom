@@ -38,16 +38,17 @@ pub enum Command {
     G1(HashSet<PosVal>),
     /// Home all axes
     G21,
-    // "G90 ; Set all axes to absolute"
+    /// "G90 ; Set all axes to absolute"
     G90,
-    // "G91 ; Set all axes to relative"
+    /// "G91 ; Set all axes to relative"
     G91,
-    // Set the current position to the values specified.
-    // eg. "G92 E0"
-    // TODO:  F and S are not permitted here.
+    /// Set the current position to the values specified.
+    /// eg. "G92 E0"
+    /// TODO:  F and S are not permitted here.
     G92(HashSet<PosVal>),
-    /// Drop - ie no further action.
+    /// Drop G - no further action.
     GDrop(u16),
+    /// Drop M - no further action.
     MDrop(u16),
 
     /// No Operation eg a blank line "".
@@ -55,6 +56,7 @@ pub enum Command {
 }
 
 impl Command {
+    /// Decodes a GCode command.
     pub fn parse_line(line: &str) -> IResult<&str, Self> {
         // Most common first.
         alt((
@@ -75,7 +77,7 @@ impl Command {
     }
 }
 
-// G commands that require no further action
+/// G commands that require no further action
 pub fn g_drop(i: &str) -> IResult<&str, u16> {
     map(preceded(tag("G"), double), |val| {
         let out: u16 = val as u16;
@@ -130,6 +132,7 @@ fn pos_val(i: &str) -> IResult<&str, PosVal> {
     ))(i)
 }
 
+/// Drop M code - no further action
 pub fn m_drop(i: &str) -> IResult<&str, u16> {
     map(preceded(tag("M"), double), |val| {
         let out: u16 = val as u16;
