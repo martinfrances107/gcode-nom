@@ -13,4 +13,15 @@
 pub mod command;
 
 /// Parsing rules for gcode parameters `Pos<number>`
-pub mod pos;
+pub mod parms;
+
+/// Absolute or Relative positioning
+#[derive(Default, Debug)]
+pub enum CoordPos {
+    /// As per spec `CoordPos::Absolute` is the dafault
+    /// <https://marlinfw.org/docs/gcode/G090.html>
+    #[default]
+    Absolute,
+    /// Relative positioning.
+    Relative,
+}

@@ -8,19 +8,19 @@ use nom::number::complete::double;
 use nom::sequence::preceded;
 use nom::IResult;
 
-use crate::pos::parse_a;
-use crate::pos::parse_b;
-use crate::pos::parse_c;
-use crate::pos::parse_e;
-use crate::pos::parse_f;
-use crate::pos::parse_s;
-use crate::pos::parse_u;
-use crate::pos::parse_v;
-use crate::pos::parse_w;
-use crate::pos::parse_x;
-use crate::pos::parse_y;
-use crate::pos::parse_z;
-use crate::pos::PosVal;
+use crate::parms::parse_a;
+use crate::parms::parse_b;
+use crate::parms::parse_c;
+use crate::parms::parse_e;
+use crate::parms::parse_f;
+use crate::parms::parse_s;
+use crate::parms::parse_u;
+use crate::parms::parse_v;
+use crate::parms::parse_w;
+use crate::parms::parse_x;
+use crate::parms::parse_y;
+use crate::parms::parse_z;
+use crate::parms::PosVal;
 
 /// Commands: -
 ///
@@ -56,7 +56,10 @@ pub enum Command {
 }
 
 impl Command {
-    /// Decodes a GCode command.
+    /// Decodes a `GCode` command.
+    ///
+    /// # Errors
+    ///   When match fails.
     pub fn parse_line(line: &str) -> IResult<&str, Self> {
         // Most common first.
         alt((
@@ -78,6 +81,9 @@ impl Command {
 }
 
 /// G commands that require no further action
+///
+/// # Errors
+///   When match fails.
 pub fn g_drop(i: &str) -> IResult<&str, u16> {
     map(preceded(tag("G"), double), |val| {
         let out: u16 = val as u16;
@@ -85,6 +91,9 @@ pub fn g_drop(i: &str) -> IResult<&str, u16> {
     })(i)
 }
 
+///
+/// # Errors
+///   When match fails.
 fn parse_g0(i: &str) -> IResult<&str, Command> {
     preceded(
         tag("G0 "),
@@ -97,6 +106,9 @@ fn parse_g0(i: &str) -> IResult<&str, Command> {
     )(i)
 }
 
+///
+/// # Errors
+///   When match fails.
 fn parse_g1(i: &str) -> IResult<&str, Command> {
     preceded(
         tag("G1 "),
@@ -109,6 +121,9 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
     )(i)
 }
 
+///
+/// # Errors
+///   When match fails.
 fn parse_g92(i: &str) -> IResult<&str, Command> {
     preceded(
         tag("G92 "),
@@ -121,10 +136,16 @@ fn parse_g92(i: &str) -> IResult<&str, Command> {
     )(i)
 }
 
+///
+/// # Errors
+///   When match fails.
 fn pos_many(i: &str) -> IResult<&str, Vec<PosVal>> {
     separated_list1(tag(" "), pos_val)(i)
 }
 
+///
+/// # Errors
+///   When match fails.
 fn pos_val(i: &str) -> IResult<&str, PosVal> {
     alt((
         parse_a, parse_b, parse_c, parse_e, parse_f, parse_s, parse_u, parse_v, parse_w, parse_x,
@@ -133,6 +154,9 @@ fn pos_val(i: &str) -> IResult<&str, PosVal> {
 }
 
 /// Drop M code - no further action
+///
+/// # Errors
+///   When match fails.
 pub fn m_drop(i: &str) -> IResult<&str, u16> {
     map(preceded(tag("M"), double), |val| {
         let out: u16 = val as u16;

@@ -11,13 +11,9 @@ A nom based parser, outputs a svg curve which can be imported into blender and a
 parses StdIn as a gcode file - the SVG file is send to StdOut :-
 
 ```bash
-cargo run --release -- < ./assets/bency.gcode > bench.svg
+cargo run --release -- < ../assets/bency.gcode > benchy.svg
 ```
-
-This is undergoing rapid development.
-
-see [todo](TODO.md)
 
 ## Future work
 
-Maybe output a obj file?
+Use the clap module to define option scale and rotation paraneters.

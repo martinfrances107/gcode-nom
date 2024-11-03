@@ -1,8 +1,7 @@
 use core::fmt::Display;
 
 use gcode_nom::command::Command;
-use gcode_nom::parms::PosVal;
-use gcode_nom::CoordPos;
+use gcode_nom::pos::PosVal;
 
 #[derive(Debug, Default, Clone)]
 pub struct Svg {
