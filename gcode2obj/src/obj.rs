@@ -51,6 +51,18 @@ pub struct Obj {
 //     }
 // }
 
+// Display the object
+
+// Bleder's obj importer applies a non-standard transform
+//
+// Blender's red +X axis =>> Obj +X axis
+// Blender's green +Y axis =>> Obj -Z axis
+// Blender's blue +Z axis =>> Obj +Y axis
+//
+// "This is intentional since most OBJ files have a different UP to whats used
+//  in blender, blender switches the axis on import/export intentionally."
+//
+// Campbell Barton
 impl Display for Obj {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // Output vertex buffer
