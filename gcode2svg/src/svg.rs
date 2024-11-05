@@ -20,7 +20,7 @@ impl Default for Svg {
             max_x: -f64::INFINITY,
             min_y: f64::INFINITY,
             max_y: -f64::INFINITY,
-            parts: Default::default(),
+            parts: Vec::default(),
         }
     }
 }
@@ -32,13 +32,13 @@ impl Svg {
             self.max_x = proj_x;
         }
         if proj_x < self.min_x {
-            self.min_x = proj_x
+            self.min_x = proj_x;
         }
         if proj_y > self.max_y {
             self.max_y = proj_y;
         }
         if proj_y < self.min_y {
-            self.min_y = proj_y
+            self.min_y = proj_y;
         }
     }
 }
@@ -114,7 +114,6 @@ impl FromIterator<String> for Svg {
                     // "G1 E2.72551 F1800.00000"
                     if !x.is_nan() && !y.is_nan() {
                         // Convert x,y,z, into projected x,y.
-                        // TODO: Must do something better.
                         let proj_x = y / 2. + x / 2.;
                         let proj_y = -z - y / 2. + x / 2.;
                         svg.update_view_box(proj_x, proj_y);
