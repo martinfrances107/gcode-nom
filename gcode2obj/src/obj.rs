@@ -39,6 +39,9 @@ pub struct Obj {
     // A collection of lines
     // A collection index_buffers reperesenting line.
     lines: Vec<Vec<usize>>,
+
+    // Blender axes compatible mode.
+    pub apply_blender_transform: bool,
 }
 
 // A line could not be decoded as an G-Code command
@@ -65,13 +68,20 @@ pub struct Obj {
 // Campbell Barton
 impl Display for Obj {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // Output vertex buffer
+        // Write out vertex buffer
         // "List of geometric vertices, with (x, y, z, [w]) coordinates, w is optional and defaults to 1.0."
         // [spec](<https://en.wikipedia.org/wiki/Wavefront_.obj_file>)
-        for Vertex(x, y, z) in &self.vertex_buffer {
-            writeln!(f, "v {x} {y} {z}")?;
+        if self.apply_blender_transform {
+            for Vertex(x, y, z) in &self.vertex_buffer {
+                writeln!(f, "v {x} {z} {y}")?;
+            }
+        } else {
+            for Vertex(x, y, z) in &self.vertex_buffer {
+                writeln!(f, "v {x} {y} {z}")?;
+            }
         }
 
+        // Write out sequence of index buffers.
         for line in &self.lines {
             // line "l 1 2 3"  list of vertex indicies.
             write!(f, "l")?;
@@ -80,7 +90,7 @@ impl Display for Obj {
                 // The first index is '1'.
                 write!(f, " {}", i + 1)?;
             }
-            writeln!(f, "")?;
+            writeln!(f)?;
         }
         Ok(())
     }
@@ -174,7 +184,7 @@ impl FromIterator<String> for Obj {
                         }
                     }
                 }
-                Command::GDrop(_) | Command::MDrop(_) | Command::Nop | _ => {}
+                _ => {}
             }
         }
         obj

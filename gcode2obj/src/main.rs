@@ -16,7 +16,23 @@ mod obj;
 
 use obj::Obj;
 
+use clap::ArgAction;
+use clap::Parser;
+
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Blender compatibility mode.
+    #[clap(long, short, action=ArgAction::SetTrue)]
+    apply_blender_transform: bool,
+}
+
 fn main() -> Result<()> {
+    let args = Args::parse();
+
+    println!("{}!", args.apply_blender_transform);
+
     let stdin = stdin();
     let mut lines = vec![];
     for next_line in stdin.lock().lines() {
@@ -24,8 +40,10 @@ fn main() -> Result<()> {
         lines.push(line);
     }
 
-    let svg = Obj::from_iter(lines);
-    println!("{svg}");
+    let mut obj = Obj::from_iter(lines);
+
+    obj.apply_blender_transform = args.apply_blender_transform;
+    println!("{obj}");
     Ok(())
 }
 

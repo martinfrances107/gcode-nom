@@ -1,10 +1,11 @@
 # TASKS
 
-[] - Develop Ortho projection for svg
-     via cli rotate on Z axis and scale.
+[] - Develop Ortho projection for SVG
+
+[] - SVG Via cli rotate on Z axis and scale.
      how to merge sx, sy, sz into a single value?
 
-[] - identify M-code than should not be dropped.
+[] - identify which M-code than should not be dropped.
 
 [] - tests
 

@@ -11,6 +11,20 @@ gcode2svg
 gocde2obj
 ```
 
+## gcode2obj
+
+Generates obj file
+
+Which for example can be imported into blender for visualisation
+
+![Benchy in Blender](images/BlenderBenchy.png)
+
+Within blender :-
+
+1) This obj has been "Imported".
+2) Converted into a "Curve".
+3) Finally  circular bevel object has been applied to make the object solid [ A circle to represent a 0.1mm fibre].
+
 ## gcode2svg
 
 A nom based parser, outputs a svg file
@@ -29,6 +43,4 @@ see [TODO](TODO.md)
 
 ## Future work
 
-### gcode2obj
-
-which can be imported into blender and a [Bevy](<https://bevyengine.org/>) app for visuallization
+A Bevy app?
