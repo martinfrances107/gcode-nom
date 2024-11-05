@@ -16,28 +16,33 @@
 //!
 //! <https://github.com/rust-av/flavors/blob/master/src/parser.rs>
 //!
+mod fh;
 mod fm;
 mod gcode;
 mod pm;
 mod sm;
 mod thumb;
 
+use std::fmt::Display;
+
+use fh::{file_header_parse, FileHeader};
 use fm::FileMetadataBlock;
 use gcode::GCodeBlock;
 use nom::{
     combinator::map_res,
     error::{Error, ErrorKind},
-    number::streaming::be_u16,
+    number::streaming::le_u16,
     Err, IResult,
 };
 use pm::PrinterMetadataBlock;
 use sm::SlicerMetadataBlock;
 use thumb::ThumbnailBlock;
 
-// Structure of the binary file.
-//
-// extension .bgcode
-struct Bgcode {
+/// Structure of the binary file.
+///
+/// extension .bgcode
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Bgcode {
     fh: FileHeader,
     file_metadata: Option<FileMetadataBlock>,
     printer_metadata: PrinterMetadataBlock,
@@ -47,9 +52,28 @@ struct Bgcode {
     gcode: Vec<GCodeBlock>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct FileHeader {
-    header: BlockHeader,
+impl Display for Bgcode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "File Header")?;
+        writeln!(f,)?;
+        writeln!(f, "{}", self.fh)?;
+
+        // TODO add more sections
+        Ok(())
+    }
+}
+
+/// Parses a binary gcode
+///
+/// # Panics
+///   When the bytes stream is not a valid file.
+pub fn bgcode_parse(input: &[u8]) -> IResult<&[u8], Bgcode> {
+    map_res(file_header_parse, |fh| {
+        Ok::<Bgcode, Err<Error<&[u8]>>>(Bgcode {
+            fh,
+            ..Bgcode::default()
+        })
+    })(input)
 }
 
 /// Block header
@@ -65,14 +89,14 @@ struct FileHeader {
 /// <https://github.com/prusa3d/libbgcode/blob/main/doc/specifications.md#block-header>
 ///
 ///
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub(crate) struct BlockHeader {
     block_type: u16,
     // Compression algorithm
     compression: u16,
     // Size of data when uncompressed
     uncompressed_size: u32,
-    // Size of data whehn compressed
+    // Size of data when compressed
     compressed_size: u32,
 }
 
@@ -87,7 +111,7 @@ enum BlockType {
 }
 
 fn block_type_parse(input: &[u8]) -> IResult<&[u8], BlockType> {
-    map_res(be_u16, |block_type: u16| {
+    map_res(le_u16, |block_type: u16| {
         // help
         Ok(match block_type {
             0 => BlockType::FileMetadata,
@@ -103,7 +127,7 @@ fn block_type_parse(input: &[u8]) -> IResult<&[u8], BlockType> {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum Compression {
-    NoCompression = 0,
+    None = 0,
     Deflate = 1,
     // Heatshrink algorithm with window size 11 and lookahead size 4
     HeatShrink11 = 2,
@@ -112,10 +136,10 @@ enum Compression {
 }
 
 fn compression_parse(input: &[u8]) -> IResult<&[u8], Compression> {
-    map_res(be_u16, |compression: u16| {
+    map_res(le_u16, |compression: u16| {
         // help
         Ok(match compression {
-            0 => Compression::NoCompression,
+            0 => Compression::None,
             1 => Compression::Deflate,
             2 => Compression::HeatShrink11,
             3 => Compression::HeatShrink12,

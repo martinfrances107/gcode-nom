@@ -1,6 +1,7 @@
 # TASKS
 
 [] - Read from binary gcode.
+      Initial validator is one that parses the fileheader.
 
 [] - SVG does not handle nom printing moves.
 

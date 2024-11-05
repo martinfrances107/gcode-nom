@@ -1,7 +1,7 @@
 [package]
 authors = ["martin <martinfrances107@hotmail.com>"]
 edition = "2021"
-name = "bgcodeViewer"
+name = "bgcodeValidator"
 categories = ["Parsing tools"]
 description = "[Wavefront obj] Visualization tool for inspecting a g-code file. "
 homepage = "https://github.com/martinfrances107/gcode2svg"

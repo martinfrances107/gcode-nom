@@ -10,27 +10,33 @@ use nom::IResult;
 /// Parameters for `Command::G0` and `Command::G1`
 #[derive(Clone, Debug)]
 pub enum PosVal {
-    /// Axis set { A, B, C }
+    /// Axis A
     A(f64),
+    /// Axis B
     B(f64),
+    /// Axis C
     C(f64),
 
-    // Extruder
+    /// Extruder
     E(f64),
     /// sets the federate for all subsequent moved.
     F(f64),
     /// Sets the laser power for the move
     S(f64),
 
-    /// Axis set { U, V }
+    /// Axis U
     U(f64),
+    /// Axis V
     V(f64),
 
-    /// Axis set { W, X, Y, Z }
-    W(f64),
+    /// Axis X
     X(f64),
+    /// Axis Y
     Y(f64),
+    /// Axis Z
     Z(f64),
+    /// Axis W
+    W(f64),
 }
 
 impl Eq for PosVal {}

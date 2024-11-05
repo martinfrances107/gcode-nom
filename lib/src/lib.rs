@@ -9,13 +9,12 @@
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
 
+/// Streaming for binary gcode files
+pub mod binary;
 /// Parsing rules for gcode commands
 pub mod command;
-
 /// Parsing rules for gcode parameters `Pos<number>`
 pub mod parms;
-
-mod binary;
 
 /// Absolute or Relative positioning
 #[derive(Default, Debug)]
