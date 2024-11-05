@@ -4,11 +4,44 @@ use gcode_nom::command::Command;
 use gcode_nom::parms::PosVal;
 use gcode_nom::CoordPos;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct Svg {
+    min_x: f64,
+    min_y: f64,
+    max_x: f64,
+    max_y: f64,
     parts: Vec<String>,
 }
 
+impl Default for Svg {
+    fn default() -> Self {
+        Self {
+            min_x: f64::INFINITY,
+            max_x: -f64::INFINITY,
+            min_y: f64::INFINITY,
+            max_y: -f64::INFINITY,
+            parts: Default::default(),
+        }
+    }
+}
+
+impl Svg {
+    fn update_view_box(&mut self, proj_x: f64, proj_y: f64) {
+        // Record min max x, y
+        if proj_x > self.max_x {
+            self.max_x = proj_x;
+        }
+        if proj_x < self.min_x {
+            self.min_x = proj_x
+        }
+        if proj_y > self.max_y {
+            self.max_y = proj_y;
+        }
+        if proj_y < self.min_y {
+            self.min_y = proj_y
+        }
+    }
+}
 // A line could not be decoded as an G-Code command
 // #[derive(Debug, Clone)]
 // struct GCodeError;
@@ -21,10 +54,13 @@ pub struct Svg {
 
 impl Display for Svg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // viewBox="0 0 10 10"
+        let width = self.max_x - self.min_x;
+        let height = self.max_y - self.min_y;
+        let vb = format!("{} {} {} {}", self.min_x, self.min_y, width, height);
         write!(
             f,
-            r#"<svg height="210" width="400" xmlns="http://www.w3.org/2000/svg">
-<path d=""#
+            "<svg height=\"210\" width=\"400\" xmlns=\"http://www.w3.org/2000/svg\" viewBox =\"{vb}\"> <path d=\""
         )?;
         for part in &self.parts {
             write!(f, "{part}")?;
@@ -54,6 +90,7 @@ impl FromIterator<String> for Svg {
             let (_, command) = Command::parse_line(&line).expect("Command not parseable");
             let mut x = f64::NAN;
             let mut y = f64::NAN;
+
             match command {
                 // A non printable move.
                 Command::G0(mut payload) => {
@@ -78,8 +115,9 @@ impl FromIterator<String> for Svg {
                     if !x.is_nan() && !y.is_nan() {
                         // Convert x,y,z, into projected x,y.
                         // TODO: Must do something better.
-                        let proj_x = x - z / 2.;
-                        let proj_y = y - z / 2.;
+                        let proj_x = y / 2. + x / 2.;
+                        let proj_y = -z - y / 2. + x / 2.;
+                        svg.update_view_box(proj_x, proj_y);
                         match abs_coords {
                             CoordPos::Absolute => {
                                 svg.parts.push(format!("M{proj_x} {proj_y}"));
@@ -113,8 +151,9 @@ impl FromIterator<String> for Svg {
                     //
                     // "G1 E2.72551 F1800.00000"
                     if !x.is_nan() && !y.is_nan() {
-                        let proj_x = x - z / 2.;
-                        let proj_y = y - z / 2.;
+                        let proj_x = y / 2. + x / 2.;
+                        let proj_y = -z - y / 2. + x / 2.;
+                        svg.update_view_box(proj_x, proj_y);
                         match abs_coords {
                             CoordPos::Absolute => {
                                 svg.parts.push(format!("L{proj_x} {proj_y}"));
