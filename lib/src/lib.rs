@@ -15,6 +15,8 @@ pub mod command;
 /// Parsing rules for gcode parameters `Pos<number>`
 pub mod parms;
 
+mod binary;
+
 /// Absolute or Relative positioning
 #[derive(Default, Debug)]
 pub enum CoordPos {

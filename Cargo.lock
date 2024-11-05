@@ -52,6 +52,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bgcodeViewer"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "gcode-nom",
+ "nom",
+]
+
+[[package]]
 name = "clap"
 version = "4.5.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
