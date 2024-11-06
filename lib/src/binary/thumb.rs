@@ -1,6 +1,6 @@
 use super::BlockHeader;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct ThumbnailBlock {
+pub struct ThumbnailBlock {
     header: BlockHeader,
 }

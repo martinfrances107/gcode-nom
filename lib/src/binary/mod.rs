@@ -27,7 +27,6 @@ use std::fmt::Display;
 
 use fh::{file_header_parse, FileHeader};
 use fm::{file_metadata_parse, FileMetadataBlock};
-use gcode::GCodeBlock;
 use nom::{
     combinator::map_res,
     error::{Error, ErrorKind},
@@ -35,9 +34,6 @@ use nom::{
     sequence::tuple,
     Err, IResult,
 };
-use pm::PrinterMetadataBlock;
-use sm::SlicerMetadataBlock;
-use thumb::ThumbnailBlock;
 
 /// Structure of the binary file.
 ///
@@ -55,8 +51,6 @@ pub struct Bgcode {
 
 impl Display for Bgcode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "File Header")?;
-        writeln!(f,)?;
         writeln!(f, "{}", self.fh)?;
         writeln!(f, "{:?}", self.file_metadata)?;
 
@@ -67,7 +61,7 @@ impl Display for Bgcode {
 
 /// Parses a binary gcode
 ///
-/// # Panics
+/// # Errors
 ///   When the bytes stream is not a valid file.
 pub fn bgcode_parse(input: &[u8]) -> IResult<&[u8], Bgcode> {
     let (mut remain, fh) = file_header_parse(input)?;
@@ -116,7 +110,7 @@ pub(crate) struct BlockHeader {
     compressed_size: u32,
 }
 
-pub fn block_header_parse(input: &[u8]) -> IResult<&[u8], BlockHeader> {
+pub(crate) fn block_header_parse(input: &[u8]) -> IResult<&[u8], BlockHeader> {
     match tuple((compression_parse, le_u32, le_u32))(input) {
         Ok((remain, (compression, uncompressed_size, compressed_size))) => Ok((
             remain,
@@ -126,7 +120,7 @@ pub fn block_header_parse(input: &[u8]) -> IResult<&[u8], BlockHeader> {
                 compressed_size,
             },
         )),
-        _ => return Err(Err::Error(Error::new(input, ErrorKind::Alt))),
+        _ => Err(Err::Error(Error::new(input, ErrorKind::Alt))),
     }
 }
 

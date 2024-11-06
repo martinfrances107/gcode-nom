@@ -78,7 +78,7 @@ fn found_magic(input: &[u8]) -> IResult<&[u8], u32> {
     })(input)
 }
 
-pub(crate) fn file_header_parse(input: &[u8]) -> IResult<&[u8], FileHeader> {
+pub fn file_header_parse(input: &[u8]) -> IResult<&[u8], FileHeader> {
     preceded(
         found_magic,
         map_res(
