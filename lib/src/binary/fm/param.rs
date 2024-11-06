@@ -20,7 +20,7 @@ impl Default for Parameter {
         Self::Encoding(EncodingVal::Ini)
     }
 }
-pub(super) fn parameters_parse(input: &[u8]) -> IResult<&[u8], Parameter> {
+pub(super) fn parameters_parser(input: &[u8]) -> IResult<&[u8], Parameter> {
     match encoding_parse(input) {
         Ok((r, encoding_value)) => Ok((r, Parameter::Encoding(encoding_value))),
         Err(_) => Err(Err::Error(Error::new(input, ErrorKind::Alt))),

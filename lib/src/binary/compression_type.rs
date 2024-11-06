@@ -16,7 +16,7 @@ pub(super) enum CompressionType {
     HeatShrink12 = 3,
 }
 
-pub(super) fn compression_parse(input: &[u8]) -> IResult<&[u8], CompressionType> {
+pub(super) fn compression_parser(input: &[u8]) -> IResult<&[u8], CompressionType> {
     map_res(le_u16, |compression: u16| {
         // help
         Ok(match compression {

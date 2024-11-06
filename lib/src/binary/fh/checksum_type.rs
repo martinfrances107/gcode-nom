@@ -25,7 +25,7 @@ impl Display for ChecksumType {
     }
 }
 
-pub(super) fn checksum_parse(input: &[u8]) -> IResult<&[u8], ChecksumType> {
+pub(super) fn checksum_parser(input: &[u8]) -> IResult<&[u8], ChecksumType> {
     map_res(le_u16, |value| {
         Ok(match value {
             0 => ChecksumType::None,

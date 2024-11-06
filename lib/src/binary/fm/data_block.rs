@@ -2,7 +2,7 @@ use core::fmt::Display;
 
 use nom::{combinator::map, IResult};
 
-use super::param::parameters_parse;
+use super::param::parameters_parser;
 use super::param::Parameter;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -18,6 +18,6 @@ impl Display for DataBlock {
     }
 }
 
-pub(super) fn data_parse(input: &[u8]) -> IResult<&[u8], DataBlock> {
-    map(parameters_parse, DataBlock)(input)
+pub(super) fn data_parser(input: &[u8]) -> IResult<&[u8], DataBlock> {
+    map(parameters_parser, DataBlock)(input)
 }

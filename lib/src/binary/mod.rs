@@ -26,11 +26,11 @@ mod thumb;
 
 use std::fmt::Display;
 
-use fh::{file_header_parse, FileHeader};
-use fm::{file_metadata_parse, FileMetadataBlock};
+use fh::{file_header_parser, FileHeader};
+use fm::{file_metadata_parser, FileMetadataBlock};
 use nom::{combinator::map, number::streaming::le_u32, sequence::tuple, IResult};
 
-use compression_type::{compression_parse, CompressionType};
+use compression_type::{compression_parser, CompressionType};
 
 /// Structure of the binary file.
 ///
@@ -60,9 +60,9 @@ impl Display for Bgcode {
 ///
 /// # Errors
 ///   When the bytes stream is not a valid file.
-pub fn bgcode_parse(input: &[u8]) -> IResult<&[u8], Bgcode> {
-    let (mut remain, fh) = file_header_parse(input)?;
-    let file_metadata = if let Ok((r, file_meta_data_actual)) = file_metadata_parse(remain) {
+pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
+    let (mut remain, fh) = file_header_parser(input)?;
+    let file_metadata = if let Ok((r, file_meta_data_actual)) = file_metadata_parser(remain) {
         remain = r;
         Some(file_meta_data_actual)
     } else {
@@ -107,9 +107,9 @@ pub(super) struct BlockHeader {
     compressed_size: u32,
 }
 
-pub(super) fn block_header_parse(input: &[u8]) -> IResult<&[u8], BlockHeader> {
+pub(super) fn block_header_parser(input: &[u8]) -> IResult<&[u8], BlockHeader> {
     map(
-        tuple((compression_parse, le_u32, le_u32)),
+        tuple((compression_parser, le_u32, le_u32)),
         |(compression_type, uncompressed_size, compressed_size)| {
             //ehe
             BlockHeader {

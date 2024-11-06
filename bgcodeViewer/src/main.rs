@@ -1,7 +1,7 @@
 use std::io::{stdin, BufReader, Read};
 
 extern crate gcode_nom;
-use gcode_nom::binary::bgcode_parse;
+use gcode_nom::binary::bgcode_parser;
 
 fn main() -> std::io::Result<()> {
     let stdin = stdin();
@@ -11,7 +11,7 @@ fn main() -> std::io::Result<()> {
     // TODO Must stream properly.
     let mut buffer: [u8; 100] = [0u8; 100];
     if reader.read(&mut buffer)? != 0usize {
-        match bgcode_parse(&buffer) {
+        match bgcode_parser(&buffer) {
             Ok((_remain, bgcode)) => {
                 println!("Valid input");
                 println!("{bgcode}")

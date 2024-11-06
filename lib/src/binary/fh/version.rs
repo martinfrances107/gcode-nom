@@ -20,7 +20,7 @@ impl Display for Version {
     }
 }
 
-pub(super) fn version_parse(input: &[u8]) -> IResult<&[u8], Version> {
+pub(super) fn version_parser(input: &[u8]) -> IResult<&[u8], Version> {
     map_res(le_u32, |value| {
         Ok(match value {
             1 => Version(1),

@@ -3,7 +3,7 @@ mod param;
 
 use core::fmt::Display;
 
-use data_block::{data_parse, DataBlock};
+use data_block::{data_parser, DataBlock};
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -13,7 +13,7 @@ use nom::{
     Err, IResult,
 };
 
-use super::{block_header_parse, BlockHeader, CompressionType};
+use super::{block_header_parser, BlockHeader, CompressionType};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FileMetadataBlock {
@@ -35,10 +35,10 @@ impl Display for FileMetadataBlock {
     }
 }
 
-pub fn file_metadata_parse(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
+pub fn file_metadata_parser(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
     let (remain, header) = preceded(
         verify(le_u16, |block_type| *block_type == 0u16),
-        block_header_parse,
+        block_header_parser,
     )(input)?;
 
     let BlockHeader {
@@ -67,7 +67,7 @@ pub fn file_metadata_parse(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
         }
     };
 
-    let Ok((zero_block, data)) = data_parse(data_raw) else {
+    let Ok((zero_block, data)) = data_parser(data_raw) else {
         return Err(Err::Error(Error::new(input, ErrorKind::Alt)));
     };
 

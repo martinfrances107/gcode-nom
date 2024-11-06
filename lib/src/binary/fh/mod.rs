@@ -10,9 +10,9 @@ mod checksum_type;
 mod preamble;
 mod version;
 
-use checksum_type::{checksum_parse, ChecksumType};
+use checksum_type::{checksum_parser, ChecksumType};
 use preamble::preamble;
-use version::{version_parse, Version};
+use version::{version_parser, Version};
 
 //  Current value for Version is 1
 //
@@ -37,11 +37,11 @@ impl Display for FileHeader {
     }
 }
 
-pub fn file_header_parse(input: &[u8]) -> IResult<&[u8], FileHeader> {
+pub fn file_header_parser(input: &[u8]) -> IResult<&[u8], FileHeader> {
     preceded(
         preamble,
         map(
-            pair(version_parse, checksum_parse),
+            pair(version_parser, checksum_parser),
             |(version, checksum_type)| FileHeader {
                 version,
                 checksum_type,
