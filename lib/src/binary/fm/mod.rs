@@ -1,9 +1,9 @@
-mod db;
+mod data_block;
 mod param;
 
 use core::fmt::Display;
 
-use db::{data_parse, DataBlock};
+use data_block::{data_parse, DataBlock};
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -13,7 +13,7 @@ use nom::{
     Err, IResult,
 };
 
-use super::{block_header_parse, BlockHeader, Compression};
+use super::{block_header_parse, BlockHeader, CompressionType};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FileMetadataBlock {
@@ -42,25 +42,25 @@ pub fn file_metadata_parse(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
     )(input)?;
 
     let BlockHeader {
-        compression,
+        compression_type,
         uncompressed_size,
         ..
     } = header.clone();
 
     // Decompress datablock
-    let (remain, data_raw) = match compression {
-        Compression::None => take(uncompressed_size)(remain)?,
-        Compression::Deflate => {
+    let (remain, data_raw) = match compression_type {
+        CompressionType::None => take(uncompressed_size)(remain)?,
+        CompressionType::Deflate => {
             let (_remain, _data_compressed) = take(uncompressed_size)(remain)?;
             // Must decompress here
             todo!()
         }
-        Compression::HeatShrink11 => {
+        CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(remain)?;
             // Must decompress here
             todo!()
         }
-        Compression::HeatShrink12 => {
+        CompressionType::HeatShrink12 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(remain)?;
             // Must decompress here
             todo!()

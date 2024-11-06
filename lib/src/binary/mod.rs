@@ -16,6 +16,7 @@
 //!
 //! <https://github.com/rust-av/flavors/blob/master/src/parser.rs>
 //!
+mod compression_type;
 mod fh;
 mod fm;
 mod gcode;
@@ -27,13 +28,9 @@ use std::fmt::Display;
 
 use fh::{file_header_parse, FileHeader};
 use fm::{file_metadata_parse, FileMetadataBlock};
-use nom::{
-    combinator::map_res,
-    error::{Error, ErrorKind},
-    number::streaming::{le_u16, le_u32},
-    sequence::tuple,
-    Err, IResult,
-};
+use nom::{combinator::map, number::streaming::le_u32, sequence::tuple, IResult};
+
+use compression_type::{compression_parse, CompressionType};
 
 /// Structure of the binary file.
 ///
@@ -100,28 +97,28 @@ pub fn bgcode_parse(input: &[u8]) -> IResult<&[u8], Bgcode> {
 ///
 ///
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub(crate) struct BlockHeader {
+pub(super) struct BlockHeader {
     // block_type: u16,
     // Compression algorithm
-    compression: Compression,
+    compression_type: CompressionType,
     // Size of data when uncompressed
     uncompressed_size: u32,
     // Size of data when compressed
     compressed_size: u32,
 }
 
-pub(crate) fn block_header_parse(input: &[u8]) -> IResult<&[u8], BlockHeader> {
-    match tuple((compression_parse, le_u32, le_u32))(input) {
-        Ok((remain, (compression, uncompressed_size, compressed_size))) => Ok((
-            remain,
+pub(super) fn block_header_parse(input: &[u8]) -> IResult<&[u8], BlockHeader> {
+    map(
+        tuple((compression_parse, le_u32, le_u32)),
+        |(compression_type, uncompressed_size, compressed_size)| {
+            //ehe
             BlockHeader {
-                compression,
+                compression_type,
                 uncompressed_size,
                 compressed_size,
-            },
-        )),
-        _ => Err(Err::Error(Error::new(input, ErrorKind::Alt))),
-    }
+            }
+        },
+    )(input)
 }
 
 // #[derive(Clone, Debug, PartialEq, Eq)]
@@ -148,27 +145,3 @@ pub(crate) fn block_header_parse(input: &[u8]) -> IResult<&[u8], BlockHeader> {
 //         })
 //     })(input)
 // }
-
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-enum Compression {
-    #[default]
-    None = 0,
-    Deflate = 1,
-    // Heatshrink algorithm with window size 11 and lookahead size 4
-    HeatShrink11 = 2,
-    // Heatshrink algorithm with window size 12 and lookahead size 4
-    HeatShrink12 = 3,
-}
-
-fn compression_parse(input: &[u8]) -> IResult<&[u8], Compression> {
-    map_res(le_u16, |compression: u16| {
-        // help
-        Ok(match compression {
-            0 => Compression::None,
-            1 => Compression::Deflate,
-            2 => Compression::HeatShrink11,
-            3 => Compression::HeatShrink12,
-            _ => return Err(Err::Error(Error::new(input, ErrorKind::Alt))),
-        })
-    })(input)
-}

@@ -1,5 +1,5 @@
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) enum Parameter {
+pub(super) enum Parameter {
     Encoding(EncodingVal),
 }
 
@@ -20,7 +20,7 @@ impl Default for Parameter {
         Self::Encoding(EncodingVal::Ini)
     }
 }
-pub(crate) fn parameters_parse(input: &[u8]) -> IResult<&[u8], Parameter> {
+pub(super) fn parameters_parse(input: &[u8]) -> IResult<&[u8], Parameter> {
     match encoding_parse(input) {
         Ok((r, encoding_value)) => Ok((r, Parameter::Encoding(encoding_value))),
         Err(_) => Err(Err::Error(Error::new(input, ErrorKind::Alt))),
@@ -28,7 +28,7 @@ pub(crate) fn parameters_parse(input: &[u8]) -> IResult<&[u8], Parameter> {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub(crate) enum EncodingVal {
+pub(super) enum EncodingVal {
     #[default]
     Ini = 0,
 }
