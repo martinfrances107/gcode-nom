@@ -21,7 +21,7 @@ impl Default for Parameter {
     }
 }
 pub(super) fn parameters_parser(input: &[u8]) -> IResult<&[u8], Parameter> {
-    match encoding_parse(input) {
+    match encoding_parser(input) {
         Ok((r, encoding_value)) => Ok((r, Parameter::Encoding(encoding_value))),
         Err(_) => Err(Err::Error(Error::new(input, ErrorKind::Alt))),
     }
@@ -51,7 +51,7 @@ use nom::error::{Error, ErrorKind};
 use nom::number::streaming::le_u16;
 use nom::{Err, IResult};
 
-fn encoding_parse(input: &[u8]) -> IResult<&[u8], EncodingVal> {
+fn encoding_parser(input: &[u8]) -> IResult<&[u8], EncodingVal> {
     map_res(le_u16, |encoding_val| {
         // header
         match encoding_val {

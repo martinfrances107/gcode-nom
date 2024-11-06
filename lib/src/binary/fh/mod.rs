@@ -10,7 +10,7 @@ mod checksum_type;
 mod preamble;
 mod version;
 
-use checksum_type::{checksum_parser, ChecksumType};
+use checksum_type::{checksum_type_parser, ChecksumType};
 use preamble::preamble;
 use version::{version_parser, Version};
 
@@ -41,7 +41,7 @@ pub fn file_header_parser(input: &[u8]) -> IResult<&[u8], FileHeader> {
     preceded(
         preamble,
         map(
-            pair(version_parser, checksum_parser),
+            pair(version_parser, checksum_type_parser),
             |(version, checksum_type)| FileHeader {
                 version,
                 checksum_type,

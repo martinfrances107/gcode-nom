@@ -13,7 +13,7 @@ use nom::{
     Err, IResult,
 };
 
-use super::{block_header_parser, BlockHeader, CompressionType};
+use super::{block_header::block_header_parser, block_header::BlockHeader, CompressionType};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FileMetadataBlock {
@@ -26,7 +26,7 @@ impl Display for FileMetadataBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "FileMetadataBlock")?;
         writeln!(f,)?;
-        writeln!(f, "{}", self.data)?;
+        writeln!(f, "DataBlock {}", self.data)?;
         match self.checksum {
             Some(checksum) => writeln!(f, "{checksum}")?,
             None => write!(f, "No checksum")?,
