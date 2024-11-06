@@ -2,20 +2,45 @@
 
 Rust 2021 Edition.
 
-Parses strings into G-code comamnds.
+the library contains two parser:
 
-This allows a series of G-code visualization tool.
+* A streaming nom parser of "binary gcode files" ['.bgcode' extension].
 
-```bash
-gcode2svg
-gocde2obj
-```
+* A parseer for text based gcode files ['.gcode' extension]
+
+I intent the binary gcode parser to be as stirctly complient as possible.
+
+This is undergoing rapid development.
+
+Based on this library, there are a series of visualisation tools within the workspace.
+
+* bgcodeViewer - Strict checking of binaries.
+* gocde2obj - Generate WaveFront Object files.
+* gcode2svg - Generates SVG files.
+
+## bgcodeViewer
+
+ A strict validator -- Reports on the quality of the binary.
+
+ ```rust
+ cd bgcdoeViewer
+ cargo run --release  < ../assets/both\ parts.bgcode
+ ```
 
 ## gcode2obj
 
-Generates obj file
+Generates obj files
 
 Which for example can be imported into blender for visualisation
+
+### How to use
+
+Pass the gcode file into StdIn - the obj file is sent to StdOut :-
+
+```bash
+cd gcode2obj
+cargo run --release -- < ./assets/bency.gcode > bench.svg
+```
 
 ![Benchy in Blender](images/BlenderBenchy.png)
 
@@ -31,16 +56,15 @@ A nom based parser, outputs a svg file
 
 ### How to use
 
-parses StdIn as a gcode file - the SVG file is send to StdOut :-
+Pass the gcode file into StdIn - the SVG file is sent to StdOut :-
 
 ```bash
+cd gcode2svg
 cargo run --release -- < ./assets/bency.gcode > bench.svg
 ```
 
-This is undergoing rapid development.
+## Future work
 
 see [TODO](TODO.md)
-
-## Future work
 
 A Bevy app?
