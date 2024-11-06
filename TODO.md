@@ -1,13 +1,17 @@
 # TASKS
 
 [] - Read from binary gcode.
-      Initial validator is one that parses the fileheader.
+      Develop primitives for all blocks.
+
+[] - get Deflate working ?
 
 [] - SVG does not handle nom printing moves.
 
 [] - identify which M-code than should not be dropped.
 
 [] - tests
+     -- unit test for all Blocks.
+     -- no unit testing of Block types.
 
 [] - benchmarks
 

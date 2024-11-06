@@ -1,22 +1,12 @@
 use core::fmt::Display;
 
-use nom::{
-    error::{Error, ErrorKind},
-    Err, IResult,
-};
+use nom::{combinator::map, IResult};
 
 use super::param::parameters_parse;
 use super::param::Parameter;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub(super) struct DataBlock(Parameter);
-
-pub(super) fn data_parse(input: &[u8]) -> IResult<&[u8], DataBlock> {
-    match parameters_parse(input) {
-        Ok((r, parameter)) => Ok((r, DataBlock(parameter))),
-        _ => Err(Err::Error(Error::new(input, ErrorKind::Alt))),
-    }
-}
 
 impl Display for DataBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -26,4 +16,8 @@ impl Display for DataBlock {
 
         Ok(())
     }
+}
+
+pub(super) fn data_parse(input: &[u8]) -> IResult<&[u8], DataBlock> {
+    map(parameters_parse, DataBlock)(input)
 }
