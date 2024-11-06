@@ -18,8 +18,8 @@
 //!
 mod block_header;
 mod compression_type;
-mod fh;
-mod fm;
+mod file_handler;
+mod file_metadata_block;
 mod gcode;
 mod pm;
 mod sm;
@@ -27,8 +27,8 @@ mod thumb;
 
 use std::fmt::Display;
 
-use fh::{file_header_parser, FileHeader};
-use fm::{file_metadata_parser, FileMetadataBlock};
+use file_handler::{file_header_parser, FileHeader};
+use file_metadata_block::{file_metadata_parser, FileMetadataBlock};
 use nom::{
     combinator::{map, opt},
     sequence::tuple,
