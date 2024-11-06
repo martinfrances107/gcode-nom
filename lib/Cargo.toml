@@ -16,4 +16,7 @@ version = "0.1.0"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+default = "0.1.2"
+deflate = "1.0.0"
+heatshrink = "0.2.0"
 nom = "7.1.3"

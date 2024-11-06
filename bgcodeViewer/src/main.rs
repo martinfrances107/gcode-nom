@@ -7,7 +7,8 @@ fn main() -> std::io::Result<()> {
     let stdin = stdin();
     let s_lock = stdin.lock();
     let mut reader = BufReader::new(s_lock);
-    // let mut input = reader.fill_buf()?;
+
+    // TODO Must stream properly.
     let mut buffer: [u8; 100] = [0u8; 100];
     if reader.read(&mut buffer)? != 0usize {
         match bgcode_parse(&buffer) {
