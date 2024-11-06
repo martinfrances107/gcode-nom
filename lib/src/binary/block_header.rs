@@ -30,13 +30,10 @@ pub(super) struct BlockHeader {
 pub(super) fn block_header_parser(input: &[u8]) -> IResult<&[u8], BlockHeader> {
     map(
         tuple((compression_parser, le_u32, le_u32)),
-        |(compression_type, uncompressed_size, compressed_size)| {
-            //ehe
-            BlockHeader {
-                compression_type,
-                uncompressed_size,
-                compressed_size,
-            }
+        |(compression_type, uncompressed_size, compressed_size)| BlockHeader {
+            compression_type,
+            uncompressed_size,
+            compressed_size,
         },
     )(input)
 }
