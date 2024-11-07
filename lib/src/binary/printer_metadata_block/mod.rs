@@ -29,7 +29,8 @@ impl Display for PrinterMetadataBlock {
             f,
             "-------------------------- PrinterMetadataBlock --------------------------"
         )?;
-        writeln!(f)?;
+        writeln!(f, "Params")?;
+        writeln!(f, "params {:#?}", self.param)?;
         writeln!(f, "DataBlock {}", self.data)?;
         writeln!(f)?;
         write!(f, "-------------------------- PrinterMetadataBlock ")?;
@@ -46,8 +47,7 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             println!(
-                "looking for PRINTER_METADATA_BLOCK_ID {} cond {}",
-                block_type,
+                "looking for PRINTER_METADATA_BLOCK_ID {PRINTER_METADATA_BLOCK_ID} {block_type} cond {}",
                 *block_type == PRINTER_METADATA_BLOCK_ID
             );
             *block_type == PRINTER_METADATA_BLOCK_ID

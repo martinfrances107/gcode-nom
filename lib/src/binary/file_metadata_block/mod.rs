@@ -30,6 +30,8 @@ impl Display for FileMetadataBlock {
             "-------------------------- FileMetadataBlock --------------------------"
         )?;
         writeln!(f)?;
+        write!(f, "Params")?;
+        writeln!(f, "params 0x{:?}", self.param)?;
         writeln!(f, "DataBlock {}", self.data)?;
         writeln!(f)?;
 

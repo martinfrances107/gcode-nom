@@ -9,34 +9,32 @@ use nom::{
     combinator::verify,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
-    IResult,
+    AsBytes, IResult,
 };
 
 mod param;
+use param::param_parser;
 use param::Param;
-use param::{param_parser, Format};
-
-static THUMBNAIL_BLOCK_ID: u16 = 4u16;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ThumbnailBlock {
+pub struct PrintMetadataBlock {
     header: BlockHeader,
     param: Param,
-    data: Vec<u8>,
+    data: String,
     checksum: Option<u32>,
 }
-impl Display for ThumbnailBlock {
+impl Display for PrintMetadataBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "-------------------------- ThumbnailBlock --------------------------"
+            "-------------------------- PrintMetadataBlock --------------------------"
         )?;
-        writeln!(f)?;
         writeln!(f, "Params")?;
-        write!(f, "{}", self.param)?;
-        writeln!(f, "DataBlock omitted")?;
+        writeln!(f, "params {:#?}", self.param)?;
         writeln!(f)?;
-        write!(f, "-------------------------- ThumbnailBlock ")?;
+        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f)?;
+        write!(f, "-------------------------- PrintMetadataBlock ")?;
         match self.checksum {
             Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X} ---------")?,
             None => writeln!(f, "No checksum")?,
@@ -45,14 +43,15 @@ impl Display for ThumbnailBlock {
     }
 }
 
-pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailBlock> {
+static PRINT_METADATA_BLOCK_ID: u16 = 5u16;
+pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             println!(
-                "looking for THUMBNAIL_BLOCK_ID {THUMBNAIL_BLOCK_ID} found {block_type} cond {}",
-                *block_type == THUMBNAIL_BLOCK_ID
+                "looking for PRINT_METADATA_BLOCK_ID {PRINT_METADATA_BLOCK_ID} found {block_type} cond {}",
+                *block_type == PRINT_METADATA_BLOCK_ID
             );
-            *block_type == THUMBNAIL_BLOCK_ID
+            *block_type == PRINT_METADATA_BLOCK_ID
         }),
         block_header_parser,
     )(input)?;
@@ -86,18 +85,22 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         }
     };
 
-    let data = data_raw.to_vec();
-    match param.format {
-        Format::Qoi => std::fs::write("thumb.qoi", &data).unwrap(),
-        Format::Jpg => std::fs::write("thumb.jpg", &data).unwrap(),
-        Format::Png => std::fs::write("thumb.png", &data).unwrap(),
-    }
+    let data = match param.encoding {
+        0 => {
+            print!("wtf");
+            String::from_utf8(data_raw.to_vec()).expect("raw data error")
+        }
+        2u16 => String::from("A meatpacked string with comments handling"),
+        _ => {
+            panic!("bad encoding");
+        }
+    };
 
     let (after_checksum, checksum_value) = le_u32(after_data)?;
 
     Ok((
         after_checksum,
-        ThumbnailBlock {
+        PrintMetadataBlock {
             header,
             param,
             data,
