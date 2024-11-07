@@ -1,5 +1,5 @@
 use nom::{
-    combinator::{map, map_res},
+    combinator::map,
     number::streaming::le_u16,
     IResult,
 };
@@ -12,5 +12,5 @@ pub(super) struct Param {
 }
 
 pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Param> {
-    map(le_u16, |(encoding)| Param { encoding })(input)
+    map(le_u16, |encoding| Param { encoding })(input)
 }

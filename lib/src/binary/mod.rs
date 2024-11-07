@@ -57,7 +57,7 @@ impl Display for Bgcode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "{}", self.fh)?;
         if let Some(file_metadata) = &self.file_metadata {
-            writeln!(f, "{}", file_metadata)?;
+            writeln!(f, "{file_metadata}")?;
         } else {
             writeln!(f, "No optional file metadata block")?;
         }
