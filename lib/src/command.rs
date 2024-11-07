@@ -2,9 +2,10 @@ use std::collections::HashSet;
 
 use nom::branch::alt;
 use nom::bytes::complete::tag;
+use nom::character::complete::digit1;
 use nom::combinator::map;
+use nom::combinator::map_res;
 use nom::multi::separated_list1;
-use nom::number::complete::double;
 use nom::sequence::preceded;
 use nom::IResult;
 
@@ -85,13 +86,9 @@ impl Command {
 /// # Errors
 ///   When match fails.
 pub fn g_drop(i: &str) -> IResult<&str, u16> {
-    map(preceded(tag("G"), double), |val| {
-        let out: u16 = val as u16;
-        out
-    })(i)
+    map_res(preceded(tag("G"), digit1), str::parse)(i)
 }
 
-///
 /// # Errors
 ///   When match fails.
 fn parse_g0(i: &str) -> IResult<&str, Command> {
@@ -158,10 +155,7 @@ fn pos_val(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn m_drop(i: &str) -> IResult<&str, u16> {
-    map(preceded(tag("M"), double), |val| {
-        let out: u16 = val as u16;
-        out
-    })(i)
+    map_res(preceded(tag("M"), digit1), str::parse)(i)
 }
 
 #[cfg(test)]
