@@ -13,8 +13,8 @@ use nom::{
 };
 
 mod param;
-use param::param_parser;
 use param::Param;
+use param::{param_parser, Format};
 
 static THUMBNAIL_BLOCK_ID: u16 = 5u16;
 
@@ -32,7 +32,9 @@ impl Display for ThumbnailBlock {
             "-------------------------- ThumbnailBlock --------------------------"
         )?;
         writeln!(f)?;
-        writeln!(f, "DataBlock {:#?}", self.data)?;
+        writeln!(f, "Params")?;
+        write!(f, "{}", self.param)?;
+        writeln!(f, "DataBlock omitted")?;
         writeln!(f)?;
         write!(f, "-------------------------- ThumbnailBlock ")?;
         match self.checksum {
@@ -86,6 +88,11 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     };
 
     let data = data_raw.to_vec();
+    match param.format {
+        Format::Qoi => std::fs::write("thumb.qoi", &data).unwrap(),
+        Format::Jpg => std::fs::write("thumb.jpg", &data).unwrap(),
+        Format::Png => std::fs::write("thumb.png", &data).unwrap(),
+    }
 
     let (after_checksum, checksum_value) = le_u32(after_data)?;
 

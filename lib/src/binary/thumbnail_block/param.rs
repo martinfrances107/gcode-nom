@@ -1,3 +1,5 @@
+use core::fmt::Display;
+
 use nom::Err;
 use nom::{
     combinator::map_res,
@@ -20,11 +22,18 @@ use nom::{
 //
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct Param {
-    format: Format,
+    pub(super) format: Format,
     width: u16,
     height: u16,
 }
 
+impl Display for Param {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "format {}", self.format)?;
+        writeln!(f, "width {}", self.width)?;
+        writeln!(f, "height {}", self.height)
+    }
+}
 pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Param> {
     map_res(tuple((le_u16, le_u16, le_u16)), |(f, width, height)| {
         Format::try_from(f).map_or_else(
@@ -41,7 +50,7 @@ pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Param> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-enum Format {
+pub(super) enum Format {
     Png,
     Jpg,
     Qoi,
@@ -56,6 +65,15 @@ impl TryFrom<u16> for Format {
             1 => Ok(Self::Jpg),
             2 => Ok(Self::Qoi),
             _ => Err(Err::Error(Error::new(value, ErrorKind::Alt))),
+        }
+    }
+}
+impl Display for Format {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Png => write!(f, "Png"),
+            Self::Jpg => write!(f, "Jpg"),
+            Self::Qoi => write!(f, "Oci"),
         }
     }
 }
