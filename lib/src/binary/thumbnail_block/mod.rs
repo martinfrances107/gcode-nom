@@ -22,7 +22,7 @@ static THUMBNAIL_BLOCK_ID: u16 = 5u16;
 pub struct ThumbnailBlock {
     header: BlockHeader,
     param: Param,
-    data: String,
+    data: Vec<u8>,
     checksum: Option<u32>,
 }
 impl Display for ThumbnailBlock {
@@ -32,7 +32,7 @@ impl Display for ThumbnailBlock {
             "-------------------------- ThumbnailBlock --------------------------"
         )?;
         writeln!(f)?;
-        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f, "DataBlock {:#?}", self.data)?;
         writeln!(f)?;
         write!(f, "-------------------------- ThumbnailBlock ")?;
         match self.checksum {
@@ -67,7 +67,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     eprintln!("uncompressed_size -- {uncompressed_size:#?}");
     // Decompress datablock
     let (after_data, data_raw) = match compression_type {
-        CompressionType::None => take(uncompressed_size)(after_block_header)?,
+        CompressionType::None => take(uncompressed_size)(after_param)?,
         CompressionType::Deflate => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
             // Must decompress here
@@ -85,7 +85,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         }
     };
 
-    let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
+    let data = data_raw.to_vec();
 
     let (after_checksum, checksum_value) = le_u32(after_data)?;
 
