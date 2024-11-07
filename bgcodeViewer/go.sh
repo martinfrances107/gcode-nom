@@ -1,3 +1,3 @@
 #/usr/bin/bash
 
-time cargo run  < ../assets/both\ parts.bgcode
+RUST_BACKTRACE=1 cargo run  < ../assets/both\ parts.bgcode

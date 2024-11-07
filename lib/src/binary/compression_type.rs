@@ -18,13 +18,20 @@ pub(super) enum CompressionType {
 
 pub(super) fn compression_parser(input: &[u8]) -> IResult<&[u8], CompressionType> {
     map_res(le_u16, |compression: u16| {
-        // help
         Ok(match compression {
-            0 => CompressionType::None,
+            0 => {
+                eprintln!("compression_parser Ok");
+                CompressionType::None
+            }
             1 => CompressionType::Deflate,
             2 => CompressionType::HeatShrink11,
             3 => CompressionType::HeatShrink12,
-            _ => return Err(Err::Error(Error::new(input, ErrorKind::Alt))),
+            _ => {
+                return {
+                    eprintln!("compression_parser failing ");
+                    Err(Err::Error(Error::new(input, ErrorKind::Alt)))
+                }
+            }
         })
     })(input)
 }

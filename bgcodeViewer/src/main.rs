@@ -9,7 +9,7 @@ fn main() -> std::io::Result<()> {
     let mut reader = BufReader::new(s_lock);
 
     // TODO Must stream properly.
-    let mut buffer: [u8; 100] = [0u8; 100];
+    let mut buffer: [u8; 2825] = [0; 2825];
     if reader.read(&mut buffer)? != 0usize {
         match bgcode_parser(&buffer) {
             Ok((_remain, bgcode)) => {

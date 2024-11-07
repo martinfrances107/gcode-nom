@@ -1,5 +1,9 @@
 use core::fmt::Display;
 
+use super::{
+    block_header::{block_header_parser, BlockHeader},
+    compression_type::CompressionType,
+};
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -9,31 +13,26 @@ use nom::{
 };
 
 mod param;
-
-use super::{block_header::block_header_parser, block_header::BlockHeader, CompressionType};
 use param::param_parser;
 use param::Param;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct FileMetadataBlock {
+pub struct PrinterMetadataBlock {
     header: BlockHeader,
     param: Param,
-    // This string is a table of "key  = value" pairs
     data: String,
     checksum: Option<u32>,
 }
-
-impl Display for FileMetadataBlock {
+impl Display for PrinterMetadataBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "-------------------------- FileMetadataBlock --------------------------"
+            "-------------------------- PrinterMetadataBlock --------------------------"
         )?;
         writeln!(f,)?;
         writeln!(f, "DataBlock {}", self.data)?;
         writeln!(f,)?;
-
-        write!(f, "-------------------------- FileMetadataBlock ")?;
+        write!(f, "-------------------------- PrinterMetadataBlock ")?;
         match self.checksum {
             Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X} ---------")?,
             None => writeln!(f, "No checksum")?,
@@ -42,16 +41,16 @@ impl Display for FileMetadataBlock {
     }
 }
 
-static FILE_METADATA_BLOCK_ID: u16 = 0u16;
-pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
+static PRINTER_METADATA_BLOCK_ID: u16 = 3u16;
+pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], PrinterMetadataBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             println!(
-                "Looking for FILE_METADATA_BLOCK_ID{} cond {}",
+                "looking for PRINTER_METADATA_BLOCK_ID {} cond {}",
                 block_type,
-                *block_type == FILE_METADATA_BLOCK_ID
+                *block_type == PRINTER_METADATA_BLOCK_ID
             );
-            *block_type == FILE_METADATA_BLOCK_ID
+            *block_type == PRINTER_METADATA_BLOCK_ID
         }),
         block_header_parser,
     )(input)?;
@@ -61,12 +60,13 @@ pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMe
         uncompressed_size,
         ..
     } = header.clone();
-
+    eprintln!("about to check param ");
     let (after_param, param) = param_parser(after_block_header)?;
-
+    eprintln!("Param value -- {:#?}", param);
+    eprintln!("uncompressed_size -- {:#?}", uncompressed_size);
     // Decompress datablock
     let (after_data, data_raw) = match compression_type {
-        CompressionType::None => take(uncompressed_size)(after_param)?,
+        CompressionType::None => take(uncompressed_size)(after_block_header)?,
         CompressionType::Deflate => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
             // Must decompress here
@@ -90,9 +90,9 @@ pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMe
 
     Ok((
         after_checksum,
-        FileMetadataBlock {
-            param,
+        PrinterMetadataBlock {
             header,
+            param,
             data,
             checksum: Some(checksum_value),
         },

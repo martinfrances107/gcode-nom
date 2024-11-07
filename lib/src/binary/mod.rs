@@ -21,7 +21,7 @@ mod compression_type;
 mod file_handler;
 mod file_metadata_block;
 mod gcode;
-mod pm;
+mod printer_metadata_block;
 mod sm;
 mod thumb;
 
@@ -36,6 +36,8 @@ use nom::{
 };
 
 use compression_type::CompressionType;
+use printer_metadata_block::printer_metadata_parser_with_checksum;
+use printer_metadata_block::PrinterMetadataBlock;
 
 /// Structure of the binary file.
 ///
@@ -44,7 +46,7 @@ use compression_type::CompressionType;
 pub struct Bgcode {
     fh: FileHeader,
     file_metadata: Option<FileMetadataBlock>,
-    // printer_metadata: PrinterMetadataBlock,
+    printer_metadata: PrinterMetadataBlock,
     // thumbnail: Option<Vec<ThumbnailBlock>>,
     // print: PrinterMetadataBlock,
     // slicer: SlicerMetadataBlock,
@@ -55,11 +57,11 @@ impl Display for Bgcode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "{}", self.fh)?;
         if let Some(file_metadata) = &self.file_metadata {
-            writeln!(f, "block  {}", file_metadata)?;
+            writeln!(f, "{}", file_metadata)?;
         } else {
             writeln!(f, "No optional file metadata block")?;
         }
-
+        writeln!(f, "{}", &self.printer_metadata)?;
         // TODO add more sections
         Ok(())
     }
@@ -71,7 +73,15 @@ impl Display for Bgcode {
 ///   When the bytes stream is not a valid file.
 pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
     map(
-        tuple((file_header_parser, opt(file_metadata_parser_with_checksum))),
-        |(fh, file_metadata)| Bgcode { fh, file_metadata },
+        tuple((
+            file_header_parser,
+            opt(file_metadata_parser_with_checksum),
+            printer_metadata_parser_with_checksum,
+        )),
+        |(fh, file_metadata, printer_metadata)| Bgcode {
+            fh,
+            file_metadata,
+            printer_metadata,
+        },
     )(input)
 }
