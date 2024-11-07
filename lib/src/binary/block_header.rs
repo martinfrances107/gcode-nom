@@ -13,27 +13,46 @@ use super::compression_type::CompressionType;
 /// Uncompressed size    u32   4 bytes Size of the data when uncompressed
 /// Compressed size      u32   4 bytes Size of the data when compressed
 ///
+/// The size in bytes of the block header is 8 when Compression = 0 and 12 in all other cases.
+///
 /// <https://github.com/prusa3d/libbgcode/blob/main/doc/specifications.md#block-header>
 ///
 ///
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub(super) struct BlockHeader {
-    // block_type: u16,
     // Compression algorithm
     pub(super) compression_type: CompressionType,
     // Size of data when uncompressed
     pub(super) uncompressed_size: u32,
     // Size of data when compressed
-    pub(super) compressed_size: u32,
+    pub(super) compressed_size: Option<u32>,
 }
 
+// In memory "Block Header" is a variable sized structure.
+//
+/// "The size in bytes of the block header is 8 when Compression = 0 and 12 in all other cases."
 pub(super) fn block_header_parser(input: &[u8]) -> IResult<&[u8], BlockHeader> {
-    map(
-        tuple((compression_parser, le_u32, le_u32)),
-        |(compression_type, uncompressed_size, compressed_size)| BlockHeader {
-            compression_type,
-            uncompressed_size,
-            compressed_size,
-        },
-    )(input)
+    let (remain, compression_type) = compression_parser(input)?;
+    if compression_type == CompressionType::None {
+        map(le_u32, |uncompressed_size| {
+            // hh
+            BlockHeader {
+                compression_type: CompressionType::None,
+                uncompressed_size,
+                compressed_size: None,
+            }
+        })(remain)
+    } else {
+        map(
+            tuple((le_u32, le_u32)),
+            |(uncompressed_size, compressed_size)| {
+                // hh
+                BlockHeader {
+                    compression_type: compression_type.clone(),
+                    uncompressed_size,
+                    compressed_size: Some(compressed_size),
+                }
+            },
+        )(remain)
+    }
 }

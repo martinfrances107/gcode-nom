@@ -28,7 +28,7 @@ mod thumb;
 use std::fmt::Display;
 
 use file_handler::{file_header_parser, FileHeader};
-use file_metadata_block::{file_metadata_parser, FileMetadataBlock};
+use file_metadata_block::{file_metadata_parser_with_checksum, FileMetadataBlock};
 use nom::{
     combinator::{map, opt},
     sequence::tuple,
@@ -55,7 +55,7 @@ impl Display for Bgcode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "{}", self.fh)?;
         if let Some(file_metadata) = &self.file_metadata {
-            writeln!(f, "{:?}", file_metadata)?;
+            writeln!(f, "block  {}", file_metadata)?;
         } else {
             writeln!(f, "No optional file metadata block")?;
         }
@@ -71,7 +71,7 @@ impl Display for Bgcode {
 ///   When the bytes stream is not a valid file.
 pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
     map(
-        tuple((file_header_parser, opt(file_metadata_parser))),
+        tuple((file_header_parser, opt(file_metadata_parser_with_checksum))),
         |(fh, file_metadata)| Bgcode { fh, file_metadata },
     )(input)
 }

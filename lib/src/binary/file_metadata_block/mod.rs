@@ -1,16 +1,11 @@
-mod data_block;
-mod param;
-
 use core::fmt::Display;
 
-use data_block::{data_parser, DataBlock};
 use nom::{
     bytes::streaming::take,
     combinator::verify,
-    error::{Error, ErrorKind},
-    number::streaming::le_u16,
+    number::streaming::{le_u16, le_u32},
     sequence::preceded,
-    Err, IResult,
+    IResult,
 };
 
 use super::{block_header::block_header_parser, block_header::BlockHeader, CompressionType};
@@ -18,7 +13,8 @@ use super::{block_header::block_header_parser, block_header::BlockHeader, Compre
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FileMetadataBlock {
     header: BlockHeader,
-    data: DataBlock,
+    // This string is a table of "key  = value" pairs
+    data: String,
     checksum: Option<u32>,
 }
 
@@ -27,6 +23,7 @@ impl Display for FileMetadataBlock {
         writeln!(f, "FileMetadataBlock")?;
         writeln!(f,)?;
         writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f,)?;
         match self.checksum {
             Some(checksum) => writeln!(f, "{checksum}")?,
             None => write!(f, "No checksum")?,
@@ -35,9 +32,12 @@ impl Display for FileMetadataBlock {
     }
 }
 
-pub fn file_metadata_parser(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
-    let (remain, header) = preceded(
-        verify(le_u16, |block_type| *block_type == 0u16),
+pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
+    let (after_block_header, header) = preceded(
+        verify(le_u16, |block_type| {
+            println!("block type{} cond {}", block_type, *block_type == 0u16);
+            *block_type == 0u16
+        }),
         block_header_parser,
     )(input)?;
 
@@ -48,39 +48,35 @@ pub fn file_metadata_parser(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
     } = header.clone();
 
     // Decompress datablock
-    let (remain, data_raw) = match compression_type {
-        CompressionType::None => take(uncompressed_size)(remain)?,
+    let (after_data, data_raw) = match compression_type {
+        CompressionType::None => take(uncompressed_size)(after_block_header)?,
         CompressionType::Deflate => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(remain)?;
+            let (_remain, _data_compressed) = take(uncompressed_size)(after_block_header)?;
             // Must decompress here
             todo!()
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(remain)?;
+            let (_remain, _data_compressed) = take(uncompressed_size)(after_block_header)?;
             // Must decompress here
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(remain)?;
+            let (_remain, _data_compressed) = take(uncompressed_size)(after_block_header)?;
             // Must decompress here
             todo!()
         }
     };
 
-    let Ok((zero_block, data)) = data_parser(data_raw) else {
-        return Err(Err::Error(Error::new(input, ErrorKind::Alt)));
-    };
+    let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
 
-    // zero_block MUST be empty because we have .take()'n a fixed size block.
-    assert!(zero_block.is_empty());
+    let (after_checksum, checksum_value) = le_u32(after_data)?;
 
     Ok((
-        remain,
+        after_checksum,
         FileMetadataBlock {
             header,
             data,
-            // TODO must handle checksum
-            checksum: None,
+            checksum: Some(checksum_value),
         },
     ))
 }
