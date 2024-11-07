@@ -16,23 +16,25 @@ mod param;
 use param::param_parser;
 use param::Param;
 
+static THUMBNAIL_BLOCK_ID: u16 = 5u16;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PrinterMetadataBlock {
+pub struct ThumbnailBlock {
     header: BlockHeader,
     param: Param,
     data: String,
     checksum: Option<u32>,
 }
-impl Display for PrinterMetadataBlock {
+impl Display for ThumbnailBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "-------------------------- PrinterMetadataBlock --------------------------"
+            "-------------------------- ThumbnailBlock --------------------------"
         )?;
         writeln!(f)?;
         writeln!(f, "DataBlock {}", self.data)?;
         writeln!(f)?;
-        write!(f, "-------------------------- PrinterMetadataBlock ")?;
+        write!(f, "-------------------------- ThumbnailBlock ")?;
         match self.checksum {
             Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X} ---------")?,
             None => writeln!(f, "No checksum")?,
@@ -41,16 +43,15 @@ impl Display for PrinterMetadataBlock {
     }
 }
 
-static PRINTER_METADATA_BLOCK_ID: u16 = 3u16;
-pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], PrinterMetadataBlock> {
+pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             println!(
-                "looking for PRINTER_METADATA_BLOCK_ID {} cond {}",
+                "looking for THUMBNAIL_BLOCK_ID {} cond {}",
                 block_type,
-                *block_type == PRINTER_METADATA_BLOCK_ID
+                *block_type == THUMBNAIL_BLOCK_ID
             );
-            *block_type == PRINTER_METADATA_BLOCK_ID
+            *block_type == THUMBNAIL_BLOCK_ID
         }),
         block_header_parser,
     )(input)?;
@@ -90,7 +91,7 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
 
     Ok((
         after_checksum,
-        PrinterMetadataBlock {
+        ThumbnailBlock {
             header,
             param,
             data,

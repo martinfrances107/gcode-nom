@@ -23,7 +23,7 @@ mod file_metadata_block;
 mod gcode;
 mod printer_metadata_block;
 mod sm;
-mod thumb;
+mod thumbnail_block;
 
 use std::fmt::Display;
 
@@ -38,16 +38,18 @@ use nom::{
 use compression_type::CompressionType;
 use printer_metadata_block::printer_metadata_parser_with_checksum;
 use printer_metadata_block::PrinterMetadataBlock;
+use thumbnail_block::thumbnail_parser_with_checksum;
+use thumbnail_block::ThumbnailBlock;
 
 /// Structure of the binary file.
 ///
 /// extension .bgcode
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Bgcode {
     fh: FileHeader,
     file_metadata: Option<FileMetadataBlock>,
     printer_metadata: PrinterMetadataBlock,
-    // thumbnail: Option<Vec<ThumbnailBlock>>,
+    thumbnail: Option<ThumbnailBlock>,
     // print: PrinterMetadataBlock,
     // slicer: SlicerMetadataBlock,
     // gcode: Vec<GCodeBlock>,
@@ -62,6 +64,11 @@ impl Display for Bgcode {
             writeln!(f, "No optional file metadata block")?;
         }
         writeln!(f, "{}", &self.printer_metadata)?;
+        if let Some(thumb) = &self.thumbnail {
+            writeln!(f, "{thumb}")?;
+        } else {
+            writeln!(f, "No optional thumbnail block")?;
+        }
         // TODO add more sections
         Ok(())
     }
@@ -77,11 +84,13 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
             file_header_parser,
             opt(file_metadata_parser_with_checksum),
             printer_metadata_parser_with_checksum,
+            opt(thumbnail_parser_with_checksum),
         )),
-        |(fh, file_metadata, printer_metadata)| Bgcode {
+        |(fh, file_metadata, printer_metadata, thumbnail)| Bgcode {
             fh,
             file_metadata,
             printer_metadata,
+            thumbnail,
         },
     )(input)
 }

@@ -14,7 +14,7 @@ use super::{block_header::block_header_parser, block_header::BlockHeader, Compre
 use param::param_parser;
 use param::Param;
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileMetadataBlock {
     header: BlockHeader,
     param: Param,
@@ -29,9 +29,9 @@ impl Display for FileMetadataBlock {
             f,
             "-------------------------- FileMetadataBlock --------------------------"
         )?;
-        writeln!(f,)?;
+        writeln!(f)?;
         writeln!(f, "DataBlock {}", self.data)?;
-        writeln!(f,)?;
+        writeln!(f)?;
 
         write!(f, "-------------------------- FileMetadataBlock ")?;
         match self.checksum {
