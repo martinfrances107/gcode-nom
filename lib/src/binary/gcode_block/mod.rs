@@ -17,24 +17,24 @@ use param::param_parser;
 use param::Param;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PrintMetadataBlock {
+pub struct SlicerBlock {
     header: BlockHeader,
     param: Param,
     data: String,
     checksum: Option<u32>,
 }
-impl Display for PrintMetadataBlock {
+impl Display for SlicerBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "-------------------------- PrintMetadataBlock --------------------------"
+            "-------------------------- SlicerBlock --------------------------"
         )?;
         writeln!(f, "Params")?;
         writeln!(f, "params {:#?}", self.param)?;
         writeln!(f)?;
         writeln!(f, "DataBlock {}", self.data)?;
         writeln!(f)?;
-        write!(f, "-------------------------- PrintMetadataBlock ")?;
+        write!(f, "-------------------------- SlicerBlock ")?;
         match self.checksum {
             Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X} ---------")?,
             None => writeln!(f, "No checksum")?,
@@ -43,15 +43,15 @@ impl Display for PrintMetadataBlock {
     }
 }
 
-static PRINT_METADATA_BLOCK_ID: u16 = 5u16;
-pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock> {
+static SLICER_BLOCK_ID: u16 = 6u16;
+pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             println!(
-                "looking for PRINT_METADATA_BLOCK_ID {PRINT_METADATA_BLOCK_ID} found {block_type} cond {}",
-                *block_type == PRINT_METADATA_BLOCK_ID
+                "looking for SLICER_BLOCK_ID {SLICER_BLOCK_ID} found {block_type} cond {}",
+                *block_type == SLICER_BLOCK_ID
             );
-            *block_type == PRINT_METADATA_BLOCK_ID
+            *block_type == SLICER_BLOCK_ID
         }),
         block_header_parser,
     )(input)?;
@@ -97,7 +97,7 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
 
     Ok((
         after_checksum,
-        PrintMetadataBlock {
+        SlicerBlock {
             header,
             param,
             data,

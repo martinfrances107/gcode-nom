@@ -60,10 +60,10 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
         uncompressed_size,
         ..
     } = header.clone();
-    eprintln!("about to check param ");
+    println!("about to check param ");
     let (after_param, param) = param_parser(after_block_header)?;
-    eprintln!("Param value -- {param:#?}");
-    eprintln!("uncompressed_size -- {uncompressed_size:#?}");
+    println!("Param value -- {param:#?}");
+    println!("uncompressed_size -- {uncompressed_size:#?}");
     // Decompress datablock
     let (after_data, data_raw) = match compression_type {
         CompressionType::None => take(uncompressed_size)(after_param)?,

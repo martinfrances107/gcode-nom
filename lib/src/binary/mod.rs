@@ -20,10 +20,10 @@ mod block_header;
 mod compression_type;
 mod file_handler;
 mod file_metadata_block;
-mod gcode;
+mod gcode_block;
 mod print_metadata_block;
 mod printer_metadata_block;
-mod sm;
+mod slicer_block;
 mod thumbnail_block;
 
 use std::fmt::Display;
@@ -40,6 +40,7 @@ use compression_type::CompressionType;
 use print_metadata_block::{print_metadata_parser_with_checksum, PrintMetadataBlock};
 use printer_metadata_block::printer_metadata_parser_with_checksum;
 use printer_metadata_block::PrinterMetadataBlock;
+use slicer_block::{slicer_parser_with_checksum, SlicerBlock};
 use thumbnail_block::thumbnail_parser_with_checksum;
 use thumbnail_block::ThumbnailBlock;
 
@@ -53,7 +54,7 @@ pub struct Bgcode {
     printer_metadata: PrinterMetadataBlock,
     thumbnail: Option<ThumbnailBlock>,
     print_metadata: PrintMetadataBlock,
-    // slicer: SlicerMetadataBlock,
+    slicer: SlicerBlock,
     // gcode: Vec<GCodeBlock>,
 }
 
@@ -90,13 +91,15 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
             printer_metadata_parser_with_checksum,
             opt(thumbnail_parser_with_checksum),
             print_metadata_parser_with_checksum,
+            slicer_parser_with_checksum,
         )),
-        |(fh, file_metadata, printer_metadata, thumbnail, print_metadata)| Bgcode {
+        |(fh, file_metadata, printer_metadata, thumbnail, print_metadata, slicer)| Bgcode {
             fh,
             file_metadata,
             printer_metadata,
             thumbnail,
             print_metadata,
+            slicer,
         },
     )(input)
 }
