@@ -34,6 +34,7 @@ impl Display for Param {
         writeln!(f, "height {}", self.height)
     }
 }
+
 pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Param> {
     map_res(tuple((le_u16, le_u16, le_u16)), |(f, width, height)| {
         Format::try_from(f).map_or_else(
@@ -57,14 +58,16 @@ pub(super) enum Format {
 }
 
 impl TryFrom<u16> for Format {
-    type Error = Err<Error<u16>>;
-
+    type Error = String;
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         match value {
             0 => Ok(Self::Png),
             1 => Ok(Self::Jpg),
             2 => Ok(Self::Qoi),
-            _ => Err(Err::Error(Error::new(value, ErrorKind::Alt))),
+            bad_value => {
+                let msg = format!("Format Value was not recognised Ox{bad_value:02X}");
+                Err(msg)
+            }
         }
     }
 }

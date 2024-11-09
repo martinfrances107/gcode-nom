@@ -9,14 +9,12 @@ use nom::{
     combinator::verify,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
-    IResult,
+    IResult, InputTake,
 };
 
 mod param;
 use param::Param;
 use param::{param_parser, Format};
-
-static THUMBNAIL_BLOCK_ID: u16 = 4u16;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ThumbnailBlock {
@@ -45,6 +43,7 @@ impl Display for ThumbnailBlock {
     }
 }
 
+static THUMBNAIL_BLOCK_ID: u16 = 5u16;
 pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
@@ -62,7 +61,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         uncompressed_size,
         ..
     } = header.clone();
-    println!("about to check param ");
+    println!("thumbnail about to check param ");
     let (after_param, param) = param_parser(after_block_header)?;
     println!("Param value -- {param:#?}");
     println!("uncompressed_size -- {uncompressed_size:#?}");
@@ -93,7 +92,20 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         Format::Png => std::fs::write("thumb.png", &data).unwrap(),
     }
 
-    let (after_checksum, checksum_value) = le_u32(after_data)?;
+    let (after_checksum, checksum) = le_u32(after_data)?;
+
+    let param_size = 6;
+    let block_size = header.size_in_bytes() + param_size + header.payload_size_in_bytes();
+    let crc_input: Vec<u8> = input.take(block_size).to_vec();
+    let computed_checksum = crc32fast::hash(&crc_input);
+
+    print!("thumbnail checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    if checksum == computed_checksum {
+        println!(" match");
+    } else {
+        println!(" fail");
+        panic!("file metadata block failed checksum");
+    }
 
     Ok((
         after_checksum,
@@ -101,7 +113,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
             header,
             param,
             data,
-            checksum: Some(checksum_value),
+            checksum: Some(checksum),
         },
     ))
 }
