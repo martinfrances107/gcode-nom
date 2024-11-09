@@ -9,7 +9,7 @@ use nom::{
     combinator::verify,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
-    IResult,
+    IResult, InputTake,
 };
 
 mod param;
@@ -60,7 +60,7 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
         uncompressed_size,
         ..
     } = header.clone();
-    println!("about to check param ");
+    println!("printer_metadata about to check param ");
     let (after_param, param) = param_parser(after_block_header)?;
     println!("Param value -- {param:#?}");
     println!("uncompressed_size -- {uncompressed_size:#?}");
@@ -86,7 +86,25 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
 
     let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
 
-    let (after_checksum, checksum_value) = le_u32(after_data)?;
+    let (after_checksum, checksum) = le_u32(after_data)?;
+
+    let param_size = 0;
+    let block_size = header.size_in_bytes() + param_size + header.payload_size_in_bytes();
+
+    let param_size = 2;
+    let block_size = header.size_in_bytes() + param_size + header.payload_size_in_bytes();
+    let crc_input: Vec<u8> = input.take(block_size).to_vec();
+    let computed_checksum = crc32fast::hash(&crc_input);
+
+    print!(
+        "printer_metadata checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} "
+    );
+    if checksum == computed_checksum {
+        println!(" match");
+    } else {
+        println!(" fail");
+        panic!("printer metadata block failed checksum");
+    }
 
     Ok((
         after_checksum,
@@ -94,7 +112,7 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
             header,
             param,
             data,
-            checksum: Some(checksum_value),
+            checksum: Some(checksum),
         },
     ))
 }
