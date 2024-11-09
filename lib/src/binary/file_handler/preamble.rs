@@ -14,6 +14,7 @@ pub(super) fn preamble(input: &[u8]) -> IResult<&[u8], u32> {
             println!("found binary GCODE header 0x{code:X}");
             Ok(HEADER)
         } else {
+            println!("Discarding bad preamble failing ");
             Err(Err::Error(Error::new(input, ErrorKind::Alt)))
         }
     })(input)

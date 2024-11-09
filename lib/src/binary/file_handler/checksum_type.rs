@@ -32,7 +32,7 @@ pub(super) fn checksum_type_parser(input: &[u8]) -> IResult<&[u8], ChecksumType>
             0 => ChecksumType::None,
             1 => ChecksumType::CRC32,
             bad_checksum => {
-                println!("Discarding checksum {bad_checksum:?}");
+                println!("Discarding bad checksum type {bad_checksum:?}");
                 return Err(Err::Error(Error::new(input, ErrorKind::Alt)));
             }
         })
