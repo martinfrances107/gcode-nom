@@ -5,6 +5,9 @@
 
 [] - get Deflate working ?
 
+[] - MeatPacking algorithm
+    <https://github.com/scottmudge/OctoPrint-MeatPack>
+
 [] - SVG does not handle nom printing moves.
 
 [] - identify which M-code than should not be dropped.
