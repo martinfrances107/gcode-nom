@@ -101,7 +101,7 @@ pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMe
         println!(" match");
     } else {
         println!(" fail");
-        panic!("filemetadta block failed checksum");
+        panic!("file metadata block failed checksum");
     }
 
     Ok((
