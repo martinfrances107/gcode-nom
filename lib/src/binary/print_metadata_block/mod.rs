@@ -1,5 +1,6 @@
 use core::fmt::Display;
 
+use inflate::inflate_bytes;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -77,11 +78,13 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
             (remain, data)
         }
         CompressionType::Deflate => {
-            let (remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
-            // let mut d = GzDecoder::new(data_compressed);
-            // let mut data = String::new();
-            // d.read_to_string(&mut data).unwrap();
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+            println!("about to inflate");
+            // let decoded = inflate_bytes(encoded).unwrap();
+            // let data = String::from_utf8(decoded).unwrap();
+            // println!("inflated {data:#?}");
             let data = String::from("contains compressed data");
+
             (remain, data)
 
             // take(uncompressed_size)(after_param)?

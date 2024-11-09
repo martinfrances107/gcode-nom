@@ -38,6 +38,7 @@ use nom::{
 };
 
 use compression_type::CompressionType;
+use gcode_block::{gcode_parser_with_checksum, GCodeBlock};
 use print_metadata_block::{print_metadata_parser_with_checksum, PrintMetadataBlock};
 use printer_metadata_block::printer_metadata_parser_with_checksum;
 use printer_metadata_block::PrinterMetadataBlock;
@@ -56,7 +57,7 @@ pub struct Bgcode {
     thumbnails: Vec<ThumbnailBlock>,
     print_metadata: PrintMetadataBlock,
     slicer: SlicerBlock,
-    // gcode: Vec<GCodeBlock>,
+    gcode: Vec<GCodeBlock>,
 }
 
 impl Display for Bgcode {
@@ -78,7 +79,13 @@ impl Display for Bgcode {
 
         writeln!(f, "{}", self.print_metadata)?;
         writeln!(f, "{}", self.slicer)?;
-        // TODO add more sections
+        if self.gcode.is_empty() {
+            writeln!(f, "No optional thumbnail block")?;
+        } else {
+            for g in &self.gcode {
+                writeln!(f, "{g}")?;
+            }
+        }
         Ok(())
     }
 }
@@ -96,14 +103,16 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
             many0(thumbnail_parser_with_checksum),
             print_metadata_parser_with_checksum,
             slicer_parser_with_checksum,
+            many0(gcode_parser_with_checksum),
         )),
-        |(fh, file_metadata, printer_metadata, thumbnail, print_metadata, slicer)| Bgcode {
+        |(fh, file_metadata, printer_metadata, thumbnail, print_metadata, slicer, gcode)| Bgcode {
             fh,
             file_metadata,
             printer_metadata,
             thumbnails: thumbnail,
             print_metadata,
             slicer,
+            gcode,
         },
     )(input)
 }
