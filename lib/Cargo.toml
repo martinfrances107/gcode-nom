@@ -19,5 +19,6 @@ crate-type = ["cdylib", "rlib"]
 crc32fast = "1.4.2"
 default = "0.1.2"
 deflate = "1.0.0"
+flate2 = "1.0.34"
 heatshrink = "0.2.0"
 nom = "7.1.3"

@@ -1,0 +1,6 @@
+found binary GCODE header 0x45444347
+Looking for FILE_METADATA_BLOCK_ID0 cond true
+looking for PRINTER_METADATA_BLOCK_ID 3 3 cond true
+looking for THUMBNAIL_BLOCK_ID 4 found 5 cond false
+looking for PRINT_METADATA_BLOCK_ID 5 found 5 cond true
+looking for PRINT_METADATA_BLOCK_ID 6 found 35029 cond false

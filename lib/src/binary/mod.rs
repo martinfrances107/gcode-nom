@@ -32,6 +32,7 @@ use file_handler::{file_header_parser, FileHeader};
 use file_metadata_block::{file_metadata_parser_with_checksum, FileMetadataBlock};
 use nom::{
     combinator::{map, opt},
+    multi::many0,
     sequence::tuple,
     IResult,
 };
@@ -52,7 +53,7 @@ pub struct Bgcode {
     fh: FileHeader,
     file_metadata: Option<FileMetadataBlock>,
     printer_metadata: PrinterMetadataBlock,
-    thumbnail: Option<ThumbnailBlock>,
+    thumbnails: Vec<ThumbnailBlock>,
     print_metadata: PrintMetadataBlock,
     slicer: SlicerBlock,
     // gcode: Vec<GCodeBlock>,
@@ -67,13 +68,16 @@ impl Display for Bgcode {
             writeln!(f, "No optional file metadata block")?;
         }
         writeln!(f, "{}", &self.printer_metadata)?;
-        if let Some(thumb) = &self.thumbnail {
-            writeln!(f, "{thumb}")?;
-        } else {
+        if self.thumbnails.is_empty() {
             writeln!(f, "No optional thumbnail block")?;
+        } else {
+            for thumb in &self.thumbnails {
+                writeln!(f, "{thumb}")?;
+            }
         }
 
         writeln!(f, "{}", self.print_metadata)?;
+        writeln!(f, "{}", self.slicer)?;
         // TODO add more sections
         Ok(())
     }
@@ -89,7 +93,7 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
             file_header_parser,
             opt(file_metadata_parser_with_checksum),
             printer_metadata_parser_with_checksum,
-            opt(thumbnail_parser_with_checksum),
+            many0(thumbnail_parser_with_checksum),
             print_metadata_parser_with_checksum,
             slicer_parser_with_checksum,
         )),
@@ -97,7 +101,7 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
             fh,
             file_metadata,
             printer_metadata,
-            thumbnail,
+            thumbnails: thumbnail,
             print_metadata,
             slicer,
         },

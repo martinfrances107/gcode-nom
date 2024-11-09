@@ -9,7 +9,7 @@ fn main() -> std::io::Result<()> {
     let mut reader = BufReader::new(s_lock);
 
     // TODO Must stream properly.
-    const N: usize = 3471042;
+    const N: usize = 299258;
     let mut buffer: [u8; N] = [0; N];
     if reader.read(&mut buffer)? != 0usize {
         match bgcode_parser(&buffer) {
@@ -18,7 +18,7 @@ fn main() -> std::io::Result<()> {
                 println!("{bgcode}")
             }
             Err(e) => {
-                eprintln!("Unhandlled error decoding file {e}");
+                println!("Unhandlled error decoding file {e}");
             }
         }
     }

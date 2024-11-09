@@ -71,7 +71,7 @@ pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMe
     let (after_data, data_raw) = match compression_type {
         CompressionType::None => take(uncompressed_size)(after_param)?,
         CompressionType::Deflate => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            // let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
             // Must decompress here
             todo!()
         }

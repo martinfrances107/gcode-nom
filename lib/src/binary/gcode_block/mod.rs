@@ -17,24 +17,24 @@ use param::param_parser;
 use param::Param;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SlicerBlock {
+pub struct GcodeBlock {
     header: BlockHeader,
     param: Param,
     data: String,
     checksum: Option<u32>,
 }
-impl Display for SlicerBlock {
+impl Display for GcodeBlock {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "-------------------------- SlicerBlock --------------------------"
+            "-------------------------- GcodeBlock --------------------------"
         )?;
         writeln!(f, "Params")?;
         writeln!(f, "params {:#?}", self.param)?;
         writeln!(f)?;
         writeln!(f, "DataBlock {}", self.data)?;
         writeln!(f)?;
-        write!(f, "-------------------------- SlicerBlock ")?;
+        write!(f, "-------------------------- GcodeBlock ")?;
         match self.checksum {
             Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X} ---------")?,
             None => writeln!(f, "No checksum")?,
@@ -43,15 +43,15 @@ impl Display for SlicerBlock {
     }
 }
 
-static SLICER_BLOCK_ID: u16 = 6u16;
-pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> {
+static GCODE_BLOCK_ID: u16 = 1u16;
+pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GcodeBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             println!(
-                "looking for SLICER_BLOCK_ID {SLICER_BLOCK_ID} found {block_type} cond {}",
-                *block_type == SLICER_BLOCK_ID
+                "looking for SLICER_BLOCK_ID {GCODE_BLOCK_ID} found {block_type} cond {}",
+                *block_type == GCODE_BLOCK_ID
             );
-            *block_type == SLICER_BLOCK_ID
+            *block_type == GCODE_BLOCK_ID
         }),
         block_header_parser,
     )(input)?;
@@ -61,7 +61,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
         uncompressed_size,
         ..
     } = header.clone();
-    println!("about to check param ");
+    println!("gcode about to check param ");
     let (after_param, param) = param_parser(after_block_header)?;
     println!("Param value -- {param:#?}");
     println!("uncompressed_size -- {uncompressed_size:#?}");
@@ -97,7 +97,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
 
     Ok((
         after_checksum,
-        SlicerBlock {
+        GcodeBlock {
             header,
             param,
             data,

@@ -4,12 +4,13 @@ use super::{
     block_header::{block_header_parser, BlockHeader},
     compression_type::CompressionType,
 };
+
 use nom::{
     bytes::streaming::take,
     combinator::verify,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
-    IResult,
+    IResult, InputTake,
 };
 
 mod param;
@@ -43,7 +44,7 @@ impl Display for SlicerBlock {
     }
 }
 
-static SLICER_BLOCK_ID: u16 = 6u16;
+static SLICER_BLOCK_ID: u16 = 2u16;
 pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
@@ -59,19 +60,28 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
     let BlockHeader {
         compression_type,
         uncompressed_size,
+        compressed_size,
         ..
     } = header.clone();
-    println!("about to check param ");
+    println!("slicer about to check param ");
     let (after_param, param) = param_parser(after_block_header)?;
-    eprintln!("Param value -- {param:#?}");
-    eprintln!("uncompressed_size -- {uncompressed_size:#?}");
+    println!("Param value -- {param:#?}");
+    println!("uncompressed_size -- {uncompressed_size:#?}");
+    println!("compression_type -- {compression_type:#?}");
     // Decompress datablock
-    let (after_data, data_raw) = match compression_type {
-        CompressionType::None => take(uncompressed_size)(after_param)?,
+    let (after_data, data) = match compression_type {
+        CompressionType::None => {
+            let (remain, data_raw) = take(uncompressed_size)(after_param)?;
+            let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
+            (remain, data)
+        }
         CompressionType::Deflate => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
-            // Must decompress here
-            todo!()
+            let (remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            // let mut d = GzDecoder::new(data_compressed);
+            // let mut data = String::new();
+            // d.read_to_string(&mut data).unwrap();
+            let data = String::from("contains compressed data");
+            (remain, data)
         }
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
@@ -85,15 +95,24 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
         }
     };
 
-    let data = match param.encoding {
-        0 => String::from_utf8(data_raw.to_vec()).expect("raw data error"),
-        2u16 => String::from("A meatpacked string with comments handling"),
-        _ => {
-            panic!("bad encoding");
-        }
-    };
+    let (after_checksum, checksum) = le_u32(after_data)?;
 
-    let (after_checksum, checksum_value) = le_u32(after_data)?;
+    let param_size = 2;
+    let payload_size = match compression_type {
+        CompressionType::None => uncompressed_size as usize,
+        _ => compressed_size.unwrap() as usize,
+    };
+    let block_size = header.size_in_bytes() + param_size + payload_size;
+    let crc_input: Vec<u8> = input.take(block_size).to_vec();
+    let computed_checksum = crc32fast::hash(&crc_input);
+
+    print!("slicer checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    if checksum == computed_checksum {
+        println!(" match");
+    } else {
+        println!(" fail");
+        panic!("slicer metadata block failed checksum");
+    }
 
     Ok((
         after_checksum,
@@ -101,7 +120,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
             header,
             param,
             data,
-            checksum: Some(checksum_value),
+            checksum: Some(checksum),
         },
     ))
 }
