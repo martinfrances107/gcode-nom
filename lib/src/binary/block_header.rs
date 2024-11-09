@@ -60,14 +60,14 @@ pub(super) fn block_header_parser(input: &[u8]) -> IResult<&[u8], BlockHeader> {
 // Utils used for CRC checking.
 impl BlockHeader {
     /// The size in bytes of the block header is 8 when Compression = 0 and 12 in all other cases.
-    pub(super) fn size_in_bytes(&self) -> usize {
+    pub(super) const fn size_in_bytes(&self) -> usize {
         match self.compression_type {
             CompressionType::None => 8,
             _ => 12,
         }
     }
 
-    pub(super) fn payload_size_in_bytes(&self) -> usize {
+    pub(super) const fn payload_size_in_bytes(&self) -> usize {
         match self.compressed_size {
             Some(size) => size as usize,
             None => self.uncompressed_size as usize,
