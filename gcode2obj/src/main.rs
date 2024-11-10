@@ -19,7 +19,7 @@ use obj::Obj;
 use clap::ArgAction;
 use clap::Parser;
 
-/// Simple program to greet a person
+// Ocassionally want to apply Blender specific transform.
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
