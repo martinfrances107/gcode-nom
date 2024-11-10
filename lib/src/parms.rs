@@ -1,5 +1,5 @@
-use std::hash::Hash;
-use std::hash::Hasher;
+use core::hash::Hash;
+use core::hash::Hasher;
 
 use nom::bytes::complete::tag;
 use nom::combinator::map;
