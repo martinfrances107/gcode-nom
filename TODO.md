@@ -1,5 +1,7 @@
 # TASKS
 
+[] - new binary gcodeExtract thumbs.
+
 [] - Missing compression algorithms
 
 [] - Get Deflate working
