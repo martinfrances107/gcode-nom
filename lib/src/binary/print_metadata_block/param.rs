@@ -33,7 +33,7 @@ pub(super) enum Encoding {
 }
 
 impl Display for Encoding {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(f, "Encoding ini")
     }
 }

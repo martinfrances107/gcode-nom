@@ -28,7 +28,7 @@ pub(super) struct Param {
 }
 
 impl Display for Param {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(f, "format {}", self.format)?;
         writeln!(f, "width {}", self.width)?;
         writeln!(f, "height {}", self.height)
@@ -72,7 +72,7 @@ impl TryFrom<u16> for Format {
     }
 }
 impl Display for Format {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::Png => write!(f, "Png"),
             Self::Jpg => write!(f, "Jpg"),

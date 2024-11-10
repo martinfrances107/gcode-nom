@@ -14,7 +14,7 @@ pub(super) enum ChecksumType {
 }
 
 impl Display for ChecksumType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::None => {
                 write!(f, "0 - Blocks have no checksum")

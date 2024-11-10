@@ -26,7 +26,7 @@ mod printer_metadata_block;
 mod slicer_block;
 mod thumbnail_block;
 
-use std::fmt::Display;
+use core::fmt::Display;
 
 use file_handler::{file_header_parser, FileHeader};
 use file_metadata_block::{file_metadata_parser_with_checksum, FileMetadataBlock};
@@ -61,7 +61,7 @@ pub struct Bgcode {
 }
 
 impl Display for Bgcode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(f, "{}", self.fh)?;
         if let Some(file_metadata) = &self.file_metadata {
             writeln!(f, "{file_metadata}")?;

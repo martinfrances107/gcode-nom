@@ -27,7 +27,7 @@ pub struct FileHeader {
 }
 
 impl Display for FileHeader {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(f, "File Header")?;
         writeln!(f)?;
         writeln!(f, "{}", self.version)?;

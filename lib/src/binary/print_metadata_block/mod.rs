@@ -25,7 +25,7 @@ pub struct PrintMetadataBlock {
 }
 
 impl Display for PrintMetadataBlock {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(
             f,
             "-------------------------- PrintMetadataBlock --------------------------"
@@ -84,7 +84,6 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
             // let data = String::from_utf8(decoded).unwrap();
             // println!("inflated {data:#?}");
             let data = String::from("contains compressed data");
-
             (remain, data)
 
             // take(uncompressed_size)(after_param)?
