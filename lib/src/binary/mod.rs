@@ -53,12 +53,18 @@ use thumbnail_block::ThumbnailBlock;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Bgcode {
     fh: FileHeader,
-    file_metadata: Option<FileMetadataBlock>,
-    printer_metadata: PrinterMetadataBlock,
-    thumbnails: Vec<ThumbnailBlock>,
-    print_metadata: PrintMetadataBlock,
-    slicer: SlicerBlock,
-    gcode: Vec<GCodeBlock>,
+    /// A file block.
+    pub file_metadata: Option<FileMetadataBlock>,
+    /// A file block.
+    pub printer_metadata: PrinterMetadataBlock,
+    /// A colleciton of image blocks.
+    pub thumbnails: Vec<ThumbnailBlock>,
+    /// A file block.
+    pub print_metadata: PrintMetadataBlock,
+    /// A file block.
+    pub slicer: SlicerBlock,
+    /// A collection of gcode blocks.
+    pub gcode: Vec<GCodeBlock>,
 }
 
 impl Display for Bgcode {

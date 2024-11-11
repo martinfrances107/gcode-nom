@@ -1,0 +1,356 @@
+Loading filename ../assets/mini_cube_b.bgcode ... done
+state Ok(149258)
+found binary GCODE header 0x45444347
+Looking for FILE_METADATA_BLOCK_ID 0 found 0 cond true
+uncompressed_size -- 27
+compression_type -- None
+file_metadata checksum 0x42089099 computed checksum 0x42089099  match
+looking for PRINTER_METADATA_BLOCK_ID 3 3 cond true
+printer_metadata about to check param 
+Param value -- Param {
+    encoding: 0,
+}
+uncompressed_size -- 345
+printer_metadata checksum 0x4ecd7921 computed checksum 0x4ecd7921  match
+looking for THUMBNAIL_BLOCK_ID 5 found 5 cond true
+thumbnail about to check param 
+Param value -- Param {
+    format: Png,
+    width: 16,
+    height: 16,
+}
+uncompressed_size -- 461
+thumbnail checksum 0x3319c187 computed checksum 0x3319c187  match
+looking for THUMBNAIL_BLOCK_ID 5 found 5 cond true
+thumbnail about to check param 
+Param value -- Param {
+    format: Png,
+    width: 220,
+    height: 124,
+}
+uncompressed_size -- 4836
+thumbnail checksum 0x4a66dd92 computed checksum 0x4a66dd92  match
+looking for THUMBNAIL_BLOCK_ID 5 found 4 cond false
+Looking for PRINT_METADATA_BLOCK_ID 4 found 4 cond true
+uncompressed_size -- 248
+compressed_size -- None
+compression_type -- None
+extracted param Param { encoding: None }
+print_metadata checksum 0xe6f2a51d computed checksum 0xe6f2a51d  match
+looking for SLICER_BLOCK_ID 2 found 2 cond true
+slicer about to check param 
+Param value -- Param {
+    encoding: 0,
+}
+uncompressed_size -- 9745
+compression_type -- Deflate
+slicer checksum 0x2f9f82da computed checksum 0x2f9f82da  match
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 37969
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0x106a78eb computed checksum 0x106a78eb  match
+returning ok
+after gcode checksum 125297
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 37022
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0xe4f622f2 computed checksum 0xe4f622f2  match
+returning ok
+after gcode checksum 110359
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 37048
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0xd4e3c33d computed checksum 0xd4e3c33d  match
+returning ok
+after gcode checksum 95874
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 37123
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0x976cf234 computed checksum 0x976cf234  match
+returning ok
+after gcode checksum 81274
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 37127
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0xa08df5d8 computed checksum 0xa08df5d8  match
+returning ok
+after gcode checksum 66802
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 36902
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0xd8cff7f6 computed checksum 0xd8cff7f6  match
+returning ok
+after gcode checksum 51647
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 37154
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0xda3a4103 computed checksum 0xda3a4103  match
+returning ok
+after gcode checksum 37125
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 36921
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0xf4f34684 computed checksum 0xf4f34684  match
+returning ok
+after gcode checksum 21902
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 37123
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0x1948df70 computed checksum 0x1948df70  match
+returning ok
+after gcode checksum 7368
+looking for CODE_BLOCK_ID 1 found 1 cond true
+found gcode block id
+gcode about to check param 
+Param value -- Param {
+    encoding: 2,
+}
+uncompressed_size -- 19618
+compression_type -- HeatShrink12
+about to read checksum
+gcode checksum 0xdbb85a2b computed checksum 0xdbb85a2b  match
+returning ok
+after gcode checksum 0
+File has been validated
+Valid input
+File Header
+
+Version number 1
+
+1 - A CRC32 checksum is appended to all block
+
+-------------------------- FileMetadataBlock --------------------------
+
+Paramsparams 0xParam { encoding: 0 }
+DataBlock Producer=PrusaSlicer 2.6.0
+
+
+-------------------------- FileMetadataBlock Ckecksum Ox42089099 ---------
+
+-------------------------- PrinterMetadataBlock --------------------------
+Params
+params Param {
+    encoding: 0,
+}
+DataBlock printer_model=MINI
+filament_type=PETG
+nozzle_diameter=0.4
+bed_temperature=90
+brim_width=0
+fill_density=15%
+layer_height=0.15
+temperature=240
+ironing=0
+support_material=0
+max_layer_z=18.05
+extruder_colour=""
+filament used [mm]=986.61
+filament used [cm3]=2.37
+filament used [g]=3.01
+filament cost=0.08
+estimated printing time (normal mode)=32m 6s
+
+
+-------------------------- PrinterMetadataBlock Ckecksum Ox4ECD7921 ---------
+
+-------------------------- ThumbnailBlock --------------------------
+
+Params
+format Png
+width 16
+height 16
+DataBlock omitted
+
+-------------------------- ThumbnailBlock Ckecksum Ox3319C187 ---------
+
+-------------------------- ThumbnailBlock --------------------------
+
+Params
+format Png
+width 220
+height 124
+DataBlock omitted
+
+-------------------------- ThumbnailBlock Ckecksum Ox4A66DD92 ---------
+
+-------------------------- PrintMetadataBlock --------------------------
+
+Paramsparams 0xParam { encoding: None }
+DataBlock filament used [mm]=986.61
+filament used [cm3]=2.37
+filament used [g]=3.01
+filament cost=0.08
+total filament used [g]=3.01
+total filament cost=0.08
+estimated printing time (normal mode)=32m 6s
+estimated first layer printing time (normal mode)=1m 8s
+
+
+-------------------------- PrintMetadataBlock Ckecksum OxE6F2A51D ---------
+
+-------------------------- SlicerBlock --------------------------
+Params
+params Param {
+    encoding: 0,
+}
+
+DataBlock contains compressed data
+
+-------------------------- SlicerBlock Ckecksum Ox2F9F82DA ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum Ox106A78EB ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum OxE4F622F2 ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum OxD4E3C33D ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum Ox976CF234 ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum OxA08DF5D8 ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum OxD8CFF7F6 ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum OxDA3A4103 ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum OxF4F34684 ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum Ox1948DF70 ---------
+
+-------------------------- GCodeBlock --------------------------
+Params
+params Param {
+    encoding: 2,
+}
+
+DataBlock headshrink
+
+-------------------------- GCodeBlock Ckecksum OxDBB85A2B ---------
+
+
+Hello, world!

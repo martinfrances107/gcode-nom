@@ -2,6 +2,8 @@
 
 [] - new binary gcodeExtract thumbs.
 
+[] - Moving debug print!()'ing to log::info!()
+
 [] - Missing compression algorithms
 
 [] - Get Deflate working

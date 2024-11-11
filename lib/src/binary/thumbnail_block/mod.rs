@@ -19,8 +19,9 @@ use param::{param_parser, Format};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ThumbnailBlock {
     header: BlockHeader,
-    param: Param,
-    data: Vec<u8>,
+    pub param: Param,
+    /// binary data.
+    pub data: Vec<u8>,
     checksum: Option<u32>,
 }
 impl Display for ThumbnailBlock {
@@ -86,11 +87,6 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     };
 
     let data = data_raw.to_vec();
-    match param.format {
-        Format::Qoi => std::fs::write("thumb.qoi", &data).unwrap(),
-        Format::Jpg => std::fs::write("thumb.jpg", &data).unwrap(),
-        Format::Png => std::fs::write("thumb.png", &data).unwrap(),
-    }
 
     let (after_checksum, checksum) = le_u32(after_data)?;
 

@@ -2,40 +2,43 @@
 
 Rust 2021 Edition.
 
-Contains two parsers:
+A library containing a full set of [nom](https://crates.io/crates/nom) parsers for decoding gcode files.
 
-* A streaming nom parser of "binary gcode files" ['.bgcode' extension].
+Based on this library the workspace contains a series of visualisation tools
 
-* A parser for text based gcode files ['.gcode' extension].
-
-I intend the binary gcode parser to be as stirictly complient as possible. This is under-going rapid development.
-
-Based on this library, there are a series of visualisation tools within the workspace.
-
-* bgcodeViewer - Strict checking of binaries.
-* gocde2obj - Generates "WaveFront Obj" files.
+* gcodeExtractThumbs
+* bgcodeViewer - Validator reports on the quality of the file.
+* gcode2obj - Generates "WaveFront Obj" files.
 * gcode2svg - Generates SVG files.
 
-## bgcodeViewer
+I intend the parsers to be as stirictly complient as possible. This is under-going rapid development. Please create issues here, or send me gcode files which expose unimplemented sections.
 
- A strict validator -- Reports on the quality of the binary.
+For "binary gcode files" ['.bgcode' extension] the parser are streaming parsers.
+
+See [nom](https://crates.io/crates/nom) - "A byte-oriented, zero-copy, parser combinators library"
+
+## Tools
+
+### bgcodeViewer
+
+ Strict checking of binaries. validates blocks checksums, ensures 'block' parameters values are within valid ranges.
+
+Pass the gcode file into StdIn - A summary file is written to StdOut
 
  ```rust
- cd bgcdoeViewer
- cargo run --release  < ../assets/both\ parts.bgcode
+ cd bgcodeViewer
+ cargo run --release  < ../assets/both\ parts.bgcode > summary.txt
  ```
 
-## gcode2obj
+### gcode2obj
 
 Generates obj files.
-
-### How to use
 
 Pass the gcode file into StdIn - the obj file is sent to StdOut :-
 
 ```bash
 cd gcode2obj
-cargo run --release -- < ./assets/bency.gcode > bench.svg
+cargo run --release -- < ./assets/bency.gcode > bench.obj
 ```
 
 Which for example can be imported into blender for visualisation.

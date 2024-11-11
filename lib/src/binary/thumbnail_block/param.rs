@@ -21,10 +21,11 @@ use nom::{
 // 2 = QOI format
 //
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(super) struct Param {
-    pub(super) format: Format,
-    width: u16,
-    height: u16,
+pub struct Param {
+    // aka file extension
+    pub format: Format,
+    pub width: u16,
+    pub height: u16,
 }
 
 impl Display for Param {
@@ -51,7 +52,7 @@ pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Param> {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(super) enum Format {
+pub enum Format {
     Png,
     Jpg,
     Qoi,
@@ -74,9 +75,9 @@ impl TryFrom<u16> for Format {
 impl Display for Format {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            Self::Png => write!(f, "Png"),
-            Self::Jpg => write!(f, "Jpg"),
-            Self::Qoi => write!(f, "Oci"),
+            Self::Png => write!(f, "png"),
+            Self::Jpg => write!(f, "jpg"),
+            Self::Qoi => write!(f, "oci"),
         }
     }
 }

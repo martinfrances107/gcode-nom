@@ -1,0 +1,17 @@
+[package]
+name = "extract_thumbs"
+authors = { workspace = true }
+edition = { workspace = true }
+categories = ["Parsing tools"]
+description = "Extracts the thumbnails from a .gcode/.bgcode file."
+homepage = { workspace = true }
+keywords = ["visualization"]
+license = { workspace = true }
+readme = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+clap = { version = "4.5.20", features = ["derive"] }
+gcode-nom = { path = "../lib" }
