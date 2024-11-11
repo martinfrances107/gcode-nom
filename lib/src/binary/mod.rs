@@ -18,6 +18,7 @@
 //!
 mod block_header;
 mod compression_type;
+mod default_params;
 mod file_handler;
 mod file_metadata_block;
 mod gcode_block;

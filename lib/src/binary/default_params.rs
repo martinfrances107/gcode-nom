@@ -7,7 +7,7 @@ use nom::{number::streaming::le_u16, IResult};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct Param {
     // possible values :-
-    // 1
+    // 0
     pub(super) encoding: Encoding,
 }
 

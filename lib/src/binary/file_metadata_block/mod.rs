@@ -8,11 +8,10 @@ use nom::{
     IResult, InputTake,
 };
 
-mod param;
+use crate::binary::default_params::param_parser;
+use crate::binary::default_params::Param;
 
 use super::{block_header::block_header_parser, block_header::BlockHeader, CompressionType};
-use param::param_parser;
-use param::Param;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileMetadataBlock {

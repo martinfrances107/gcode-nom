@@ -9,11 +9,9 @@ use nom::{
     IResult, InputTake,
 };
 
-mod param;
-
+use super::default_params::param_parser;
+use super::default_params::Param;
 use super::{block_header::block_header_parser, block_header::BlockHeader, CompressionType};
-use param::param_parser;
-use param::Param;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrintMetadataBlock {

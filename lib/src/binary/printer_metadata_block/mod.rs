@@ -3,6 +3,8 @@ use core::fmt::Display;
 use super::{
     block_header::{block_header_parser, BlockHeader},
     compression_type::CompressionType,
+    default_params::param_parser,
+    default_params::Param,
 };
 use nom::{
     bytes::streaming::take,
@@ -11,10 +13,6 @@ use nom::{
     sequence::preceded,
     IResult, InputTake,
 };
-
-mod param;
-use param::param_parser;
-use param::Param;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrinterMetadataBlock {

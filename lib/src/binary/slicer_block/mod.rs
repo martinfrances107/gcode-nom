@@ -13,9 +13,8 @@ use nom::{
     IResult, InputTake,
 };
 
-mod param;
-use param::param_parser;
-use param::Param;
+use super::default_params::param_parser;
+use super::default_params::Param;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SlicerBlock {
