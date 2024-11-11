@@ -8,10 +8,8 @@ fn main() -> std::io::Result<()> {
     let s_lock = stdin.lock();
     let mut reader = BufReader::new(s_lock);
 
-    // TODO Must stream properly.
-    const N: usize = 299258;
-    let mut buffer: [u8; N] = [0; N];
-    if reader.read(&mut buffer)? != 0usize {
+    let mut buffer = vec![];
+    if reader.read_to_end(&mut buffer)? != 0usize {
         match bgcode_parser(&buffer) {
             Ok((_remain, bgcode)) => {
                 println!("Valid input");

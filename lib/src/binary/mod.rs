@@ -31,8 +31,8 @@ use core::fmt::Display;
 use file_handler::{file_header_parser, FileHeader};
 use file_metadata_block::{file_metadata_parser_with_checksum, FileMetadataBlock};
 use nom::{
-    combinator::{map, opt},
-    multi::many0,
+    combinator::{eof, map, opt},
+    multi::{many0, many_till},
     sequence::tuple,
     IResult,
 };
@@ -103,16 +103,28 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
             many0(thumbnail_parser_with_checksum),
             print_metadata_parser_with_checksum,
             slicer_parser_with_checksum,
-            many0(gcode_parser_with_checksum),
+            // eof here asserts than what remains is_empty()
+            many_till(gcode_parser_with_checksum, eof),
         )),
-        |(fh, file_metadata, printer_metadata, thumbnail, print_metadata, slicer, gcode)| Bgcode {
+        |(
             fh,
             file_metadata,
             printer_metadata,
-            thumbnails: thumbnail,
+            thumbnail,
             print_metadata,
             slicer,
-            gcode,
+            (gcode, _remain),
+        )| {
+            println!("File has been validated");
+            Bgcode {
+                fh,
+                file_metadata,
+                printer_metadata,
+                thumbnails: thumbnail,
+                print_metadata,
+                slicer,
+                gcode,
+            }
         },
     )(input)
 }

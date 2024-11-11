@@ -56,7 +56,7 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
         }),
         block_header_parser,
     )(input)?;
-
+    println!("found gcode block id");
     let BlockHeader {
         compression_type,
         uncompressed_size,
@@ -94,7 +94,7 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
             (remain, String::from("headshrink"))
         }
     };
-
+    println!("about to read checksum");
     let (after_checksum, checksum) = le_u32(after_data)?;
 
     let param_size = 2;
@@ -113,7 +113,8 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
         println!(" fail");
         panic!("gcode metadata block failed checksum");
     }
-
+    println!("returning ok");
+    println!("after gcode checksum {:#?}", &after_checksum.len());
     Ok((
         after_checksum,
         GCodeBlock {
