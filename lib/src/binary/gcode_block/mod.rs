@@ -63,11 +63,9 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
         compressed_size,
         ..
     } = header.clone();
-    println!("gcode about to check param ");
+
     let (after_param, param) = param_parser(after_block_header)?;
-    println!("Param value -- {param:#?}");
-    println!("uncompressed_size -- {uncompressed_size:#?}");
-    println!("compression_type -- {compression_type:#?}");
+
     // Decompress datablock
     let (after_data, data) = match compression_type {
         CompressionType::None => {

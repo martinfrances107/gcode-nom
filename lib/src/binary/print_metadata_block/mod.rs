@@ -62,12 +62,8 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
         compressed_size,
     } = header.clone();
 
-    println!("uncompressed_size -- {uncompressed_size:#?}");
-    println!("compressed_size -- {compressed_size:#?}");
-    println!("compression_type -- {compression_type:#?}");
     let (after_param, param) = param_parser(after_block_header)?;
 
-    println!("extracted param {param:?}");
     // Decompress datablock
     let (after_data, data) = match compression_type {
         CompressionType::None => {

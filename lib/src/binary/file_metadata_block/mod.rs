@@ -62,8 +62,6 @@ pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMe
         compressed_size,
     } = header.clone();
 
-    println!("uncompressed_size -- {uncompressed_size:#?}");
-    println!("compression_type -- {compression_type:#?}");
     let (after_param, param) = param_parser(after_block_header)?;
 
     // Decompress datablock
