@@ -45,27 +45,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => println!("error {e:?}"),
     }
 
-    let index = 0;
-
     match bgcode_parser(&buffer) {
         Ok((_remain, bgcode)) => {
-            println!("Valid input");
-            for thumbnail_block in bgcode.thumbnails {
+            for (i, thumbnail_block) in bgcode.thumbnails.iter().enumerate() {
                 let path_str = format!(
-                    "./thumb_{}x{}{index}.{}",
+                    "./thumb_{i}_{}x{}.{}",
                     thumbnail_block.param.width,
                     thumbnail_block.param.height,
                     thumbnail_block.param.format
                 );
 
-                println!("path str {path_str:#?}");
-                // let mut file = fs::OpenOptions::new()
-                //     // .create(true) // To create a new file
-                //     .write(true)
-                //     // either use the ? operator or unwrap since it returns a Result
-                //     .open(path_str)?;
+                println!("writing {path_str:#?}");
                 std::fs::write(path_str, &thumbnail_block.data).unwrap()
-                // file.write_all(&thumbnail_block.data)?;
             }
         }
         Err(e) => {
