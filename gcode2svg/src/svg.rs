@@ -60,7 +60,7 @@ impl Display for Svg {
         let vb = format!("{} {} {} {}", self.min_x, self.min_y, width, height);
         write!(
             f,
-            "<svg height=\"210\" width=\"400\" xmlns=\"http://www.w3.org/2000/svg\" viewBox =\"{vb}\"> <path d=\""
+            "<svg height=\"{height}\" width=\"{width}\" xmlns=\"http://www.w3.org/2000/svg\" viewBox =\"{vb}\"> <path d=\""
         )?;
         for part in &self.parts {
             write!(f, "{part}")?;

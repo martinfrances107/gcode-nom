@@ -2,6 +2,9 @@
 
 [] - Moving debug print!()'ing to log::info!()
 
+[] - Both SVG and OBJ have "stringy move" issues.
+       -- Are files setting 'F' to zero.
+
 [] - Missing compression algorithms
 
 [] - Get Deflate working
