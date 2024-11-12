@@ -1,8 +1,8 @@
 use core::fmt::Display;
+use core::hash::Hash;
+use core::hash::Hasher;
 use core::mem;
 use std::collections::HashMap;
-use std::hash::Hash;
-use std::hash::Hasher;
 
 use gcode_nom::command::Command;
 use gcode_nom::parms::PosVal;
@@ -49,7 +49,7 @@ pub struct Obj {
 // struct GCodeError;
 
 // impl std::fmt::Display for GCodeError {
-//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+//     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
 //         write!(f, "invalid g-code statement")
 //     }
 // }
@@ -67,7 +67,7 @@ pub struct Obj {
 //
 // Campbell Barton
 impl Display for Obj {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         // Write out vertex buffer
         // "List of geometric vertices, with (x, y, z, [w]) coordinates, w is optional and defaults to 1.0."
         // [spec](<https://en.wikipedia.org/wiki/Wavefront_.obj_file>)
@@ -121,8 +121,7 @@ impl FromIterator<String> for Obj {
                 }
                 // A printable move.
                 Command::G1(mut payload) => {
-                    let params = payload.drain();
-                    for param in params {
+                    for param in payload.drain() {
                         match param {
                             PosVal::X(val) => x = val,
                             PosVal::Y(val) => y = val,
@@ -132,7 +131,7 @@ impl FromIterator<String> for Obj {
                                 // Silently drop feedrate adjustment.
                             }
                             pos_bad => {
-                                eprintln!("Unexpected param seen in Command::G1 {pos_bad:?}");
+                                println!("Unexpected param seen in Command::G1 {pos_bad:?}");
                             }
                         }
                     }
@@ -179,7 +178,7 @@ impl FromIterator<String> for Obj {
                             }
                             bad => {
                                 // Dropping unexpected params
-                                eprintln!("G92 unhandled set position code. P{bad:#?}");
+                                println!("G92 unhandled set position code. P{bad:#?}");
                             }
                         }
                     }
