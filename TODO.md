@@ -3,7 +3,7 @@
 [] - Moving debug print!()'ing to log::info!()
 
 [] - Both SVG and OBJ have "stringy move" issues.
-       -- Are files setting 'F' to zero.
+       -- Are files fsetting 'F' to zero.
 
 [] - Missing compression algorithms
 
@@ -30,5 +30,3 @@ After basic functionality
 [] - Add additional switch to output binary obj.
 
 [] - Add optional switch -o for output file -i for input
-
-[] - A fter working add checksum as a paranoid step.

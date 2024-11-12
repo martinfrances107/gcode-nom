@@ -53,7 +53,9 @@ Within blender :-
 
 ## gcode2svg
 
-A nom based parser, outputs a svg file.
+Generate svg files
+
+![Benchy in Blender](images/benchy.svg)
 
 ### How to use
 
