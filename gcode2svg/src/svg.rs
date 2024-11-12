@@ -84,6 +84,7 @@ impl FromIterator<String> for Svg {
     {
         let mut svg = Self::default();
 
+        let mut is_extruding = true;
         let mut abs_coords = CoordPos::default();
         let mut z = 0_f64;
         for line in iter {
@@ -100,7 +101,10 @@ impl FromIterator<String> for Svg {
                             PosVal::X(val) => x = val,
                             PosVal::Y(val) => y = val,
                             PosVal::Z(val) => z = val,
-                            PosVal::E(_) | PosVal::F(_) => {
+                            PosVal::E(val) => {
+                                is_extruding = val != 0_f64;
+                            }
+                            PosVal::F(_) => {
                                 // Silently drop.
                             }
                             pos_bad => {
@@ -135,7 +139,10 @@ impl FromIterator<String> for Svg {
                             PosVal::X(val) => x = val,
                             PosVal::Y(val) => y = val,
                             PosVal::Z(val) => z = val,
-                            PosVal::E(_) | PosVal::F(_) => {
+                            PosVal::E(val) => {
+                                is_extruding = val != 0_f64;
+                            }
+                            PosVal::F(_) => {
                                 // silently drop
                             }
                             pos_bad => {
@@ -155,10 +162,18 @@ impl FromIterator<String> for Svg {
                         svg.update_view_box(proj_x, proj_y);
                         match abs_coords {
                             CoordPos::Absolute => {
-                                svg.parts.push(format!("L{proj_x} {proj_y}"));
+                                if is_extruding {
+                                    svg.parts.push(format!("L{proj_x} {proj_y}"));
+                                } else {
+                                    svg.parts.push(format!("M{proj_x} {proj_y}"));
+                                }
                             }
                             CoordPos::Relative => {
-                                svg.parts.push(format!("l{proj_x} {proj_y}"));
+                                if is_extruding {
+                                    svg.parts.push(format!("l{proj_x} {proj_y}"));
+                                } else {
+                                    svg.parts.push(format!("m{proj_x} {proj_y}"));
+                                }
                             }
                         }
                     }
@@ -166,7 +181,13 @@ impl FromIterator<String> for Svg {
                 Command::G21 => svg.parts.push("M0,0".to_string()),
                 Command::G90 => abs_coords = CoordPos::Absolute,
                 Command::G91 => abs_coords = CoordPos::Relative,
-                Command::G92(_) | Command::GDrop(_) | Command::MDrop(_) | Command::Nop => {}
+                // G92- A non printing moved
+                Command::G92(_) => {
+                    // The extrude rate is going to zero
+                    // enter MoveMode ..ie not laying down fibre.
+                    is_extruding = false;
+                }
+                Command::GDrop(_) | Command::MDrop(_) | Command::Nop => {}
             }
         }
 

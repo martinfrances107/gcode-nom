@@ -1,7 +1,5 @@
 # TASKS
 
-[] - new binary gcodeExtract thumbs.
-
 [] - Moving debug print!()'ing to log::info!()
 
 [] - Missing compression algorithms
@@ -10,8 +8,6 @@
 
 [] - Get MeatPacking algorithm
     <https://github.com/scottmudge/OctoPrint-MeatPack>
-
-[] - SVG does not handle nom printing moves.
 
 [] - Identify which M-code than should not be dropped.
 
