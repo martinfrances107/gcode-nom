@@ -12,8 +12,8 @@ extern crate clap;
 
 use std::{
     fs::{self, File},
-    io::{BufReader, Read, Write},
-    path::{Path, PathBuf},
+    io::Read,
+    path::PathBuf,
 };
 
 use clap::Parser;
@@ -38,7 +38,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut f = File::open(args.input)?;
     println!("done");
 
-    // let mut reader = BufReader::new(f);
     let state = f.read_to_end(&mut buffer);
     match state {
         Ok(s) => println!("state {state:?}"),

@@ -13,8 +13,8 @@ use nom::{
 };
 
 mod param;
+use param::param_parser;
 use param::Param;
-use param::{param_parser, Format};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ThumbnailBlock {
