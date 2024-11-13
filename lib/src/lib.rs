@@ -18,8 +18,8 @@ pub mod parms;
 
 /// Absolute or Relative positioning
 #[derive(Default, Debug)]
-pub enum CoordPos {
-    /// As per spec `CoordPos::Absolute` is the dafault
+pub enum PositionMode {
+    /// As per spec `Positionmode::Absolute` is the dafault
     /// <https://marlinfw.org/docs/gcode/G090.html>
     #[default]
     Absolute,

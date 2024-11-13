@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 use gcode_nom::command::Command;
 use gcode_nom::parms::PosVal;
-use gcode_nom::CoordPos;
+use gcode_nom::PositionMode;
 
 #[derive(Debug, Clone)]
 struct Vertex(f64, f64, f64);
@@ -106,7 +106,7 @@ impl FromIterator<String> for Obj {
         let mut obj = Self::default();
 
         let mut is_extruding = true;
-        let mut abs_coords = CoordPos::default();
+        let mut position_mode = PositionMode::default();
         let mut z = 0_f64;
         let mut next_vertex_pos = 0;
         let mut line_buffer = vec![];
@@ -126,7 +126,9 @@ impl FromIterator<String> for Obj {
                             PosVal::X(val) => x = val,
                             PosVal::Y(val) => y = val,
                             PosVal::Z(val) => z = val,
-                            PosVal::E(val) => is_extruding = val != 0_f64,
+                            // Negative values the extruder is "wiping"
+                            // or sucking filament back into the extruder.
+                            PosVal::E(val) => is_extruding = val > 0_f64,
                             PosVal::F(_) => {
                                 // Silently drop feedrate adjustment.
                             }
@@ -156,16 +158,18 @@ impl FromIterator<String> for Obj {
                         }
                     }
                 }
-                Command::G90 => abs_coords = CoordPos::Absolute,
-                Command::G91 => abs_coords = CoordPos::Relative,
+                Command::G90 => position_mode = PositionMode::Absolute,
+                Command::G91 => position_mode = PositionMode::Relative,
+                // G92 Set Current Position
                 Command::G92(mut params) => {
                     for p in params.drain() {
                         match p {
                             PosVal::E(e) => {
-                                // TODO What about mode Abs or relative?
-                                if e == 0_f64 {
+                                // Negative values the extruder is "wiping"
+                                // or sucking filament back into the extruder.
+                                if e <= 0_f64 {
                                     // The extrude rate is going to zero
-                                    // enter MoveMode ..ie not laying down fibre.
+                                    // enter "move mode" ..ie not laying down filament.
                                     is_extruding = false;
                                     // For Visualisation we start a new line.
                                     //

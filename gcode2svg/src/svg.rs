@@ -2,7 +2,7 @@ use core::fmt::Display;
 
 use gcode_nom::command::Command;
 use gcode_nom::parms::PosVal;
-use gcode_nom::CoordPos;
+use gcode_nom::PositionMode;
 
 #[derive(Debug, Clone)]
 pub struct Svg {
@@ -85,7 +85,10 @@ impl FromIterator<String> for Svg {
         let mut svg = Self::default();
 
         let mut is_extruding = true;
-        let mut abs_coords = CoordPos::default();
+        // Positioning mode for all axes (A, B, C), (U, V, W),  (X, Y, Z).
+        let mut position_mode = PositionMode::default();
+        // Extruder is unique - can be overridden.
+        let mut e_position_mode = PositionMode::default();
         let mut z = 0_f64;
         for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command not parseable");
@@ -102,7 +105,9 @@ impl FromIterator<String> for Svg {
                             PosVal::Y(val) => y = val,
                             PosVal::Z(val) => z = val,
                             PosVal::E(val) => {
-                                is_extruding = val != 0_f64;
+                                // Negative values the extruder is "wiping"
+                                // or sucking filament back into the extruder.
+                                is_extruding = val > 0_f64;
                             }
                             PosVal::F(_) => {
                                 // Silently drop.
@@ -121,26 +126,25 @@ impl FromIterator<String> for Svg {
                         let proj_x = y / 2. + x / 2.;
                         let proj_y = -z - y / 2. + x / 2.;
                         svg.update_view_box(proj_x, proj_y);
-                        match abs_coords {
-                            CoordPos::Absolute => {
+                        match position_mode {
+                            PositionMode::Absolute => {
                                 svg.parts.push(format!("M{proj_x} {proj_y}"));
                             }
-                            CoordPos::Relative => {
+                            PositionMode::Relative => {
                                 svg.parts.push(format!("m{proj_x} {proj_y}"));
                             }
                         }
                     }
                 }
                 // A printable move.
-                Command::G1(mut payload) => {
-                    let params = payload.drain();
-                    for param in params {
+                Command::G1(mut params) => {
+                    for param in params.drain() {
                         match param {
                             PosVal::X(val) => x = val,
                             PosVal::Y(val) => y = val,
                             PosVal::Z(val) => z = val,
                             PosVal::E(val) => {
-                                is_extruding = val != 0_f64;
+                                is_extruding = val > 0_f64;
                             }
                             PosVal::F(_) => {
                                 // silently drop
@@ -160,15 +164,15 @@ impl FromIterator<String> for Svg {
                         let proj_x = y / 2. + x / 2.;
                         let proj_y = -z - y / 2. + x / 2.;
                         svg.update_view_box(proj_x, proj_y);
-                        match abs_coords {
-                            CoordPos::Absolute => {
+                        match position_mode {
+                            PositionMode::Absolute => {
                                 if is_extruding {
                                     svg.parts.push(format!("L{proj_x} {proj_y}"));
                                 } else {
                                     svg.parts.push(format!("M{proj_x} {proj_y}"));
                                 }
                             }
-                            CoordPos::Relative => {
+                            PositionMode::Relative => {
                                 if is_extruding {
                                     svg.parts.push(format!("l{proj_x} {proj_y}"));
                                 } else {
@@ -179,13 +183,45 @@ impl FromIterator<String> for Svg {
                     }
                 }
                 Command::G21 => svg.parts.push("M0,0".to_string()),
-                Command::G90 => abs_coords = CoordPos::Absolute,
-                Command::G91 => abs_coords = CoordPos::Relative,
-                // G92- A non printing moved
-                Command::G92(_) => {
+                Command::G90 => position_mode = PositionMode::Absolute,
+                Command::G91 => position_mode = PositionMode::Relative,
+                // G92- Set Current Position
+                Command::G92(mut params) => {
                     // The extrude rate is going to zero
-                    // enter MoveMode ..ie not laying down fibre.
-                    is_extruding = false;
+                    // enter MoveMode ..ie not laying down filament.
+                    for param in params.drain() {
+                        match param {
+                            PosVal::X(val) => x = val,
+                            PosVal::Y(val) => y = val,
+                            PosVal::Z(val) => z = val,
+                            PosVal::E(val) => {
+                                // Negative values the extruder is "wiping"
+                                // or sucking filament back into the extruder.
+                                is_extruding = val > 0_f64;
+                            }
+                            PosVal::F(_) => {
+                                // silently drop
+                            }
+                            pos_bad => {
+                                eprintln!("Unexpected param seen in Command::G1 {pos_bad:?}");
+                            }
+                        }
+                    }
+
+                    // Set Position is by definition a move only.
+                    if !x.is_nan() && !y.is_nan() {
+                        let proj_x = y / 2. + x / 2.;
+                        let proj_y = -z - y / 2. + x / 2.;
+                        svg.update_view_box(proj_x, proj_y);
+                        match position_mode {
+                            PositionMode::Absolute => {
+                                svg.parts.push(format!("M{proj_x} {proj_y}"));
+                            }
+                            PositionMode::Relative => {
+                                svg.parts.push(format!("m{proj_x} {proj_y}"));
+                            }
+                        }
+                    }
                 }
                 Command::GDrop(_) | Command::MDrop(_) | Command::Nop => {}
             }

@@ -39,11 +39,15 @@ pub enum Command {
     G1(HashSet<PosVal>),
     /// Home all axes
     G21,
+    ///G90 – Set Positioning Mode
+    ///
     /// "G90 ; Set all axes to absolute"
     G90,
+    /// G91 – Set Positioning Mode
+    ///
     /// "G91 ; Set all axes to relative"
     G91,
-    /// Set the current position to the values specified.
+    /// Set the current position
     /// eg. "G92 E0"
     /// TODO:  F and S are not permitted here.
     G92(HashSet<PosVal>),
@@ -51,7 +55,6 @@ pub enum Command {
     GDrop(u16),
     /// Drop M - no further action.
     MDrop(u16),
-
     /// No Operation eg a blank line "".
     Nop,
 }
