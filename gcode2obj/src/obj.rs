@@ -133,7 +133,7 @@ impl FromIterator<String> for Obj {
                                 // Silently drop feedrate adjustment.
                             }
                             pos_bad => {
-                                println!("Unexpected param seen in Command::G1 {pos_bad:?}");
+                                println!("Obj: Unexpected param seen in Command::G1 {pos_bad:?}");
                             }
                         }
                     }
@@ -144,17 +144,40 @@ impl FromIterator<String> for Obj {
                     // Valid `Command::G1` -  Where X and Y and undefined
                     //
                     // "G1 E2.72551 F1800.00000"
-                    if !x.is_nan() && !y.is_nan() && is_extruding {
+                    if !x.is_nan() && !y.is_nan() {
                         let vertex = Vertex(x, y, z);
-                        if let Some(index) = obj.index_store.get(&vertex) {
-                            // Push record of exiting vertex to index_buffer.
-                            line_buffer.push(*index);
+
+                        if is_extruding {
+                            if let Some(index) = obj.index_store.get(&vertex) {
+                                // Push record of exiting vertex to index_buffer.
+                                line_buffer.push(*index);
+                            } else {
+                                // New entry in vertex_buffer and index_buffer.
+                                obj.index_store.insert(vertex.clone(), next_vertex_pos);
+                                line_buffer.push(next_vertex_pos);
+                                obj.vertex_buffer.push(vertex);
+                                next_vertex_pos += 1;
+                            }
                         } else {
-                            // New entry in vertex_buffer and index_buffer.
-                            obj.index_store.insert(vertex.clone(), next_vertex_pos);
-                            line_buffer.push(next_vertex_pos);
-                            obj.vertex_buffer.push(vertex);
-                            next_vertex_pos += 1;
+                            // Not extruding
+                            //
+                            // TODO: set the capacity of the complete_line
+                            // to the last good capacity.
+                            let mut complete_line = vec![];
+                            mem::swap(&mut line_buffer, &mut complete_line);
+                            obj.lines.push(complete_line);
+
+                            // The first entry in the new line buffer is current position.
+                            if let Some(index) = obj.index_store.get(&vertex) {
+                                // Push record of exiting vertex to index_buffer.
+                                line_buffer.push(*index);
+                            } else {
+                                // New entry in vertex_buffer and index_buffer.
+                                obj.index_store.insert(vertex.clone(), next_vertex_pos);
+                                line_buffer.push(next_vertex_pos);
+                                obj.vertex_buffer.push(vertex);
+                                next_vertex_pos += 1;
+                            }
                         }
                     }
                 }

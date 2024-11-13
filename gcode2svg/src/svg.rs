@@ -150,7 +150,7 @@ impl FromIterator<String> for Svg {
                                 // silently drop
                             }
                             pos_bad => {
-                                eprintln!("Unexpected param seen in Command::G1 {pos_bad:?}");
+                                eprintln!("SVG Unexpected param seen in Command::G1 {pos_bad:?}");
                             }
                         }
                     }
