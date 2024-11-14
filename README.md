@@ -44,7 +44,7 @@ cargo run --release -- < ./assets/bency.gcode > bench.obj
 Which for example can be imported into blender for visualisation.
 
 ![Benchy in Blender](images/BlenderBenchy.png)
-
+![Lego bricks](images/lego.png)
 Within blender :-
 
 1) This obj has been "Imported".
