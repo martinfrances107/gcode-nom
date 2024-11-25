@@ -9,6 +9,8 @@
 [] - Get MeatPacking algorithm
     <https://github.com/scottmudge/OctoPrint-MeatPack>
 
+[] - Add optional switch -o for output file -i for input
+
 [] - Identify any M-code that should not be dropped.
 
 [] -Tests
@@ -21,5 +23,3 @@ After basic functionality
 
 [] - SVG Via cli rotate on Z axis and scale.
      how to merge sx, sy, sz into a single value?
-
-[] - Add optional switch -o for output file -i for input
