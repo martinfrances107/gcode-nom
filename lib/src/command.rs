@@ -190,8 +190,6 @@ mod test {
 
         for (line, expected) in text_commands {
             let actual = parse_g1(line);
-            println!("expected  {expected:?}");
-            println!("actual  {actual:?}");
             match actual {
                 Ok((_, actual)) => {
                     assert_eq!(actual, expected);

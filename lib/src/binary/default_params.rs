@@ -45,7 +45,7 @@ impl TryFrom<u16> for Encoding {
             // 1u16 => Encoding::MeatPack,
             // 2u16 => Encoding::MeatPackWithComments,
             bad_value => {
-                println!("Discarding version {bad_value:?}");
+                log::error!("Discarding version {bad_value:?}");
                 return Err("Invalid encoding type could not decode {bad_value:?}");
             }
         })

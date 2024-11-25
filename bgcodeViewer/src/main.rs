@@ -1,5 +1,7 @@
 use std::io::{stdin, BufReader, Read};
 
+use log::log;
+
 extern crate gcode_nom;
 use gcode_nom::binary::bgcode_parser;
 
@@ -12,11 +14,12 @@ fn main() -> std::io::Result<()> {
     if reader.read_to_end(&mut buffer)? != 0usize {
         match bgcode_parser(&buffer) {
             Ok((_remain, bgcode)) => {
-                println!("Valid input");
-                println!("{bgcode}")
+                log::info!("parser succeeded: Valid input");
+                // println!("{bgcode}")
             }
             Err(e) => {
-                println!("Unhandlled error decoding file {e}");
+                log::error!("Unhandled error decoding file {e}");
+                panic!("Unhandled error decoding file {e}");
             }
         }
     }

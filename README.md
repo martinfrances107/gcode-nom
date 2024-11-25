@@ -4,14 +4,14 @@ Rust 2021 Edition.
 
 A library containing a full set of [nom](https://crates.io/crates/nom) parsers for decoding gcode files.
 
-Based on this library the workspace contains a series of visualisation tools
+Based on this library the workspace contains a series of visualization tools
 
-* gcodeExtractThumbs
-* bgcodeViewer - Validator reports on the quality of the file.
+* bgcodeViewer - Generates a report by turn on all the logging and them attempts to parse the file.
+* gcodeExtractThumbs - Extracts the images embedded in the file.
 * gcode2obj - Generates "WaveFront Obj" files.
 * gcode2svg - Generates SVG files.
 
-I intend the parsers to be as stirictly complient as possible. This is under-going rapid development. Please create issues here, or send me gcode files which expose unimplemented sections.
+I intend the parsers to be as strictly compliant as possible. This is under-going rapid development. Please create issues here, or send me gcode files which expose unimplemented sections.
 
 For "binary gcode files" ['.bgcode' extension] the parser are streaming parsers.
 
@@ -41,7 +41,7 @@ cd gcode2obj
 cargo run --release -- < ./assets/bency.gcode > bench.obj
 ```
 
-Which for example can be imported into blender for visualisation.
+Which for example can be imported into blender for visualization.
 
 ![Benchy in Blender](images/BlenderBenchy.png)
 ![Lego bricks](images/lego.png)

@@ -25,7 +25,7 @@ pub(super) fn compression_parser(input: &[u8]) -> IResult<&[u8], CompressionType
             3 => CompressionType::HeatShrink12,
             _ => {
                 return {
-                    println!("Compression_parser bad type  failing ");
+                    log::error!("Compression_parser bad type  failing ");
                     Err(Err::Error(Error::new(input, ErrorKind::Alt)))
                 }
             }

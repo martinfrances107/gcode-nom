@@ -122,7 +122,7 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
             slicer,
             (gcode, _remain),
         )| {
-            println!("File has been validated");
+            log::info!("File has been validated");
             Bgcode {
                 fh,
                 file_metadata,

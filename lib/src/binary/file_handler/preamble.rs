@@ -11,10 +11,10 @@ static HEADER: u32 = 0x4544_4347;
 pub(super) fn preamble(input: &[u8]) -> IResult<&[u8], u32> {
     map_res(le_u32, |code| {
         if code == HEADER {
-            println!("found binary GCODE header 0x{code:X}");
+            log::info!("found binary GCODE header 0x{code:X}");
             Ok(HEADER)
         } else {
-            println!("Discarding bad preamble failing ");
+            log::error!("Discarding bad preamble failing ");
             Err(Err::Error(Error::new(input, ErrorKind::Alt)))
         }
     })(input)

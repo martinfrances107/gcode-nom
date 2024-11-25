@@ -29,9 +29,9 @@ struct Args {
 }
 
 fn main() -> Result<()> {
-    let args = Args::parse();
+    env_logger::init();
 
-    println!("{}!", args.apply_blender_transform);
+    let args = Args::parse();
 
     let stdin = stdin();
     let mut lines = vec![];

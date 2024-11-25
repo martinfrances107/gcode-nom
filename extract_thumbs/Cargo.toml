@@ -13,5 +13,6 @@ rust-version = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
-clap = { version = "4.5.20", features = ["derive"] }
+clap = { workspace = true }
 gcode-nom = { path = "../lib" }
+log = { workspace = true }

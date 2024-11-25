@@ -1,4 +1,6 @@
 /target
-**/*.png
-**/*.oci
-**/*.obj
+extract_thumbs/**/*.png
+extract_thumbs/**/*.oci
+gcode2obj/**/*.obj
+gcode2obj/**/*.png
+gcode2svg/**/*.svg

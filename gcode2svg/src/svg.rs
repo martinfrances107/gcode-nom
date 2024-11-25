@@ -87,8 +87,6 @@ impl FromIterator<String> for Svg {
         let mut is_extruding = true;
         // Positioning mode for all axes (A, B, C), (U, V, W),  (X, Y, Z).
         let mut position_mode = PositionMode::default();
-        // Extruder is unique - can be overridden.
-        let mut e_position_mode = PositionMode::default();
         let mut z = 0_f64;
         for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command not parseable");
@@ -113,7 +111,7 @@ impl FromIterator<String> for Svg {
                                 // Silently drop.
                             }
                             pos_bad => {
-                                eprintln!("Unexpected param seen in Command::G1 {pos_bad:?}");
+                                log::debug!("Unexpected param seen in Command::G1 {pos_bad:?}");
                             }
                         }
                     }
@@ -150,12 +148,10 @@ impl FromIterator<String> for Svg {
                                 // silently drop
                             }
                             pos_bad => {
-                                eprintln!("SVG Unexpected param seen in Command::G1 {pos_bad:?}");
+                                log::debug!("SVG Unexpected param seen in Command::G1 {pos_bad:?}");
                             }
                         }
                     }
-                    // Convert x,y,z, into projected x,y.
-                    // TODO: Must do something better.
 
                     // Valid `Command::G1` -  Where X and Y and undefined
                     //
@@ -199,11 +195,9 @@ impl FromIterator<String> for Svg {
                                 // or sucking filament back into the extruder.
                                 is_extruding = val > 0_f64;
                             }
-                            PosVal::F(_) => {
-                                // silently drop
-                            }
+                            PosVal::F(_) => { /*  silently drop */ }
                             pos_bad => {
-                                eprintln!("Unexpected param seen in Command::G1 {pos_bad:?}");
+                                log::debug!("Unexpected param seen in Command::G1 {pos_bad:?}");
                             }
                         }
                     }

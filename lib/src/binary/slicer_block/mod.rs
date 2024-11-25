@@ -47,7 +47,7 @@ static SLICER_BLOCK_ID: u16 = 2u16;
 pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
-            println!(
+            log::info!(
                 "looking for SLICER_BLOCK_ID {SLICER_BLOCK_ID} found {block_type} cond {}",
                 *block_type == SLICER_BLOCK_ID
             );
@@ -103,11 +103,11 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
     let crc_input: Vec<u8> = input.take(block_size).to_vec();
     let computed_checksum = crc32fast::hash(&crc_input);
 
-    print!("slicer checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    log::info!("slicer checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
     if checksum == computed_checksum {
-        println!(" match");
+        log::info!(" match");
     } else {
-        println!(" fail");
+        log::error!(" fail");
         panic!("slicer metadata block failed checksum");
     }
 

@@ -44,7 +44,7 @@ static PRINTER_METADATA_BLOCK_ID: u16 = 3u16;
 pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], PrinterMetadataBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
-            println!(
+            log::info!(
                 "looking for PRINTER_METADATA_BLOCK_ID {PRINTER_METADATA_BLOCK_ID} {block_type} cond {}",
                 *block_type == PRINTER_METADATA_BLOCK_ID
             );
@@ -61,7 +61,6 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
 
     let (after_param, param) = param_parser(after_block_header)?;
 
-    println!("uncompressed_size -- {uncompressed_size:#?}");
     // Decompress datablock
     let (after_data, data_raw) = match compression_type {
         CompressionType::None => take(uncompressed_size)(after_param)?,
@@ -91,13 +90,13 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
     let crc_input: Vec<u8> = input.take(block_size).to_vec();
     let computed_checksum = crc32fast::hash(&crc_input);
 
-    print!(
+    log::info!(
         "printer_metadata checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} "
     );
     if checksum == computed_checksum {
-        println!(" match");
+        log::info!(" match");
     } else {
-        println!(" fail");
+        log::warn!(" fail");
         // panic!("printer metadata block failed checksum");
     }
 

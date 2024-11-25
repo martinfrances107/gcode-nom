@@ -20,6 +20,11 @@ repository = "https://github.com/martinfrances107/gcode2svg"
 rust-version = "1.80"
 version = "0.1.0"
 
+[workspace.dependencies]
+clap = { version = "4.5.20", features = ["derive"] }
+env_logger = "0.11.5"
+log = "0.4.22"
+
 [profile.release]
 codegen-units = 1
 lto = true

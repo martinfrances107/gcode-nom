@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use gcode_nom::command::Command;
 use gcode_nom::parms::PosVal;
 use gcode_nom::PositionMode;
+use log::log;
 
 #[derive(Debug, Clone)]
 struct Vertex(f64, f64, f64);
@@ -133,7 +134,7 @@ impl FromIterator<String> for Obj {
                                 // Silently drop feedrate adjustment.
                             }
                             pos_bad => {
-                                println!("Obj: Unexpected param seen in Command::G1 {pos_bad:?}");
+                                log::info!("Obj: Unexpected param seen in Command::G1 {pos_bad:?}");
                             }
                         }
                     }
@@ -205,7 +206,7 @@ impl FromIterator<String> for Obj {
                             }
                             bad => {
                                 // Dropping unexpected params
-                                println!("G92 unhandled set position code. P{bad:#?}");
+                                log::debug!("G92 unhandled set position code. P{bad:#?}");
                             }
                         }
                     }

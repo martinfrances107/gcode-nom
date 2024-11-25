@@ -47,7 +47,7 @@ static PRINT_METADATA_BLOCK_ID: u16 = 4u16;
 pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
-            println!(
+            log::info!(
                 "Looking for PRINT_METADATA_BLOCK_ID {PRINT_METADATA_BLOCK_ID} found {block_type} cond {}",
                 *block_type == PRINT_METADATA_BLOCK_ID
             );
@@ -72,11 +72,10 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
             (remain, data)
         }
         CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
-            println!("about to inflate");
+            let (remain, _encoded) = take(compressed_size.unwrap())(after_param)?;
+
             // let decoded = inflate_bytes(encoded).unwrap();
             // let data = String::from_utf8(decoded).unwrap();
-            // println!("inflated {data:#?}");
             let data = String::from("contains compressed data");
             (remain, data)
 
@@ -105,11 +104,13 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
     let crc_input: Vec<u8> = input.take(block_size).to_vec();
     let computed_checksum = crc32fast::hash(&crc_input);
 
-    print!("print_metadata checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    log::info!(
+        "print_metadata checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} "
+    );
     if checksum == computed_checksum {
-        println!(" match");
+        log::info!(" match");
     } else {
-        println!(" fail");
+        log::error!(" fail");
         panic!("print metadata block failed checksum");
     }
 

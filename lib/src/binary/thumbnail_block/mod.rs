@@ -48,7 +48,7 @@ static THUMBNAIL_BLOCK_ID: u16 = 5u16;
 pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
-            println!(
+            log::info!(
                 "looking for THUMBNAIL_BLOCK_ID {THUMBNAIL_BLOCK_ID} found {block_type} cond {}",
                 *block_type == THUMBNAIL_BLOCK_ID
             );
@@ -65,7 +65,6 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
 
     let (after_param, param) = param_parser(after_block_header)?;
 
-    println!("uncompressed_size -- {uncompressed_size:#?}");
     // Decompress datablock
     let (after_data, data_raw) = match compression_type {
         CompressionType::None => take(uncompressed_size)(after_param)?,
@@ -95,11 +94,11 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     let crc_input: Vec<u8> = input.take(block_size).to_vec();
     let computed_checksum = crc32fast::hash(&crc_input);
 
-    print!("thumbnail checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    log::info!("thumbnail checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
     if checksum == computed_checksum {
-        println!(" match");
+        log::info!(" match");
     } else {
-        println!(" fail");
+        log::error!("file metadata block failed checksum");
         panic!("file metadata block failed checksum");
     }
 

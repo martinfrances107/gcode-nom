@@ -18,6 +18,7 @@ use std::{
 
 use clap::Parser;
 use gcode_nom::binary::bgcode_parser;
+use log::log;
 
 // Extract thumbnails from a .gcode/bgcode
 #[derive(Parser, Debug)]
@@ -34,14 +35,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let len = metadata.len() as usize;
     let mut buffer = Vec::with_capacity(len / 2);
 
-    print!("Loading filename {} ... ", args.input.clone().display());
+    log::info!("Loading filename {} ... ", args.input.clone().display());
     let mut f = File::open(args.input)?;
-    println!("done");
+    log::info!("done");
 
     let state = f.read_to_end(&mut buffer);
     match state {
-        Ok(s) => println!("state {state:?}"),
-        Err(e) => println!("error {e:?}"),
+        Ok(_) => log::info!("state {state:?}"),
+        Err(e) => log::error!("error {e:?}"),
     }
 
     match bgcode_parser(&buffer) {
@@ -59,7 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         Err(e) => {
-            println!("Unhandlled x error decoding file {e}");
+            log::error!("Unhandled x error decoding file {e}");
         }
     }
 

@@ -25,7 +25,7 @@ pub(super) fn version_parser(input: &[u8]) -> IResult<&[u8], Version> {
         Ok(match value {
             1 => Version(1),
             bad_version => {
-                println!("Discarding file handlier version type {bad_version:?}");
+                log::error!("Discarding file handlier version type {bad_version:?}");
                 return Err(Err::Error(Error::new(input, ErrorKind::Alt)));
             }
         })

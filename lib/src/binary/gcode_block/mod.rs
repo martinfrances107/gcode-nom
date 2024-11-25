@@ -48,7 +48,7 @@ static CODE_BLOCK_ID: u16 = 1u16;
 pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
-            println!(
+            log::info!(
                 "looking for CODE_BLOCK_ID {CODE_BLOCK_ID} found {block_type} cond {}",
                 *block_type == CODE_BLOCK_ID
             );
@@ -56,7 +56,7 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
         }),
         block_header_parser,
     )(input)?;
-    println!("found gcode block id");
+    log::info!("found gcode block id");
     let BlockHeader {
         compression_type,
         uncompressed_size,
@@ -92,7 +92,7 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
             (remain, String::from("headshrink"))
         }
     };
-    println!("about to read checksum");
+
     let (after_checksum, checksum) = le_u32(after_data)?;
 
     let param_size = 2;
@@ -104,15 +104,14 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
     let crc_input: Vec<u8> = input.take(block_size).to_vec();
     let computed_checksum = crc32fast::hash(&crc_input);
 
-    print!("gcode checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    log::info!("gcode checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
     if checksum == computed_checksum {
-        println!(" match");
+        log::info!(" match");
     } else {
-        println!(" fail");
+        log::error!(" fail");
         panic!("gcode metadata block failed checksum");
     }
-    println!("returning ok");
-    println!("after gcode checksum {:#?}", &after_checksum.len());
+
     Ok((
         after_checksum,
         GCodeBlock {

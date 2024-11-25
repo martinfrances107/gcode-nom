@@ -20,3 +20,5 @@ path = "src/main.rs"
 nom = "7.1.3"
 gcode-nom = { path = "../lib" }
 clap = { version = "4.5.20", features = ["derive"] }
+log = { workspace = true }
+env_logger = { workspace = true }
