@@ -9,7 +9,7 @@
 [] - Get MeatPacking algorithm
     <https://github.com/scottmudge/OctoPrint-MeatPack>
 
-[] - Identify which M-code than should not be dropped.
+[] - Identify any M-code that should not be dropped.
 
 [] -Tests
      -- unit test for all Blocks.
@@ -21,9 +21,5 @@ After basic functionality
 
 [] - SVG Via cli rotate on Z axis and scale.
      how to merge sx, sy, sz into a single value?
-
-[] - Develop default stage for obj viewer.
-
-[] - Add additional switch to output binary obj.
 
 [] - Add optional switch -o for output file -i for input
