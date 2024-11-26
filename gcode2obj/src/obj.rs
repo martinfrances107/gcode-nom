@@ -1,3 +1,10 @@
+//! Data structures associated with obj files
+//!
+//! In this context obj files have :-
+//!
+//! a list of vertices, V
+//! a list of indicies into V.
+//!
 use core::fmt::Display;
 use core::hash::Hash;
 use core::hash::Hasher;
@@ -44,16 +51,6 @@ pub struct Obj {
     // Blender axes compatible mode.
     pub apply_blender_transform: bool,
 }
-
-// A line could not be decoded as an G-Code command
-// #[derive(Debug, Clone)]
-// struct GCodeError;
-
-// impl std::fmt::Display for GCodeError {
-//     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-//         write!(f, "invalid g-code statement")
-//     }
-// }
 
 // Display the object
 

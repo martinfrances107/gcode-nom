@@ -18,4 +18,4 @@ see [todo](TODO.md)
 
 ## Future work
 
-What to do when nozzle is lifted up and a new part started.
+As the gcode-nom library developes we could handle binary-gcode files.

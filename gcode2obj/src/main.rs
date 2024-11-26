@@ -8,6 +8,7 @@
 #![warn(clippy::perf)]
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
+#![allow(clippy::many_single_char_names)]
 use std::io::stdin;
 use std::io::BufRead;
 

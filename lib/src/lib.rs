@@ -8,6 +8,7 @@
 #![warn(clippy::perf)]
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
+#![allow(clippy::many_single_char_names)]
 
 /// Streaming for binary gcode files
 pub mod binary;
