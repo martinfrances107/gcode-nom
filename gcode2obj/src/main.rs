@@ -34,11 +34,7 @@ fn main() -> Result<()> {
     let args = Args::parse();
 
     let stdin = stdin();
-    let mut lines = vec![];
-    for next_line in stdin.lock().lines() {
-        let line = next_line?;
-        lines.push(line);
-    }
+    let lines = stdin.lock().lines().map(|l| l.unwrap());
 
     let mut obj = Obj::from_iter(lines);
 
