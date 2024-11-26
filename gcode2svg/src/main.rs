@@ -17,14 +17,7 @@ mod svg;
 use svg::Svg;
 
 fn main() -> Result<()> {
-    let stdin = stdin();
-    let mut lines = vec![];
-    for next_line in stdin.lock().lines() {
-        let line = next_line?;
-        lines.push(line);
-    }
-
-    let svg = Svg::from_iter(lines);
+    let svg = stdin().lock().lines().map(|l| l.unwrap()).collect::<Svg>();
     println!("{svg}");
     Ok(())
 }
