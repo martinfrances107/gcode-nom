@@ -1,5 +1,14 @@
-//! gcode2svg
+//! A G-code visualization tool written in [rust](https://www.rust-lang.org/)
 //!
+//! A nom based parser, outputs a "Wavefront Obj" file which can be imported into blender and a Bevy app for visualization
+//!
+//! ## How to use
+//!
+//! parses StdIn as a gcode file - the SVG file is send to StdOut :-
+//!
+//! ```bash
+//! cargo run --release -- < ../assets/bency.gcode > benchy.obj
+//! ```
 #![deny(clippy::all)]
 #![warn(clippy::cargo)]
 #![warn(clippy::complexity)]
