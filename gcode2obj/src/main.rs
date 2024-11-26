@@ -10,7 +10,6 @@
 #![warn(missing_docs)]
 use std::io::stdin;
 use std::io::BufRead;
-use std::io::Result;
 
 mod obj;
 
@@ -28,19 +27,14 @@ struct Args {
     apply_blender_transform: bool,
 }
 
-fn main() -> Result<()> {
+fn main() {
     env_logger::init();
 
     let args = Args::parse();
 
-    let stdin = stdin();
-    let lines = stdin.lock().lines().map(|l| l.unwrap());
-
-    let mut obj = Obj::from_iter(lines);
-
+    let mut obj = stdin().lock().lines().map(|l| l.unwrap()).collect::<Obj>();
     obj.apply_blender_transform = args.apply_blender_transform;
     println!("{obj}");
-    Ok(())
 }
 
 #[cfg(test)]
