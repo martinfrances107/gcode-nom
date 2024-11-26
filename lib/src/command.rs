@@ -9,19 +9,19 @@ use nom::multi::separated_list1;
 use nom::sequence::preceded;
 use nom::IResult;
 
-use crate::parms::parse_a;
-use crate::parms::parse_b;
-use crate::parms::parse_c;
-use crate::parms::parse_e;
-use crate::parms::parse_f;
-use crate::parms::parse_s;
-use crate::parms::parse_u;
-use crate::parms::parse_v;
-use crate::parms::parse_w;
-use crate::parms::parse_x;
-use crate::parms::parse_y;
-use crate::parms::parse_z;
-use crate::parms::PosVal;
+use crate::params::parse_a;
+use crate::params::parse_b;
+use crate::params::parse_c;
+use crate::params::parse_e;
+use crate::params::parse_f;
+use crate::params::parse_s;
+use crate::params::parse_u;
+use crate::params::parse_v;
+use crate::params::parse_w;
+use crate::params::parse_x;
+use crate::params::parse_y;
+use crate::params::parse_z;
+use crate::params::PosVal;
 
 /// Commands: -
 ///

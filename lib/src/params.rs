@@ -66,7 +66,7 @@ impl PartialEq for PosVal {
 
 /// Hash is used to determine if an entry should be added to the Sets
 ///
-/// malformed commands with duplicate paramters will be rejected here.
+/// malformed commands with duplicate parameters will be rejected here.
 ///
 /// G1 X95.110 X96.233 E2.07708
 ///

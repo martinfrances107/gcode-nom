@@ -1,7 +1,7 @@
 use core::fmt::Display;
 
 use gcode_nom::command::Command;
-use gcode_nom::parms::PosVal;
+use gcode_nom::params::PosVal;
 use gcode_nom::PositionMode;
 
 #[derive(Debug, Clone)]

@@ -14,12 +14,12 @@ pub mod binary;
 /// Parsing rules for gcode commands
 pub mod command;
 /// Parsing rules for gcode parameters `Pos<number>`
-pub mod parms;
+pub mod params;
 
 /// Absolute or Relative positioning
 #[derive(Default, Debug)]
 pub enum PositionMode {
-    /// As per spec `Positionmode::Absolute` is the dafault
+    /// As per spec `Positionmode::Absolute` is the default
     /// <https://marlinfw.org/docs/gcode/G090.html>
     #[default]
     Absolute,

@@ -18,7 +18,7 @@ use obj::Obj;
 use clap::ArgAction;
 use clap::Parser;
 
-// Ocassionally want to apply Blender specific transform.
+// Occasionally want to apply Blender specific transform.
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -68,7 +68,7 @@ G1 Z0.350 F7800.000
 
     #[test]
     fn nothing_unhandled() {
-        // The first few lines of the benchy file must be recognised.
+        // The first few lines of the benchy file must be recognized.
         for line in INPUT.lines() {
             assert!(Command::parse_line(line).is_ok());
         }

@@ -5,7 +5,7 @@ use core::mem;
 use std::collections::HashMap;
 
 use gcode_nom::command::Command;
-use gcode_nom::parms::PosVal;
+use gcode_nom::params::PosVal;
 use gcode_nom::PositionMode;
 use log::log;
 
@@ -33,12 +33,12 @@ impl Hash for Vertex {
 #[derive(Debug, Default, Clone)]
 pub struct Obj {
     /// De-duplicating structure.
-    //   Given a point return the postion in the vertex_buffer
+    //   Given a point return the position in the vertex_buffer
     index_store: HashMap<Vertex, usize>,
     vertex_buffer: Vec<Vertex>,
 
     // A collection of lines
-    // A collection index_buffers reperesenting line.
+    // A collection index_buffers representing line.
     lines: Vec<Vec<usize>>,
 
     // Blender axes compatible mode.
@@ -57,7 +57,7 @@ pub struct Obj {
 
 // Display the object
 
-// Bleder's obj importer applies a non-standard transform
+// Blender's obj importer applies a non-standard transform
 //
 // Blender's red +X axis =>> Obj +X axis
 // Blender's green +Y axis =>> Obj -Z axis
@@ -84,7 +84,7 @@ impl Display for Obj {
 
         // Write out sequence of index buffers.
         for line in &self.lines {
-            // line "l 1 2 3"  list of vertex indicies.
+            // line "l 1 2 3"  list of vertex indices.
             write!(f, "l")?;
             for i in line {
                 // '+1' convert from zero based counting.
@@ -112,7 +112,7 @@ impl FromIterator<String> for Obj {
         let mut next_vertex_pos = 0;
         let mut line_buffer = vec![];
         for line in iter {
-            let (_, command) = Command::parse_line(&line).expect("Command not parseable");
+            let (_, command) = Command::parse_line(&line).expect("Command not parsable");
             let mut x = f64::NAN;
             let mut y = f64::NAN;
             match command {
@@ -131,7 +131,7 @@ impl FromIterator<String> for Obj {
                             // or sucking filament back into the extruder.
                             PosVal::E(val) => is_extruding = val > 0_f64,
                             PosVal::F(_) => {
-                                // Silently drop feedrate adjustment.
+                                // Silently drop feed-rate adjustment.
                             }
                             pos_bad => {
                                 log::info!("Obj: Unexpected param seen in Command::G1 {pos_bad:?}");
@@ -195,7 +195,7 @@ impl FromIterator<String> for Obj {
                                     // The extrude rate is going to zero
                                     // enter "move mode" ..ie not laying down filament.
                                     is_extruding = false;
-                                    // For Visualisation we start a new line.
+                                    // For Visualization we start a new line.
                                     //
                                     // TODO: set the capacity of the complete_line
                                     // to the last good capacity.
