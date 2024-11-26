@@ -7,7 +7,7 @@ A library containing a full set of [nom](https://crates.io/crates/nom) parsers f
 Based on this library the workspace contains a series of visualization tools
 
 * bgcodeViewer - Generates a report by turn on all the logging and them attempts to parse the file.
-* gcodeExtractThumbs - Extracts the images embedded in the file.
+* gcodeExtractThumbs - Extracts the images embedded in a binary-gcode file.
 * gcode2obj - Generates "WaveFront Obj" files.
 * gcode2svg - Generates SVG files.
 
@@ -18,17 +18,6 @@ For "binary gcode files" ['.bgcode' extension] the parser are streaming parsers.
 See [nom](https://crates.io/crates/nom) - "A byte-oriented, zero-copy, parser combinators library"
 
 ## Tools
-
-### bgcodeViewer
-
- Strict checking of binaries. validates blocks checksums, ensures 'block' parameters values are within valid ranges.
-
-Pass the gcode file into StdIn - A summary file is written to StdOut
-
- ```rust
- cd bgcodeViewer
- cargo run --release  < ../assets/both\ parts.bgcode > summary.txt
- ```
 
 ### gcode2obj
 
@@ -65,6 +54,21 @@ Pass the gcode file into StdIn - the SVG file is sent to StdOut :-
 cd gcode2svg
 cargo run --release -- < ./assets/benchy.gcode > benchy.svg
 ```
+
+### gcodeExtractThumbs
+
+ Extracts
+
+### bgcodeViewer
+
+ Strict checking of binaries. validates blocks checksums, ensures 'block' parameters values are within valid ranges.
+
+Pass the gcode file into StdIn - A summary file is written to StdOut
+
+ ```rust
+ cd bgcodeViewer
+ cargo run --release  < ../assets/both\ parts.bgcode > summary.txt
+ ```
 
 ## Future work
 

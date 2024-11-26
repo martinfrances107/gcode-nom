@@ -72,7 +72,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom",
+ "gcode-nom 0.1.0",
  "log",
  "nom",
 ]
@@ -166,7 +166,7 @@ name = "extract_thumbs"
 version = "0.1.0"
 dependencies = [
  "clap",
- "gcode-nom",
+ "gcode-nom 0.1.0",
  "log",
 ]
 
@@ -182,12 +182,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "gcode-nom"
+version = "0.1.0"
+source = "git+https://github.com/martinfrances107/gcode-nom/#a46d7fc0e96771db06d29e37f61d774e367580d7"
+dependencies = [
+ "crc32fast",
+ "heatshrink",
+ "inflate",
+ "log",
+ "nom",
+]
+
+[[package]]
 name = "gcode2obj"
 version = "0.1.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom",
+ "gcode-nom 0.1.0 (git+https://github.com/martinfrances107/gcode-nom/)",
  "log",
 ]
 
@@ -195,7 +207,7 @@ dependencies = [
 name = "gcode2svg"
 version = "0.1.0"
 dependencies = [
- "gcode-nom",
+ "gcode-nom 0.1.0",
  "log",
 ]
 
