@@ -4,11 +4,11 @@ edition = "2021"
 name = "gcode2obj"
 categories = ["Parsing tools"]
 description = "[Wavefront obj] Visualization tool for inspecting a g-code file. "
-homepage = "https://github.com/martinfrances107/gcode2svg"
+homepage = "https://github.com/martinfrances107/gcode-nom"
 keywords = ["visualization"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/martinfrances107/gcode2svg"
+repository = "https://github.com/martinfrances107/gcode-nom"
 rust-version = "1.80"
 version = "0.1.0"
 
