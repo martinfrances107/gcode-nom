@@ -17,6 +17,7 @@ use std::{
 };
 
 use clap::Parser;
+use env_logger::Builder;
 use gcode_nom::binary::bgcode_parser;
 use log::log;
 
@@ -29,6 +30,8 @@ struct Cli {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    Builder::new().init();
+
     let args = Cli::parse();
 
     let metadata = fs::metadata(&args.input)?;

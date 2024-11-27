@@ -14,5 +14,6 @@ version = { workspace = true }
 
 [dependencies]
 clap = { workspace = true }
+env_logger.workspace = true
 gcode-nom = { path = "../lib" }
 log = { workspace = true }
