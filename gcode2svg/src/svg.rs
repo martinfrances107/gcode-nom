@@ -163,16 +163,16 @@ impl FromIterator<String> for Svg {
                         match position_mode {
                             PositionMode::Absolute => {
                                 if is_extruding {
-                                    svg.parts.push(format!("L{proj_x} {proj_y}"));
+                                    svg.parts.push(format!("L{proj_x:.3} {proj_y:.3}"));
                                 } else {
-                                    svg.parts.push(format!("M{proj_x} {proj_y}"));
+                                    svg.parts.push(format!("M{proj_x:.3} {proj_y:.3}"));
                                 }
                             }
                             PositionMode::Relative => {
                                 if is_extruding {
-                                    svg.parts.push(format!("l{proj_x} {proj_y}"));
+                                    svg.parts.push(format!("l{proj_x:.3} {proj_y:.3}"));
                                 } else {
-                                    svg.parts.push(format!("m{proj_x} {proj_y}"));
+                                    svg.parts.push(format!("m{proj_x:.3} {proj_y:.3}"));
                                 }
                             }
                         }
