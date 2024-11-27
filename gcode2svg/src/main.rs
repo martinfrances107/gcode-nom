@@ -21,6 +21,7 @@ mod svg;
 use svg::Svg;
 
 fn main() {
+    env_logger::init();
     let svg = stdin().lock().lines().map(|l| l.unwrap()).collect::<Svg>();
     println!("{svg}");
 }

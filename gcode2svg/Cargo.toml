@@ -17,5 +17,6 @@ name = "gcode2svg"
 path = "src/main.rs"
 
 [dependencies]
+env_logger.workspace = true
 gcode-nom = { path = "../lib" }
 log = { workspace = true }
