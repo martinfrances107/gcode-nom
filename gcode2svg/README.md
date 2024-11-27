@@ -8,7 +8,7 @@ A nom based parser, outputs a svg curve which can be imported into blender and a
 
 ## How to use
 
-parses StdIn as a gcode file - the SVG file is send to StdOut :-
+Parses `StdIn` as a gcode file - the SVG file is send to `StdOut` :-
 
 ```bash
 cargo run --release -- < ../assets/bency.gcode > benchy.svg
