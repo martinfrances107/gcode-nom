@@ -1,11 +1,14 @@
+extern crate gcode_nom;
+
 use std::io::{stdin, BufReader, Read};
 
-use log::log;
-
-extern crate gcode_nom;
+use env_logger::Builder;
 use gcode_nom::binary::bgcode_parser;
+use log::LevelFilter;
 
 fn main() -> std::io::Result<()> {
+    Builder::new().filter(None, LevelFilter::Debug).init();
+
     let stdin = stdin();
     let s_lock = stdin.lock();
     let mut reader = BufReader::new(s_lock);

@@ -6,10 +6,10 @@ A library containing a full set of [nom](https://crates.io/crates/nom) parsers f
 
 Based on this library the workspace contains a series of visualization tools
 
-* bgcodeViewer - Generates a report by turn on all the logging and them attempts to parse the file.
-* gcodeExtractThumbs - Extracts the images embedded in a binary-gcode file.
 * gcode2obj - Generates "WaveFront Obj" files.
 * gcode2svg - Generates SVG files.
+* gcodeExtractThumbs - Extracts the images embedded in a binary-gcode file.
+* bgcodeViewer - Generates a report by turning on all the logging and them attempts to parse the file.
 
 I intend the parsers to be as strictly compliant as possible. This is under-going rapid development. Please create issues here, or send me gcode files which expose unimplemented sections.
 

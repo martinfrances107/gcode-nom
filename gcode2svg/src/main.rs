@@ -2,7 +2,7 @@
 //!
 //! A streaming parser
 //!
-//! Pass a gcode file into stdin a obj file will be output to StdOut
+//! Pass a gcode file into stdin a obj file will be output to `StdOut`
 //!
 #![deny(clippy::all)]
 #![warn(clippy::cargo)]
@@ -15,16 +15,14 @@
 #![allow(clippy::many_single_char_names)]
 use std::io::stdin;
 use std::io::BufRead;
-use std::io::Result;
 
 mod svg;
 
 use svg::Svg;
 
-fn main() -> Result<()> {
+fn main() {
     let svg = stdin().lock().lines().map(|l| l.unwrap()).collect::<Svg>();
     println!("{svg}");
-    Ok(())
 }
 
 #[cfg(test)]

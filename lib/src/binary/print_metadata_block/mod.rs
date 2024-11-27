@@ -47,7 +47,7 @@ static PRINT_METADATA_BLOCK_ID: u16 = 4u16;
 pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
-            log::info!(
+            log::debug!(
                 "Looking for PRINT_METADATA_BLOCK_ID {PRINT_METADATA_BLOCK_ID} found {block_type} cond {}",
                 *block_type == PRINT_METADATA_BLOCK_ID
             );
@@ -56,6 +56,7 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
         block_header_parser,
     )(input)?;
 
+    log::info!("Found print metadata block id");
     let BlockHeader {
         compression_type,
         uncompressed_size,
@@ -104,13 +105,13 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
     let crc_input: Vec<u8> = input.take(block_size).to_vec();
     let computed_checksum = crc32fast::hash(&crc_input);
 
-    log::info!(
+    log::debug!(
         "print_metadata checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} "
     );
     if checksum == computed_checksum {
-        log::info!(" match");
+        log::debug!("checksum match");
     } else {
-        log::error!(" fail");
+        log::error!("fail checksum");
         panic!("print metadata block failed checksum");
     }
 

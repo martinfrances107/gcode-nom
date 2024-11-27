@@ -184,7 +184,7 @@ dependencies = [
 [[package]]
 name = "gcode-nom"
 version = "0.1.0"
-source = "git+https://github.com/martinfrances107/gcode-nom/#a46d7fc0e96771db06d29e37f61d774e367580d7"
+source = "git+https://github.com/martinfrances107/gcode-nom/#1f0499f453f91743ab83411252eba0f8ab35f209"
 dependencies = [
  "crc32fast",
  "heatshrink",

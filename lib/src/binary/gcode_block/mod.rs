@@ -48,15 +48,15 @@ static CODE_BLOCK_ID: u16 = 1u16;
 pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
-            log::info!(
-                "looking for CODE_BLOCK_ID {CODE_BLOCK_ID} found {block_type} cond {}",
+            log::debug!(
+                "Looking for CODE_BLOCK_ID {CODE_BLOCK_ID} found {block_type} cond {}",
                 *block_type == CODE_BLOCK_ID
             );
             *block_type == CODE_BLOCK_ID
         }),
         block_header_parser,
     )(input)?;
-    log::info!("found gcode block id");
+    log::info!("Found G-code block id.");
     let BlockHeader {
         compression_type,
         uncompressed_size,
@@ -104,11 +104,11 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
     let crc_input: Vec<u8> = input.take(block_size).to_vec();
     let computed_checksum = crc32fast::hash(&crc_input);
 
-    log::info!("gcode checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    log::debug!("gcode checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
     if checksum == computed_checksum {
-        log::info!(" match");
+        log::debug!("checksum match");
     } else {
-        log::error!(" fail");
+        log::error!("fail checksum");
         panic!("gcode metadata block failed checksum");
     }
 

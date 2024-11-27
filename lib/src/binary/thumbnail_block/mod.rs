@@ -48,8 +48,8 @@ static THUMBNAIL_BLOCK_ID: u16 = 5u16;
 pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
-            log::info!(
-                "looking for THUMBNAIL_BLOCK_ID {THUMBNAIL_BLOCK_ID} found {block_type} cond {}",
+            log::debug!(
+                "Looking for THUMBNAIL_BLOCK_ID {THUMBNAIL_BLOCK_ID} found {block_type} cond {}",
                 *block_type == THUMBNAIL_BLOCK_ID
             );
             *block_type == THUMBNAIL_BLOCK_ID
@@ -57,6 +57,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         block_header_parser,
     )(input)?;
 
+    log::info!("Found thumbnail block id");
     let BlockHeader {
         compression_type,
         uncompressed_size,
@@ -94,11 +95,11 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     let crc_input: Vec<u8> = input.take(block_size).to_vec();
     let computed_checksum = crc32fast::hash(&crc_input);
 
-    log::info!("thumbnail checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    log::debug!("thumbnail checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
     if checksum == computed_checksum {
-        log::info!(" match");
+        log::debug!("checksum match");
     } else {
-        log::error!("file metadata block failed checksum");
+        log::error!("failed checksum");
         panic!("file metadata block failed checksum");
     }
 

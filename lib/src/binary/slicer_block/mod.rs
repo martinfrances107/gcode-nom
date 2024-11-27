@@ -47,8 +47,8 @@ static SLICER_BLOCK_ID: u16 = 2u16;
 pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
-            log::info!(
-                "looking for SLICER_BLOCK_ID {SLICER_BLOCK_ID} found {block_type} cond {}",
+            log::debug!(
+                "Looking for SLICER_BLOCK_ID {SLICER_BLOCK_ID} found {block_type} cond {}",
                 *block_type == SLICER_BLOCK_ID
             );
             *block_type == SLICER_BLOCK_ID
@@ -56,6 +56,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
         block_header_parser,
     )(input)?;
 
+    log::info!("Found slicer block id");
     let BlockHeader {
         compression_type,
         uncompressed_size,
@@ -103,11 +104,11 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
     let crc_input: Vec<u8> = input.take(block_size).to_vec();
     let computed_checksum = crc32fast::hash(&crc_input);
 
-    log::info!("slicer checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    log::debug!("slicer checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
     if checksum == computed_checksum {
-        log::info!(" match");
+        log::debug!("checksum match");
     } else {
-        log::error!(" fail");
+        log::error!("fail checksum");
         panic!("slicer metadata block failed checksum");
     }
 
