@@ -22,3 +22,4 @@ gcode-nom = { path = "../lib" }
 clap = { version = "4.5.20", features = ["derive"] }
 log = { workspace = true }
 env_logger = { workspace = true }
+heatshrink = { workspace = true }

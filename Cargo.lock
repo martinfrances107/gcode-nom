@@ -73,6 +73,7 @@ dependencies = [
  "clap",
  "env_logger",
  "gcode-nom 0.1.0",
+ "heatshrink",
  "log",
  "nom",
 ]
@@ -185,7 +186,7 @@ dependencies = [
 [[package]]
 name = "gcode-nom"
 version = "0.1.0"
-source = "git+https://github.com/martinfrances107/gcode-nom/#1f0499f453f91743ab83411252eba0f8ab35f209"
+source = "git+https://github.com/martinfrances107/gcode-nom/#81eaf0e0123ee060642547ca98f5a2015216361c"
 dependencies = [
  "crc32fast",
  "heatshrink",

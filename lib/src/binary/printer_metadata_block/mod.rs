@@ -85,12 +85,12 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
             }
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
             // Must decompress here
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
             // Must decompress here
             todo!()
         }

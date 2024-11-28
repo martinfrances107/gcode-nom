@@ -18,7 +18,7 @@ fn main() -> std::io::Result<()> {
         match bgcode_parser(&buffer) {
             Ok((_remain, bgcode)) => {
                 log::info!("parser succeeded: Valid input");
-                // println!("{bgcode}")
+                println!("{bgcode}")
             }
             Err(e) => {
                 log::error!("Unhandled error decoding file {e}");

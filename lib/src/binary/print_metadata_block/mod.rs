@@ -1,12 +1,12 @@
 use core::fmt::Display;
 
-use inflate::{inflate_bytes, inflate_bytes_zlib};
+use inflate::inflate_bytes_zlib;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
-    AsChar, IResult, InputTake,
+    IResult, InputTake,
 };
 
 use super::default_params::param_parser;
@@ -87,13 +87,13 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
             }
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
             // Must decompress here
             log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
             // Must decompress here
             log::info!("TODO: Must implement decompression");
             todo!()

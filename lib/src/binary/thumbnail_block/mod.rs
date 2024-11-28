@@ -61,7 +61,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     let BlockHeader {
         compression_type,
         uncompressed_size,
-        ..
+        compressed_size,
     } = header.clone();
 
     let (after_param, param) = param_parser(after_block_header)?;
@@ -75,12 +75,12 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
             todo!()
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
             log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
             log::info!("TODO: Must implement decompression");
             todo!()
         }

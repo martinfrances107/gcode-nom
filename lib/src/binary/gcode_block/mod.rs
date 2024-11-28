@@ -1,10 +1,12 @@
 use core::fmt::Display;
+use std::sync::LazyLock;
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
     compression_type::CompressionType,
 };
 
+use heatshrink::{decode, Config};
 use inflate::inflate_bytes_zlib;
 use nom::{
     bytes::streaming::take,
@@ -16,15 +18,22 @@ use nom::{
 
 mod param;
 use param::param_parser;
-use param::Param;
+use param::Encoding;
+
+// static CONFIG_W11_L4: LazyLock<Config> =
+//     LazyLock::new(|| Config::new(12, 4).expect("Failed to configure HeatshrinkW11L4 decoder"));
+
+static CONFIG_W12_L4: LazyLock<Config> =
+    LazyLock::new(|| Config::new(12, 4).expect("Failed to configure HeatshrinkW11L4 decoder"));
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct GCodeBlock {
     header: BlockHeader,
-    param: Param,
+    encoding: Encoding,
     data: String,
     checksum: Option<u32>,
 }
+
 impl Display for GCodeBlock {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(
@@ -32,7 +41,7 @@ impl Display for GCodeBlock {
             "-------------------------- GCodeBlock --------------------------"
         )?;
         writeln!(f, "Params")?;
-        writeln!(f, "params {:#?}", self.param)?;
+        writeln!(f, "encoding {:#?}", self.encoding)?;
         writeln!(f)?;
         writeln!(f, "DataBlock {}", self.data)?;
         writeln!(f)?;
@@ -60,13 +69,12 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
     log::info!("Found G-code block id.");
     let BlockHeader {
         compression_type,
-        uncompressed_size,
         compressed_size,
-        ..
+        uncompressed_size,
     } = header.clone();
 
-    let (after_param, param) = param_parser(after_block_header)?;
-
+    let (after_param, encoding) = param_parser(after_block_header)?;
+    log::info!("encoding {encoding}");
     // Decompress datablock
     let (after_data, data) = match compression_type {
         CompressionType::None => {
@@ -89,17 +97,39 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
             }
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
             // Must decompress here
+
+            // use CONFIG_W11_L4 here
             log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
-            // Must decompress here
-            log::info!("TODO: Must implement HeatShrink12 decompression");
-            (remain, String::from("headshrink"));
-            todo!();
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+
+            // TODO Figure out why size is is off by 1 -  crashes with buffer was not large enough.
+            let mut scratch = vec![0u8; 1 + uncompressed_size as usize];
+
+            let data = match decode(encoded, &mut scratch, &CONFIG_W12_L4) {
+                Ok(decoded_hs) => match encoding {
+                    Encoding::None => String::from_utf8(decoded_hs.to_vec())
+                        .expect("Simple heatshrink12 output is a bad string"),
+                    Encoding::MeatPackAlgorithm => {
+                        log::error!("Must decode with standard meat packing algorithm");
+                        panic!();
+                    }
+                    Encoding::MeatPackModifiedAlgorithm => {
+                        log::error!("Must decode with meatpacking (with comments)");
+                        panic!();
+                    }
+                },
+                Err(e) => {
+                    log::error!("HeatShrink12: The output buffer was not large enough to hold the decompressed data {e:#?}");
+                    panic!();
+                }
+            };
+
+            (remain, data)
         }
     };
 
@@ -126,7 +156,7 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
         after_checksum,
         GCodeBlock {
             header,
-            param,
+            encoding,
             data,
             checksum: Some(checksum),
         },
