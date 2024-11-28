@@ -1,13 +1,5 @@
 # TASKS
 
-[] - Bugfix gcocde2obj - The obj files has many single element lines!!!
-
-```
-l 95957
-l 95958 95959 95960 95961 95962 95963 95964
-l 95965
-```
-
 [] - Benchmarks use [samply](https://crates.io/crates/samply). Maybe criterion.
 
 [] - Missing compression algorithms

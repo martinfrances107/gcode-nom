@@ -82,13 +82,15 @@ impl Display for Obj {
         // Write out sequence of index buffers.
         for line in &self.lines {
             // line "l 1 2 3"  list of vertex indices.
-            write!(f, "l")?;
-            for i in line {
-                // '+1' convert from zero based counting.
-                // The first index is '1'.
-                write!(f, " {}", i + 1)?;
+            if line.len() > 1 {
+                write!(f, "l")?;
+                for i in line {
+                    // '+1' convert from zero based counting.
+                    // The first index is '1'.
+                    write!(f, " {}", i + 1)?;
+                }
+                writeln!(f)?;
             }
-            writeln!(f)?;
         }
         Ok(())
     }
