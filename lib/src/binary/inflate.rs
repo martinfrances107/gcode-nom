@@ -12,7 +12,7 @@ pub(super) fn inflate(
         CompressionType::Deflate => {
             let (_remain, _data_compressed) = take(uncompressed_size)(data)?;
             // Must decompress here
-            log::info!("Must implement decompression");
+            log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink11 => {

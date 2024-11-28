@@ -1,12 +1,12 @@
 use core::fmt::Display;
 
-use inflate::inflate_bytes;
+use inflate::{inflate_bytes, inflate_bytes_zlib};
 use nom::{
     bytes::streaming::take,
     combinator::verify,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
-    IResult, InputTake,
+    AsChar, IResult, InputTake,
 };
 
 use super::default_params::param_parser;
@@ -73,15 +73,18 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
             (remain, data)
         }
         CompressionType::Deflate => {
-            log::info!("TODO: Must implement decompression");
-            let (remain, _encoded) = take(compressed_size.unwrap())(after_param)?;
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
 
-            // let decoded = inflate_bytes(encoded).unwrap();
-            // let data = String::from_utf8(decoded).unwrap();
-            let data = String::from("contains compressed data");
-            (remain, data)
-
-            // take(uncompressed_size)(after_param)?
+            match inflate_bytes_zlib(encoded) {
+                Ok(decoded) => {
+                    let data = String::from_utf8(decoded).expect("raw data error");
+                    (remain, data)
+                }
+                Err(msg) => {
+                    log::error!("Failed to decode decompression failed {msg}");
+                    panic!()
+                }
+            }
         }
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;

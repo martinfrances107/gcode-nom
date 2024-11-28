@@ -5,6 +5,7 @@ use super::{
     compression_type::CompressionType,
 };
 
+use inflate::inflate_bytes_zlib;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -74,25 +75,31 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
             (remain, data)
         }
         CompressionType::Deflate => {
-            let (remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
-            // let mut d = GzDecoder::new(data_compressed);
-            // let mut data = String::new();
-            // d.read_to_string(&mut data).unwrap();
-            log::info!("Must implement decompression");
-            let data = String::from("contains compressed data");
-            (remain, data)
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+
+            match inflate_bytes_zlib(encoded) {
+                Ok(decoded) => {
+                    let data = String::from_utf8(decoded).expect("raw data error");
+                    (remain, data)
+                }
+                Err(msg) => {
+                    log::error!("Failed to decode decompression failed {msg}");
+                    panic!()
+                }
+            }
         }
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
             // Must decompress here
-            log::info!("Must implement decompression");
+            log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
             let (remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
             // Must decompress here
-            log::info!("Must implement decompression");
-            (remain, String::from("headshrink"))
+            log::info!("TODO: Must implement HeatShrink12 decompression");
+            (remain, String::from("headshrink"));
+            todo!();
         }
     };
 

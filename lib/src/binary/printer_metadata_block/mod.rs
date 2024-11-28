@@ -6,6 +6,7 @@ use super::{
     default_params::param_parser,
     default_params::Param,
 };
+use inflate::inflate_bytes_zlib;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -57,18 +58,31 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
     let BlockHeader {
         compression_type,
         uncompressed_size,
-        ..
+        compressed_size,
     } = header.clone();
 
     let (after_param, param) = param_parser(after_block_header)?;
 
     // Decompress datablock
-    let (after_data, data_raw) = match compression_type {
-        CompressionType::None => take(uncompressed_size)(after_param)?,
+    let (after_data, data) = match compression_type {
+        CompressionType::None => {
+            let (remain, data_raw) = take(uncompressed_size)(after_param)?;
+            let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
+            (remain, data)
+        }
         CompressionType::Deflate => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
-            log::info!("TODO: Must implement decompression");
-            todo!()
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+
+            match inflate_bytes_zlib(encoded) {
+                Ok(decoded) => {
+                    let data = String::from_utf8(decoded).expect("raw data error");
+                    (remain, data)
+                }
+                Err(msg) => {
+                    log::error!("Failed to decode decompression failed {msg}");
+                    panic!()
+                }
+            }
         }
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
@@ -81,8 +95,6 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
             todo!()
         }
     };
-
-    let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
 
     let (after_checksum, checksum) = le_u32(after_data)?;
 
