@@ -71,17 +71,17 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         CompressionType::None => take(uncompressed_size)(after_param)?,
         CompressionType::Deflate => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
-            // Must decompress here
+            log::info!("Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
-            // Must decompress here
+            log::info!("Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
-            // Must decompress here
+            log::info!("Must implement decompression");
             todo!()
         }
     };

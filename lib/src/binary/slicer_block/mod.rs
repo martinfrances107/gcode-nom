@@ -78,17 +78,20 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
             // let mut d = GzDecoder::new(data_compressed);
             // let mut data = String::new();
             // d.read_to_string(&mut data).unwrap();
+            log::info!("TODO: Must implement decompression");
             let data = String::from("contains compressed data");
             (remain, data)
         }
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
             // Must decompress here
+            log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
             // Must decompress here
+            log::info!("TODO: Must implement decompression");
             todo!()
         }
     };

@@ -73,6 +73,7 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
             (remain, data)
         }
         CompressionType::Deflate => {
+            log::info!("TODO: Must implement decompression");
             let (remain, _encoded) = take(compressed_size.unwrap())(after_param)?;
 
             // let decoded = inflate_bytes(encoded).unwrap();
@@ -85,11 +86,13 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
             // Must decompress here
+            log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
             // Must decompress here
+            log::info!("TODO: Must implement decompression");
             todo!()
         }
     };

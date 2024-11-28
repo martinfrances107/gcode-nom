@@ -67,7 +67,7 @@ pub fn printer_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Pri
         CompressionType::None => take(uncompressed_size)(after_param)?,
         CompressionType::Deflate => {
             let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
-            // Must decompress here
+            log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink11 => {
