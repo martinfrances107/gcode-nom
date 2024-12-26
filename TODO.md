@@ -1,6 +1,8 @@
 # TASKS
 
-[] - Benchmarks use [samply](https://crates.io/crates/samply). Maybe criterion.
+[] - Add note on the README that meatpacking and deflate is missing.
+
+[] publish library, publish binary.
 
 [] - Missing compression algorithms
 
@@ -8,6 +10,8 @@
 
 [] - Get MeatPacking algorithm
     <https://github.com/scottmudge/OctoPrint-MeatPack>
+
+[] - Benchmarks use [samply](https://crates.io/crates/samply). Maybe criterion.
 
 [] - Add optional switch -o for output file -i for input
 
