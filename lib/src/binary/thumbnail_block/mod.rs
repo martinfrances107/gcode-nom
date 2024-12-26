@@ -66,7 +66,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
 
     let (after_param, param) = param_parser(after_block_header)?;
 
-    // Decompress datablock
+    // Decompress data block
     let (after_data, data_raw) = match compression_type {
         CompressionType::None => take(uncompressed_size)(after_param)?,
         CompressionType::Deflate => {

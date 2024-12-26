@@ -66,7 +66,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock> 
 
     let (after_param, param) = param_parser(after_block_header)?;
 
-    // Decompress datablock
+    // Decompress data block
     let (after_data, data) = match compression_type {
         CompressionType::None => {
             let (remain, data_raw) = take(uncompressed_size)(after_param)?;

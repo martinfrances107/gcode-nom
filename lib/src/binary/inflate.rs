@@ -6,7 +6,7 @@ pub(super) fn inflate(
     compression_type: CompressionType,
     uncompressed_size: u32,
 ) -> IResult<&[u8], &[u8]> {
-    // Decompress datablock
+    // Decompress data block
     let (remain, data_inflated) = match compression_type {
         CompressionType::None => take(uncompressed_size)(data)?,
         CompressionType::Deflate => {
