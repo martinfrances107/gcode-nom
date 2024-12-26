@@ -173,31 +173,33 @@ mod test {
         // let default = PosPayload::<f64>::default();
 
         let text_commands = [
-            ("G1 Z5", Command::G1([PosVal::Z(5_f64)].into())),
+            ("G1 Z5", Ok(("", Command::G1([PosVal::Z(5_f64)].into())))),
             (
                 "G1 Z5 F5000 ; lift nozzle",
-                Command::G1([PosVal::Z(5_f64), PosVal::F(5000_f64)].into()),
+                Ok((
+                    " ; lift nozzle",
+                    Command::G1([PosVal::Z(5_f64), PosVal::F(5000_f64)].into()),
+                )),
             ),
             (
                 "G1 E1.00000 F1800.00000 ; text",
-                Command::G1([PosVal::E(1.0_f64), PosVal::F(1800_f64)].into()),
+                Ok((
+                    " ; text",
+                    Command::G1([PosVal::E(1.0_f64), PosVal::F(1800_f64)].into()),
+                )),
             ),
             (
                 "G1 Z0.350 F7800.000",
-                Command::G1([PosVal::Z(0.350_f64), PosVal::F(7800_f64)].into()),
+                Ok((
+                    "",
+                    Command::G1([PosVal::Z(0.350_f64), PosVal::F(7800_f64)].into()),
+                )),
             ),
         ];
 
         for (line, expected) in text_commands {
             let actual = parse_g1(line);
-            match actual {
-                Ok((_, actual)) => {
-                    assert_eq!(actual, expected);
-                }
-                Err(_) => {
-                    assert!(false);
-                }
-            }
+            assert_eq!(actual, expected);
         }
     }
     #[test]
