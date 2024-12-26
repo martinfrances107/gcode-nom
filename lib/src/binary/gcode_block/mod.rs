@@ -16,7 +16,9 @@ use nom::{
     IResult, InputTake,
 };
 
+// mod meatpack;
 mod param;
+// use meatpack::MeatPack;
 use param::param_parser;
 use param::Encoding;
 
@@ -75,7 +77,7 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
 
     let (after_param, encoding) = param_parser(after_block_header)?;
     log::info!("encoding {encoding}");
-    // Decompress datablock
+    // Decompress data block
     let (after_data, data) = match compression_type {
         CompressionType::None => {
             let (remain, data_raw) = take(uncompressed_size)(after_param)?;
@@ -119,6 +121,7 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
                         panic!();
                     }
                     Encoding::MeatPackModifiedAlgorithm => {
+                        // let out = MeatPack::default().unbinarize(decoded_hs);
                         log::error!("Must decode with meatpacking (with comments)");
                         panic!();
                     }

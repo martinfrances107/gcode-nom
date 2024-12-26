@@ -4,6 +4,7 @@ use super::{
     block_header::{block_header_parser, BlockHeader},
     compression_type::CompressionType,
 };
+use inflate::inflate_bytes_zlib;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -67,26 +68,33 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     let (after_param, param) = param_parser(after_block_header)?;
 
     // Decompress data block
-    let (after_data, data_raw) = match compression_type {
-        CompressionType::None => take(uncompressed_size)(after_param)?,
+    let (after_data, data) = match compression_type {
+        CompressionType::None => {
+            let (remain, data) = take(uncompressed_size)(after_param)?;
+            (remain, data.to_vec())
+        }
         CompressionType::Deflate => {
-            // Special case extracted data is not a string.
-            log::info!("TODO: Must implement decompression");
-            todo!()
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+
+            match inflate_bytes_zlib(encoded) {
+                Ok(decoded) => (remain, decoded),
+                Err(msg) => {
+                    log::error!("Failed to decode decompression failed {msg}");
+                    panic!()
+                }
+            }
         }
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
-            log::info!("TODO: Must implement decompression");
-            todo!()
+            log::info!("TODO: Must implement HeatShrink11");
+            unimplemented!("HeatShrink11 is not yet implemented");
         }
         CompressionType::HeatShrink12 => {
             let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
-            log::info!("TODO: Must implement decompression");
-            todo!()
+            log::info!("TODO: Must implement heatshrink12");
+            unimplemented!("HeatShrink11 is not yet implemented");
         }
     };
-
-    let data = data_raw.to_vec();
 
     let (after_checksum, checksum) = le_u32(after_data)?;
 

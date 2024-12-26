@@ -10,20 +10,29 @@ pub(super) fn inflate(
     let (remain, data_inflated) = match compression_type {
         CompressionType::None => take(uncompressed_size)(data)?,
         CompressionType::Deflate => {
-            let (_remain, _data_compressed) = take(compressed_size)(data)?;
-            // Must decompress here
-            log::info!("TODO: Must implement decompression");
-            todo!()
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+
+            match inflate_bytes_zlib(encoded) {
+                Ok(decoded) => {
+                    let data = String::from_utf8(decoded).expect("raw data error");
+                    (remain, data)
+                }
+                Err(msg) => {
+                    log::error!("Failed to decode decompression failed {msg}");
+                    panic!()
+                }
+            }
         }
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) = take(compressed_size)(data)?;
-            // Must decompress here
-            todo!()
+
+            log::error!("TODO: Must implement HeatShrink11");
+            todo!("This file contains a heatshrink11 encoded data block")
         }
         CompressionType::HeatShrink12 => {
             let (_remain, _data_compressed) = take(compressed_size)(data)?;
-            // Must decompress here
-            todo!()
+            log::error!("TODO: Must implement HeatShrink12");
+            todo!("This file contains a heatshrink11 encoded data block")
         }
     };
 
