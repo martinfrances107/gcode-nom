@@ -13,9 +13,11 @@ Based on this library the workspace contains a series of visualization tools
 
 I intend the parsers to be as strictly compliant as possible. This is under-going rapid development. Please create issues here, or send me gcode files which expose unimplemented sections.
 
+Sections gcode and bgcode files are compressed  using a variety of algorithms. The HeatShrink and MeatPacking algorithms are not yet implemented.
+
 For "binary gcode files" ['.bgcode' extension] the parser are streaming parsers.
 
-See [nom](https://crates.io/crates/nom) - "A byte-oriented, zero-copy, parser combinators library"
+See [nom](https://crates.io/crates/nom) - "A byte-oriented, zero-copy, parser combinator library"
 
 ## Tools
 

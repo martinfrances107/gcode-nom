@@ -1,8 +1,6 @@
 # TASKS
 
-[] - Add note on the README that meatpacking and deflate is missing.
-
-[] publish library, publish binary.
+[]  publish binary.
 
 [] - Missing compression algorithms
 
