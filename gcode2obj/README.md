@@ -8,7 +8,7 @@ A nom based parser, outputs a "Wavefront Obj" file which can be imported into bl
 
 ## How to use
 
-Parses `StdIn` as a gcode file - the SVG file is send to `StdOut` :-
+Pass the gcode file in as 'StdIn' and the program will send the obj file to 'StdOut' :-
 
 ```bash
 cargo run --release -- < ../assets/bency.gcode > benchy.obj

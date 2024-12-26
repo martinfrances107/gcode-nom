@@ -133,7 +133,9 @@ impl FromIterator<String> for Obj {
                                 // Silently drop feed-rate adjustment.
                             }
                             pos_bad => {
-                                log::info!("Obj: Unexpected param seen in Command::G1 {pos_bad:?}");
+                                log::debug!(
+                                    "Obj: Unexpected param seen in Command::G1 {pos_bad:?}"
+                                );
                             }
                         }
                     }
