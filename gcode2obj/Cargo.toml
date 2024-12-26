@@ -2,7 +2,7 @@
 authors = ["martin <martinfrances107@hotmail.com>"]
 edition = "2021"
 name = "gcode2obj"
-categories = ["parser-implementation"]
+categories = []
 description = "[Wavefront obj] Visualization tool for inspecting a g-code file. "
 homepage = "https://github.com/martinfrances107/gcode-nom"
 keywords = ["visualization", "gcode", "parser-combinator"]
