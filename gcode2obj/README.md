@@ -14,6 +14,16 @@ Pass the gcode file in as 'StdIn' and the program will send the obj file to 'Std
 cargo run --release -- < ../assets/bency.gcode > benchy.obj
 ```
 
+Which for example can be imported into blender for visualization.
+
+![Benchy in Blender](images/BlenderBenchy.png)
+![Lego bricks](images/lego.png)
+Within blender :-
+
+1) This obj has been "Imported".
+2) Converted into a "Curve".
+3) Finally a circular bevel object has been applied to make the object solid [ A circle to represent a 0.1mm fibre].
+
 see [todo](TODO.md)
 
 ## Future work

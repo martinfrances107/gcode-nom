@@ -3,7 +3,7 @@
 //! In this context obj files have :-
 //!
 //! a list of vertices, V
-//! a list of indicies into V.
+//! a list of indices into V.
 //!
 use core::fmt::Display;
 use core::hash::Hash;
@@ -14,7 +14,6 @@ use std::collections::HashMap;
 use gcode_nom::command::Command;
 use gcode_nom::params::PosVal;
 use gcode_nom::PositionMode;
-use log::log;
 
 #[derive(Debug, Clone)]
 struct Vertex(f64, f64, f64);
@@ -183,8 +182,12 @@ impl FromIterator<String> for Obj {
                         }
                     }
                 }
-                Command::G90 => position_mode = PositionMode::Absolute,
-                Command::G91 => position_mode = PositionMode::Relative,
+                Command::G90 => {
+                    position_mode = PositionMode::Absolute;
+                }
+                Command::G91 => {
+                    position_mode = PositionMode::Relative;
+                }
                 // G92 Set Current Position
                 Command::G92(mut params) => {
                     for p in params.drain() {

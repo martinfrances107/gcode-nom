@@ -4,7 +4,7 @@
 //!
 //! ## How to use
 //!
-//! Parses `StdIn` as a gcode file - the SVG file is send to `StdOut` :-
+//! Parses `StdIn` as a gcode file - the OBJ file is send to `StdOut` :-
 //!
 //! ```bash
 //! cargo run --release -- < ../assets/bency.gcode > benchy.obj
