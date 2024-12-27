@@ -17,7 +17,7 @@ name = "gcode2obj"
 path = "src/main.rs"
 
 [dependencies]
-gcode-nom = { version = "0.1.0" }
+gcode-nom = { version = "0.1.1" }
 clap = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }

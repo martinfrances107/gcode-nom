@@ -68,7 +68,7 @@ dependencies = [
 
 [[package]]
 name = "bgcodeValidator"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "env_logger",
@@ -164,7 +164,7 @@ dependencies = [
 
 [[package]]
 name = "extract_thumbs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "env_logger",
@@ -174,9 +174,7 @@ dependencies = [
 
 [[package]]
 name = "gcode-nom"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b802b63a933a9b3408d92623df001faa6f4066c658fcbca1ed9d7a3d067fa58"
+version = "0.1.1"
 dependencies = [
  "crc32fast",
  "heatshrink",
@@ -188,6 +186,8 @@ dependencies = [
 [[package]]
 name = "gcode-nom"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8b582872f3aec04d1a922eb80f52c088feb1a334e7a70811e39dfdaab80cf63"
 dependencies = [
  "crc32fast",
  "heatshrink",
@@ -202,7 +202,7 @@ version = "0.1.1"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.1.0",
+ "gcode-nom 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log",
 ]
 
