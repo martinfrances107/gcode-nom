@@ -2,6 +2,13 @@
 
 Rust 2021 Edition.
 
+<div align="center">
+
+<a href="https://crates.io/crates/gcode2obj"><img alt="crates.io" src="https://img.shields.io/crates/v/gcode2obj.svg"/></a>
+<a href="https://docs.rs/gcode2obj/latest/gcode2obj" rel="nofollow noopener noreferrer"><img src="https://img.shields.io/crates/d/gcode2obj.svg" alt="Documentation"></a>
+
+</div>
+
 A G-code visualization tool written in [rust](https://www.rust-lang.org/)
 
 A nom based parser, outputs a "Wavefront Obj" file which can be imported into blender and a Bevy app for visualization
@@ -16,8 +23,9 @@ cargo run --release -- < ../assets/bency.gcode > benchy.obj
 
 Which for example can be imported into blender for visualization.
 
-![Benchy in Blender](images/BlenderBenchy.png)
-![Lego bricks](images/lego.png)
+![Benchy in Blender](<https://github.com/martinfrances107/gcode-nom/blob/main/images/BlenderBenchy.png?raw=true>)
+![Lego bricks](https://github.com/martinfrances107/gcode-nom/blob/main/images/lego.png?raw=true)
+
 Within blender :-
 
 1) This obj has been "Imported".

@@ -2,6 +2,13 @@
 
 Rust 2021 Edition.
 
+<div align="center">
+
+<a href="https://crates.io/crates/gcode-nom"><img alt="crates.io" src="https://img.shields.io/crates/v/gcode-nom.svg"/></a>
+<a href="https://docs.rs/gcode-nom/latest/gcode_nom" rel="nofollow noopener noreferrer"><img src="https://img.shields.io/crates/d/gcode_nom.svg" alt="Documentation"></a>
+
+</div>
+
 A library containing a full set of [nom](https://crates.io/crates/nom) parsers for decoding gcode files.
 
 Based on this library the workspace contains a series of visualization tools
@@ -34,8 +41,8 @@ cargo run --release -- < ./assets/bency.gcode > bench.obj
 
 Which for example can be imported into blender for visualization.
 
-![Benchy in Blender](images/BlenderBenchy.png)
-![Lego bricks](images/lego.png)
+![Benchy in Blender](https://github.com/martinfrances107/gcode-nom/blob/main/images/BlenderBenchy.png?raw=true)
+![Lego bricks](https://github.com/martinfrances107/gcode-nom/blob/main/images/lego.png?raw=true)
 Within blender :-
 
 1) This obj has been "Imported".
@@ -46,7 +53,7 @@ Within blender :-
 
 Generate svg files
 
-![Benchy in Blender](images/benchy.svg)
+![Benchy in Blender](https://raw.githubusercontent.com/martinfrances107/gcode-nom/367a7add7ed0dcad84ea20d21fd2076b559188b9/images/benchy.svg)
 
 ### How to use
 
