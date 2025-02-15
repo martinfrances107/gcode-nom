@@ -18,7 +18,6 @@ use std::{
 
 use clap::Parser;
 use gcode_nom::binary::bgcode_parser;
-use log::log;
 
 // Extract thumbnails from a .gcode/bgcode
 #[derive(Parser, Debug)]

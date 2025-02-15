@@ -4,7 +4,7 @@ use nom::{
     combinator::map_res,
     error::{Error, ErrorKind},
     number::streaming::le_u16,
-    Err, IResult,
+    IResult, Parser,
 };
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -41,8 +41,9 @@ pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Encoding> {
             2u16 => Encoding::MeatPackModifiedAlgorithm,
             bad => {
                 log::error!("Discarding bad encoding  {bad:?}");
-                return Err(Err::Error(Error::new(input, ErrorKind::Alt)));
+                return Err(Error::new(input, ErrorKind::Alt));
             }
         })
-    })(input)
+    })
+    .parse(input)
 }

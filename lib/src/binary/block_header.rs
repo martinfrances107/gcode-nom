@@ -1,4 +1,5 @@
-use nom::{combinator::map, number::streaming::le_u32, sequence::tuple, IResult};
+use nom::Parser;
+use nom::{combinator::map, number::streaming::le_u32, IResult};
 
 use super::compression_type::compression_parser;
 use super::compression_type::CompressionType;
@@ -41,19 +42,18 @@ pub(super) fn block_header_parser(input: &[u8]) -> IResult<&[u8], BlockHeader> {
                 uncompressed_size,
                 compressed_size: None,
             }
-        })(remain)
+        })
+        .parse(remain)
     } else {
-        map(
-            tuple((le_u32, le_u32)),
-            |(uncompressed_size, compressed_size)| {
-                // hh
-                BlockHeader {
-                    compression_type: compression_type.clone(),
-                    uncompressed_size,
-                    compressed_size: Some(compressed_size),
-                }
-            },
-        )(remain)
+        map((le_u32, le_u32), |(uncompressed_size, compressed_size)| {
+            // hh
+            BlockHeader {
+                compression_type: compression_type.clone(),
+                uncompressed_size,
+                compressed_size: Some(compressed_size),
+            }
+        })
+        .parse(remain)
     }
 }
 

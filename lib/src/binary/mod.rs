@@ -34,8 +34,7 @@ use file_metadata_block::{file_metadata_parser_with_checksum, FileMetadataBlock}
 use nom::{
     combinator::{eof, map, opt},
     multi::{many0, many_till},
-    sequence::tuple,
-    IResult,
+    IResult, Parser,
 };
 
 use compression_type::CompressionType;
@@ -103,7 +102,7 @@ impl Display for Bgcode {
 ///   When the bytes stream is not a valid file.
 pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
     map(
-        tuple((
+        (
             file_header_parser,
             opt(file_metadata_parser_with_checksum),
             printer_metadata_parser_with_checksum,
@@ -112,7 +111,7 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
             slicer_parser_with_checksum,
             // eof here asserts than what remains is_empty()
             many_till(gcode_parser_with_checksum, eof),
-        )),
+        ),
         |(
             fh,
             file_metadata,
@@ -133,5 +132,6 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
                 gcode,
             }
         },
-    )(input)
+    )
+    .parse(input)
 }

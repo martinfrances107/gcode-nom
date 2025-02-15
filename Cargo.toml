@@ -25,6 +25,7 @@ clap = { version = "4.5.29", features = ["derive"] }
 env_logger = "0.11.5"
 log = "0.4.25"
 heatshrink = "0.2"
+nom = "8.0.0"
 
 [profile.release]
 codegen-units = 1

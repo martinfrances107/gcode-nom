@@ -10,7 +10,7 @@ use nom::{
     combinator::verify,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
-    IResult, InputTake,
+    IResult, Parser,
 };
 
 mod param;
@@ -56,7 +56,8 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
             *block_type == THUMBNAIL_BLOCK_ID
         }),
         block_header_parser,
-    )(input)?;
+    )
+    .parse(input)?;
 
     log::info!("Found thumbnail block id");
     let BlockHeader {
@@ -100,8 +101,8 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
 
     let param_size = 6;
     let block_size = header.size_in_bytes() + param_size + header.payload_size_in_bytes();
-    let crc_input: Vec<u8> = input.take(block_size).to_vec();
-    let computed_checksum = crc32fast::hash(&crc_input);
+    let crc_input = &input[..block_size];
+    let computed_checksum = crc32fast::hash(crc_input);
 
     log::debug!("thumbnail checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
     if checksum == computed_checksum {

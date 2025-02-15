@@ -2,7 +2,7 @@ use core::fmt::Display;
 
 use nom::error::ErrorKind;
 use nom::number::streaming::le_u16;
-use nom::Err;
+use nom::Parser;
 use nom::{combinator::map_res, error::Error, IResult};
 
 // Details if a checksum is appended to all blocks structures.
@@ -33,8 +33,9 @@ pub(super) fn checksum_type_parser(input: &[u8]) -> IResult<&[u8], ChecksumType>
             1 => ChecksumType::CRC32,
             bad_checksum => {
                 log::error!("Discarding bad checksum type {bad_checksum:?}");
-                return Err(Err::Error(Error::new(input, ErrorKind::Alt)));
+                return Err(Error::new(input, ErrorKind::Alt));
             }
         })
-    })(input)
+    })
+    .parse(input)
 }

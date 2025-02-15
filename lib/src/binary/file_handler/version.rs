@@ -3,7 +3,7 @@ use core::fmt::Display;
 use nom::error::ErrorKind;
 use nom::number::streaming::le_u32;
 
-use nom::Err;
+use nom::Parser;
 use nom::{combinator::map_res, error::Error, IResult};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -26,8 +26,9 @@ pub(super) fn version_parser(input: &[u8]) -> IResult<&[u8], Version> {
             1 => Version(1),
             bad_version => {
                 log::error!("Discarding file handlier version type {bad_version:?}");
-                return Err(Err::Error(Error::new(input, ErrorKind::Alt)));
+                return Err(Error::new(input, ErrorKind::Alt));
             }
         })
-    })(input)
+    })
+    .parse(input)
 }

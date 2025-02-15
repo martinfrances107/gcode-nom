@@ -13,7 +13,7 @@ use nom::{
     combinator::verify,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
-    IResult, InputTake,
+    IResult, Parser,
 };
 
 // mod meatpack;
@@ -67,7 +67,8 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
             *block_type == CODE_BLOCK_ID
         }),
         block_header_parser,
-    )(input)?;
+    )
+    .parse(input)?;
     log::info!("Found G-code block id.");
     let BlockHeader {
         compression_type,
@@ -144,8 +145,8 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
         _ => compressed_size.unwrap() as usize,
     };
     let block_size = header.size_in_bytes() + param_size + payload_size;
-    let crc_input: Vec<u8> = input.take(block_size).to_vec();
-    let computed_checksum = crc32fast::hash(&crc_input);
+    let crc_input = &input[..block_size];
+    let computed_checksum = crc32fast::hash(crc_input);
 
     log::debug!("gcode checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
     if checksum == computed_checksum {

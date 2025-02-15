@@ -1,7 +1,7 @@
 use nom::error::ErrorKind;
 use nom::number::streaming::le_u32;
 
-use nom::Err;
+use nom::Parser;
 use nom::{combinator::map_res, error::Error, IResult};
 
 // First 32 bits of valid bgcode file.
@@ -15,7 +15,8 @@ pub(super) fn preamble(input: &[u8]) -> IResult<&[u8], u32> {
             Ok(HEADER)
         } else {
             log::error!("Discarding bad preamble failing ");
-            Err(Err::Error(Error::new(input, ErrorKind::Alt)))
+            Err(Error::new(input, ErrorKind::Alt))
         }
-    })(input)
+    })
+    .parse(input)
 }

@@ -8,6 +8,7 @@ use nom::combinator::map_res;
 use nom::multi::separated_list1;
 use nom::sequence::preceded;
 use nom::IResult;
+use nom::Parser;
 
 use crate::params::parse_a;
 use crate::params::parse_b;
@@ -80,7 +81,8 @@ impl Command {
             map(m_drop, Self::MDrop),
             map(tag(";"), |_| Self::Nop),
             map(tag(""), |_| Self::Nop),
-        ))(line)
+        ))
+        .parse(line)
     }
 }
 
@@ -89,7 +91,7 @@ impl Command {
 /// # Errors
 ///   When match fails.
 pub fn g_drop(i: &str) -> IResult<&str, u16> {
-    map_res(preceded(tag("G"), digit1), str::parse)(i)
+    map_res(preceded(tag("G"), digit1), str::parse).parse(i)
 }
 
 /// # Errors
@@ -103,7 +105,8 @@ fn parse_g0(i: &str) -> IResult<&str, Command> {
             let hs = HashSet::from_iter(vals);
             Command::G0(hs)
         }),
-    )(i)
+    )
+    .parse(i)
 }
 
 ///
@@ -118,7 +121,8 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
             let hs = HashSet::from_iter(vals);
             Command::G1(hs)
         }),
-    )(i)
+    )
+    .parse(i)
 }
 
 ///
@@ -133,14 +137,15 @@ fn parse_g92(i: &str) -> IResult<&str, Command> {
             let hs = HashSet::from_iter(vals);
             Command::G92(hs)
         }),
-    )(i)
+    )
+    .parse(i)
 }
 
 ///
 /// # Errors
 ///   When match fails.
 fn pos_many(i: &str) -> IResult<&str, Vec<PosVal>> {
-    separated_list1(tag(" "), pos_val)(i)
+    separated_list1(tag(" "), pos_val).parse(i)
 }
 
 ///
@@ -150,7 +155,8 @@ fn pos_val(i: &str) -> IResult<&str, PosVal> {
     alt((
         parse_a, parse_b, parse_c, parse_e, parse_f, parse_s, parse_u, parse_v, parse_w, parse_x,
         parse_y, parse_z,
-    ))(i)
+    ))
+    .parse(i)
 }
 
 /// Drop M code - no further action
@@ -158,7 +164,7 @@ fn pos_val(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn m_drop(i: &str) -> IResult<&str, u16> {
-    map_res(preceded(tag("M"), digit1), str::parse)(i)
+    map_res(preceded(tag("M"), digit1), str::parse).parse(i)
 }
 
 #[cfg(test)]

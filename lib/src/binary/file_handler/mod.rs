@@ -4,6 +4,7 @@ use nom::combinator::map;
 
 use nom::sequence::preceded;
 
+use nom::Parser;
 use nom::{sequence::pair, IResult};
 
 mod checksum_type;
@@ -47,5 +48,6 @@ pub fn file_header_parser(input: &[u8]) -> IResult<&[u8], FileHeader> {
                 checksum_type,
             },
         ),
-    )(input)
+    )
+    .parse(input)
 }

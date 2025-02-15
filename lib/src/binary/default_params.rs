@@ -2,7 +2,7 @@ use core::fmt::Display;
 
 use nom::combinator::map_res;
 use nom::error::{Error, ErrorKind};
-use nom::Err;
+use nom::Parser;
 use nom::{number::streaming::le_u16, IResult};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct Param {
@@ -14,10 +14,11 @@ pub(super) struct Param {
 pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Param> {
     map_res(le_u16, |value| {
         Encoding::try_from(value).map_or_else(
-            |_| Err(Err::Error(Error::new(value, ErrorKind::Alt))),
+            |_| Err(Error::new(value, ErrorKind::Alt)),
             |encoding| Ok(Param { encoding }),
         )
-    })(input)
+    })
+    .parse(input)
 }
 
 // Encoding

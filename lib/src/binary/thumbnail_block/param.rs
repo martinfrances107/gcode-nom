@@ -1,11 +1,10 @@
 use core::fmt::Display;
 
-use nom::Err;
+use nom::Parser;
 use nom::{
     combinator::map_res,
     error::{Error, ErrorKind},
     number::streaming::le_u16,
-    sequence::tuple,
     IResult,
 };
 
@@ -37,9 +36,9 @@ impl Display for Param {
 }
 
 pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Param> {
-    map_res(tuple((le_u16, le_u16, le_u16)), |(f, width, height)| {
+    map_res((le_u16, le_u16, le_u16), |(f, width, height)| {
         Format::try_from(f).map_or_else(
-            |_| Err(Err::Error(Error::new(input, ErrorKind::Alt))),
+            |_| Err(Error::new(input, ErrorKind::Alt)),
             |format| {
                 Ok(Param {
                     format,
@@ -48,7 +47,8 @@ pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Param> {
                 })
             },
         )
-    })(input)
+    })
+    .parse(input)
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

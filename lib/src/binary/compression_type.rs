@@ -2,7 +2,7 @@ use nom::{
     combinator::map_res,
     error::{Error, ErrorKind},
     number::streaming::le_u16,
-    Err, IResult,
+    IResult, Parser,
 };
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -26,9 +26,10 @@ pub(super) fn compression_parser(input: &[u8]) -> IResult<&[u8], CompressionType
             _ => {
                 return {
                     log::error!("Compression_parser bad type  failing ");
-                    Err(Err::Error(Error::new(input, ErrorKind::Alt)))
-                }
+                    Err(Error::new(input, ErrorKind::Alt))
+                };
             }
         })
-    })(input)
+    })
+    .parse(input)
 }
