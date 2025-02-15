@@ -73,7 +73,7 @@ version = "0.1.1"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.1.1",
+ "gcode-nom 0.2.0",
  "heatshrink",
  "log",
  "nom 8.0.0",
@@ -169,19 +169,8 @@ version = "0.1.1"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.1.1",
+ "gcode-nom 0.2.0",
  "log",
-]
-
-[[package]]
-name = "gcode-nom"
-version = "0.1.1"
-dependencies = [
- "crc32fast",
- "heatshrink",
- "inflate",
- "log",
- "nom 8.0.0",
 ]
 
 [[package]]
@@ -198,12 +187,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "gcode-nom"
+version = "0.2.0"
+dependencies = [
+ "crc32fast",
+ "heatshrink",
+ "inflate",
+ "log",
+ "nom 8.0.0",
+]
+
+[[package]]
 name = "gcode2obj"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gcode-nom 0.1.1",
  "log",
 ]
 
@@ -212,7 +212,7 @@ name = "gcode2svg"
 version = "0.1.0"
 dependencies = [
  "env_logger",
- "gcode-nom 0.1.1",
+ "gcode-nom 0.2.0",
  "log",
 ]
 
