@@ -21,3 +21,4 @@ crc32fast = "1.4.2"
 inflate = "0.4"
 heatshrink = "0.2.0"
 log = { workspace = true }
+meatpack = "0.0.1"

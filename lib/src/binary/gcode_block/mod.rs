@@ -16,14 +16,11 @@ use nom::{
     IResult, Parser,
 };
 
-// mod meatpack;
-mod param;
-// use meatpack::MeatPack;
+use meatpack::{MeatPackResult, Unpacker};
 use param::param_parser;
 use param::Encoding;
 
-// static CONFIG_W11_L4: LazyLock<Config> =
-//     LazyLock::new(|| Config::new(12, 4).expect("Failed to configure HeatshrinkW11L4 decoder"));
+mod param;
 
 static CONFIG_W12_L4: LazyLock<Config> =
     LazyLock::new(|| Config::new(12, 4).expect("Failed to configure HeatshrinkW11L4 decoder"));
@@ -122,9 +119,27 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
                         panic!();
                     }
                     Encoding::MeatPackModifiedAlgorithm => {
-                        // let out = MeatPack::default().unbinarize(decoded_hs);
-                        log::error!("Must decode with meatpacking (with comments)");
-                        panic!();
+                        let mut data = String::new();
+                        let mut unpacker = Unpacker::<64>::default();
+                        for b in decoded_hs {
+                            match unpacker.unpack(b) {
+                                Ok(MeatPackResult::WaitingForNextByte) => {
+                                    // absorb byte and continue
+                                }
+                                Ok(MeatPackResult::Line(line)) => {
+                                    let line = std::str::from_utf8(line).unwrap();
+                                    data.push_str(line);
+                                }
+                                Err(e) => {
+                                    log::error!(
+                                        "{}",
+                                        format!("failed to unpack meatpack data {e:#?}")
+                                    );
+                                    panic!();
+                                }
+                            }
+                        }
+                        data
                     }
                 },
                 Err(e) => {
