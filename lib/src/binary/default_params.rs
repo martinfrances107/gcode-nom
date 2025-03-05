@@ -39,15 +39,16 @@ impl Display for Encoding {
     }
 }
 impl TryFrom<u16> for Encoding {
-    type Error = &'static str;
+    type Error = String;
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         Ok(match value {
             0u16 => Self::None,
             // 1u16 => Encoding::MeatPack,
             // 2u16 => Encoding::MeatPackWithComments,
             bad_value => {
-                log::error!("Discarding version {bad_value:?}");
-                return Err("Invalid encoding type could not decode {bad_value:?}");
+                let msg = format!("Discarding version {bad_value:?}");
+                log::error!("{}", &msg);
+                return Err(msg);
             }
         })
     }
