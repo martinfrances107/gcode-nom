@@ -195,7 +195,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn post_value_equality() {
+    fn pos_value_equality() {
         // Pass: - parameter wrapper and inner value match.
         assert!(PosVal::A(95.0) == PosVal::A(95.0));
 
