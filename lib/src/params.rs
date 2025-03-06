@@ -189,3 +189,20 @@ pub fn parse_y(i: &str) -> IResult<&str, PosVal> {
 pub fn parse_z(i: &str) -> IResult<&str, PosVal> {
     map(preceded(tag("Z"), double), PosVal::Z).parse(i)
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn post_value_equality() {
+        // Pass: - parameter wrapper and inner value match.
+        assert!(PosVal::A(95.0) == PosVal::A(95.0));
+
+        // Fail: -  A = A but inner value is different.
+        assert!(PosVal::A(95.0) != PosVal::B(9.0));
+
+        // FAIL: - A != B but with identical inner value.
+        assert!(PosVal::A(95.0) != PosVal::B(95.0));
+    }
+}
