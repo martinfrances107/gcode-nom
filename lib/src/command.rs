@@ -69,9 +69,9 @@ impl Command {
         // Most common first.
         alt((
             parse_g1,
-            map(tag("G21 "), |_| Self::G21),
-            map(tag("G90 "), |_| Self::G90),
-            map(tag("G91 "), |_| Self::G91),
+            map(tag("G21"), |_| Self::G21),
+            map(tag("G90"), |_| Self::G90),
+            map(tag("G91"), |_| Self::G91),
             parse_g92,
             // Command::G0 - Non printing moves are infrequent.
             //  eg "The benchy" example has none.
@@ -109,6 +109,7 @@ fn parse_g0(i: &str) -> IResult<&str, Command> {
     .parse(i)
 }
 
+/// Linear move
 ///
 /// # Errors
 ///   When match fails.
@@ -125,6 +126,7 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
     .parse(i)
 }
 
+/// G92 Set current position.
 ///
 /// # Errors
 ///   When match fails.
