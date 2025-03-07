@@ -206,7 +206,7 @@ mod test {
         ];
 
         for (line, expected) in text_commands {
-            let actual = parse_g1(line);
+            let actual = Command::parse_line(line);
             assert_eq!(actual, expected);
         }
     }
