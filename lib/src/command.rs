@@ -5,7 +5,8 @@ use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
 use nom::combinator::map;
 use nom::combinator::map_res;
-use nom::multi::separated_list1;
+use nom::multi::many;
+use nom::multi::many0;
 use nom::sequence::preceded;
 use nom::IResult;
 use nom::Parser;
@@ -111,11 +112,16 @@ fn parse_g0(i: &str) -> IResult<&str, Command> {
 
 /// Linear move
 ///
+/// May or may not include whitespace separators.
+///
+/// G1X94.838Y81.705F9000
+/// G1 X94.838Y81.705 F9000
+///
 /// # Errors
 ///   When match fails.
 fn parse_g1(i: &str) -> IResult<&str, Command> {
     preceded(
-        tag("G1 "),
+        (tag("G1"), many0(tag(" "))),
         map(pos_many, |vals: Vec<PosVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
@@ -132,7 +138,7 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g92(i: &str) -> IResult<&str, Command> {
     preceded(
-        tag("G92 "),
+        (tag("G92"), many0(tag(" "))),
         map(pos_many, |vals: Vec<PosVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f63> value.
@@ -143,11 +149,14 @@ fn parse_g92(i: &str) -> IResult<&str, Command> {
     .parse(i)
 }
 
+/// Extracts from 1 to 12 values from the set of `PosVal`s.
+///
+/// ( A, B, C, E, F, S, U, V, W, X, Y, Z )
 ///
 /// # Errors
 ///   When match fails.
 fn pos_many(i: &str) -> IResult<&str, Vec<PosVal>> {
-    separated_list1(tag(" "), pos_val).parse(i)
+    many(1..12, pos_val).parse(i)
 }
 
 ///
@@ -203,11 +212,27 @@ mod test {
                     Command::G1([PosVal::Z(0.350_f64), PosVal::F(7800_f64)].into()),
                 )),
             ),
+            (
+                // Must tollerate compact form without whitespace.
+                "G1Z0.350F7800.000",
+                Ok((
+                    "",
+                    Command::G1([PosVal::Z(0.350_f64), PosVal::F(7800_f64)].into()),
+                )),
+            ),
+            (
+                // Paranoid: - Initial tags has whitespace, but parameters are expressed in a compact form.
+                "G1 Z0.350F7800.000",
+                Ok((
+                    "",
+                    Command::G1([PosVal::Z(0.350_f64), PosVal::F(7800_f64)].into()),
+                )),
+            ),
         ];
 
         for (line, expected) in text_commands {
             let actual = Command::parse_line(line);
-            assert_eq!(actual, expected);
+            assert_eq!(actual, expected, "line: {}", line);
         }
     }
     #[test]
