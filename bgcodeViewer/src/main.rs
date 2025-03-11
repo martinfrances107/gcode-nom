@@ -1,14 +1,21 @@
+#![deny(clippy::all)]
+#![warn(clippy::cargo)]
+#![warn(clippy::complexity)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::nursery)]
+#![warn(clippy::perf)]
+#![warn(missing_debug_implementations)]
+#![warn(missing_docs)]
+#![allow(clippy::many_single_char_names)]
+
+extern crate env_logger;
 extern crate gcode_nom;
 
+use gcode_nom::binary::bgcode_parser;
 use std::io::{stdin, BufReader, Read};
 
-use env_logger::Builder;
-use gcode_nom::binary::bgcode_parser;
-use log::LevelFilter;
-
 fn main() -> std::io::Result<()> {
-    Builder::new().filter(None, LevelFilter::Debug).init();
-
+    env_logger::init();
     let stdin = stdin();
     let s_lock = stdin.lock();
     let mut reader = BufReader::new(s_lock);
@@ -18,7 +25,7 @@ fn main() -> std::io::Result<()> {
         match bgcode_parser(&buffer) {
             Ok((_remain, bgcode)) => {
                 log::info!("parser succeeded: Valid input");
-                println!("{bgcode}")
+                println!("{bgcode}");
             }
             Err(e) => {
                 log::error!("Unhandled error decoding file {e}");
