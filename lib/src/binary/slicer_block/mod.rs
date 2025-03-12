@@ -51,9 +51,14 @@ impl SlicerBlock {
         W: Write,
     {
         writeln!(f, "## SlicerBlock")?;
+        writeln!(f)?;
         writeln!(f, "### Params")?;
         writeln!(f, "params {:#?}", self.param)?;
-        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f, "<details>")?;
+        writeln!(f, "<summary>DataBlock</summary>")?;
+        writeln!(f, "<br>")?;
+        writeln!(f, "{}", self.data)?;
+        writeln!(f, "</details>")?;
         writeln!(f)?;
         match self.checksum {
             Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X}")?,

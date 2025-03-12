@@ -60,6 +60,7 @@ impl GCodeBlock {
         W: std::fmt::Write,
     {
         writeln!(f, "## GCodeBlock ")?;
+        writeln!(f)?;
         writeln!(f, "### Params")?;
         writeln!(f, "encoding {:#?}", self.encoding)?;
         writeln!(f)?;

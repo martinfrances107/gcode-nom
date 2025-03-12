@@ -55,6 +55,7 @@ impl ThumbnailBlock {
         // TODO: In markdown. All titles (for a given level), must be unique
         // otherwise, as per spec,  table of content block cannot be constructed.
         writeln!(f, "## ThumbnailBlock")?;
+        writeln!(f)?;
         writeln!(f, "### Params")?;
         write!(f, "{}", self.param)?;
         writeln!(f, "DataBlock omitted")?;

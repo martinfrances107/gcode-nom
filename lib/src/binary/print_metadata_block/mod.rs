@@ -50,9 +50,14 @@ impl PrintMetadataBlock {
         W: std::fmt::Write,
     {
         writeln!(f, "## PrintMetadataBlock")?;
+        writeln!(f)?;
         writeln!(f, "### Params")?;
         writeln!(f, "params 0x{:?}", self.param)?;
-        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f, "<details>")?;
+        writeln!(f, "<summary>DataBlock</summary>")?;
+        writeln!(f, "<br>")?;
+        writeln!(f, "{}", self.data)?;
+        writeln!(f, "</details>")?;
         writeln!(f)?;
 
         match self.checksum {
