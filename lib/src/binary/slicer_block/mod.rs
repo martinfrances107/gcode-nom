@@ -1,4 +1,4 @@
-use core::fmt::Display;
+use core::fmt::{Display, Write};
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
@@ -38,6 +38,25 @@ impl Display for SlicerBlock {
         write!(f, "-------------------------- SlicerBlock ")?;
         match self.checksum {
             Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X} ---------")?,
+            None => writeln!(f, "No checksum")?,
+        };
+        Ok(())
+    }
+}
+
+impl SlicerBlock {
+    /// Write to formatter a markdown block.
+    pub fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
+    where
+        W: Write,
+    {
+        writeln!(f, "## SlicerBlock")?;
+        writeln!(f, "### Params")?;
+        writeln!(f, "params {:#?}", self.param)?;
+        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f)?;
+        match self.checksum {
+            Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X}")?,
             None => writeln!(f, "No checksum")?,
         };
         Ok(())

@@ -53,6 +53,31 @@ impl Display for GCodeBlock {
     }
 }
 
+impl GCodeBlock {
+    /// Write to formatter a markdown block.
+    pub fn markdown<W>(&self, mut f: W) -> core::fmt::Result
+    where
+        W: std::fmt::Write,
+    {
+        writeln!(f, "## GCodeBlock ")?;
+        writeln!(f, "### Params")?;
+        writeln!(f, "encoding {:#?}", self.encoding)?;
+        writeln!(f)?;
+        writeln!(f, "<details>")?;
+        writeln!(f, "<summary>DataBlock</summary>")?;
+        writeln!(f, "<br>")?;
+        writeln!(f, "{}", self.data)?;
+        writeln!(f, "</details>")?;
+        writeln!(f)?;
+
+        match self.checksum {
+            Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X}")?,
+            None => writeln!(f, "No checksum")?,
+        };
+        Ok(())
+    }
+}
+
 static CODE_BLOCK_ID: u16 = 1u16;
 pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
     let (after_block_header, header) = preceded(

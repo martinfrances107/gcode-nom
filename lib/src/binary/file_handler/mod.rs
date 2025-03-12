@@ -38,6 +38,21 @@ impl Display for FileHeader {
     }
 }
 
+impl FileHeader {
+    /// Write to formatter a markdown block.
+    pub fn markdown<W>(&self, mut f: W) -> core::fmt::Result
+    where
+        W: std::fmt::Write,
+    {
+        writeln!(f, "## File Header")?;
+        writeln!(f)?;
+        writeln!(f, "{}", self.version)?;
+        writeln!(f, "{}", self.checksum_type)?;
+
+        Ok(())
+    }
+}
+
 pub fn file_header_parser(input: &[u8]) -> IResult<&[u8], FileHeader> {
     preceded(
         preamble,

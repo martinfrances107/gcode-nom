@@ -69,12 +69,15 @@ pub struct Bgcode {
 impl Display for Bgcode {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(f, "{}", self.fh)?;
+
         if let Some(file_metadata) = &self.file_metadata {
             writeln!(f, "{file_metadata}")?;
         } else {
             writeln!(f, "No optional file metadata block")?;
         }
+
         writeln!(f, "{}", &self.printer_metadata)?;
+
         if self.thumbnails.is_empty() {
             writeln!(f, "No optional thumbnail block")?;
         } else {
@@ -84,12 +87,57 @@ impl Display for Bgcode {
         }
 
         writeln!(f, "{}", self.print_metadata)?;
+
         writeln!(f, "{}", self.slicer)?;
+
         if self.gcode.is_empty() {
             writeln!(f, "No optional thumbnail block")?;
         } else {
             for g in &self.gcode {
                 writeln!(f, "{g}")?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Bgcode {
+    /// Write to formatter a markdown block.
+    ///
+    /// # Errors
+    ///   When match fails.
+    pub fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
+    where
+        W: std::fmt::Write,
+    {
+        self.fh.markdown(&mut *f)?;
+
+        if let Some(file_metadata) = &self.file_metadata {
+            file_metadata.markdown(&mut *f)?;
+        } else {
+            writeln!(f, "No optional file metadata block")?;
+        }
+
+        self.printer_metadata.markdown(&mut *f)?;
+
+        if self.thumbnails.is_empty() {
+            writeln!(f, "No optional thumbnail block")?;
+        } else {
+            for thumb in &self.thumbnails {
+                thumb.markdown(&mut *f)?;
+            }
+        }
+
+        self.print_metadata.markdown(&mut *f)?;
+
+        self.slicer.markdown(f)?;
+
+        if self.gcode.is_empty() {
+            writeln!(f, "No optional thumbnail block")?;
+        } else {
+            for g in &self.gcode {
+                // writeln!(f, "{g}")?;
+                g.markdown(&mut *f)?;
             }
         }
         Ok(())

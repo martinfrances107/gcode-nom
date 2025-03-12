@@ -43,6 +43,26 @@ impl Display for PrintMetadataBlock {
     }
 }
 
+impl PrintMetadataBlock {
+    /// Write to formatter a markdown block.
+    pub fn markdown<W>(&self, mut f: W) -> core::fmt::Result
+    where
+        W: std::fmt::Write,
+    {
+        writeln!(f, "## PrintMetadataBlock")?;
+        writeln!(f, "### Params")?;
+        writeln!(f, "params 0x{:?}", self.param)?;
+        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f)?;
+
+        match self.checksum {
+            Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X}")?,
+            None => writeln!(f, "No checksum")?,
+        };
+        Ok(())
+    }
+}
+
 static PRINT_METADATA_BLOCK_ID: u16 = 4u16;
 pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock> {
     let (after_block_header, header) = preceded(

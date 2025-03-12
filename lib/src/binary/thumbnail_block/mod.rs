@@ -1,4 +1,5 @@
 use core::fmt::Display;
+use std::fmt::Write;
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
@@ -39,6 +40,27 @@ impl Display for ThumbnailBlock {
         write!(f, "-------------------------- ThumbnailBlock ")?;
         match self.checksum {
             Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X} ---------")?,
+            None => writeln!(f, "No checksum")?,
+        };
+        Ok(())
+    }
+}
+
+impl ThumbnailBlock {
+    /// Write to formatter a markdown block.
+    pub fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
+    where
+        W: Write,
+    {
+        // TODO: In markdown. All titles (for a given level), must be unique
+        // otherwise, as per spec,  table of content block cannot be constructed.
+        writeln!(f, "## ThumbnailBlock")?;
+        writeln!(f, "### Params")?;
+        write!(f, "{}", self.param)?;
+        writeln!(f, "DataBlock omitted")?;
+        writeln!(f)?;
+        match self.checksum {
+            Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X}")?,
             None => writeln!(f, "No checksum")?,
         };
         Ok(())

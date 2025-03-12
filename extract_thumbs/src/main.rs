@@ -8,6 +8,16 @@
 //!
 //! benchy.png
 //!
+#![deny(clippy::all)]
+#![warn(clippy::cargo)]
+#![warn(clippy::complexity)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::nursery)]
+#![warn(clippy::perf)]
+#![warn(missing_debug_implementations)]
+#![warn(missing_docs)]
+#![allow(clippy::many_single_char_names)]
+
 extern crate clap;
 
 use std::{
@@ -37,7 +47,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // TODO: Why is the buffer size half the length?
     let mut buffer = Vec::with_capacity(len / 2);
 
-    log::info!("Loading filename {} ... ", args.input.clone().display());
+    log::info!("Loading filename {} ... ", args.input.display());
     let mut f = File::open(args.input)?;
     log::info!("done");
 
@@ -58,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 println!("writing {path_str:#?}");
-                std::fs::write(path_str, &thumbnail_block.data).unwrap()
+                std::fs::write(path_str, &thumbnail_block.data).unwrap();
             }
         }
         Err(e) => {

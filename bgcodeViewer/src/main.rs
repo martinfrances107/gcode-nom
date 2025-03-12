@@ -1,3 +1,13 @@
+//! Produces a report on a binary encoded gcode file.
+//!
+//! ( Files with extension *.bgcode ).
+//!
+//! For example run
+//!
+//! ```bash
+//! RUST_BACKTRACE=1 RUST_LOG=trace cargo run  < ../assets/both\ parts.bgcode
+//! ````
+//!
 #![deny(clippy::all)]
 #![warn(clippy::cargo)]
 #![warn(clippy::complexity)]
@@ -25,7 +35,11 @@ fn main() -> std::io::Result<()> {
         match bgcode_parser(&buffer) {
             Ok((_remain, bgcode)) => {
                 log::info!("parser succeeded: Valid input");
-                println!("{bgcode}");
+                let mut out = String::new();
+                bgcode
+                    .markdown(&mut out)
+                    .expect("failed to generate markdown");
+                println!("{}", &out);
             }
             Err(e) => {
                 log::error!("Unhandled error decoding file {e}");

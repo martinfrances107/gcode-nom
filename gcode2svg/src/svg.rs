@@ -217,7 +217,7 @@ impl FromIterator<String> for Svg {
                         }
                     }
                 }
-                Command::GDrop(_) | Command::MDrop(_) | Command::Nop => {}
+                Command::Comment(_) | Command::GDrop(_) | Command::MDrop(_) | Command::Nop => {}
             }
         }
 

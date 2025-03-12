@@ -44,6 +44,26 @@ impl Display for FileMetadataBlock {
     }
 }
 
+impl FileMetadataBlock {
+    /// Write to formatter a markdown block.
+    pub fn markdown<W>(&self, mut f: W) -> core::fmt::Result
+    where
+        W: std::fmt::Write,
+    {
+        writeln!(f, "## FileMetadataBlock")?;
+        writeln!(f, "### Params")?;
+        writeln!(f, "params 0x{:?}", self.param)?;
+        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f)?;
+
+        match self.checksum {
+            Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X}")?,
+            None => writeln!(f, "No checksum")?,
+        };
+        Ok(())
+    }
+}
+
 static FILE_METADATA_BLOCK_ID: u16 = 0u16;
 pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
     let (after_block_header, header) = preceded(
