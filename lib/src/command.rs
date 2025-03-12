@@ -201,7 +201,6 @@ pub fn m_drop(i: &str) -> IResult<&str, u16> {
 
 #[cfg(test)]
 mod test {
-    use nom::AsBytes;
 
     use super::*;
 
