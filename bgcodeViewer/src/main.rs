@@ -27,8 +27,7 @@ use std::io::{stdin, BufReader, Read};
 fn main() -> std::io::Result<()> {
     env_logger::init();
     let stdin = stdin();
-    let s_lock = stdin.lock();
-    let mut reader = BufReader::new(s_lock);
+    let mut reader = BufReader::new(stdin.lock());
 
     let mut buffer = vec![];
     if reader.read_to_end(&mut buffer)? != 0usize {
