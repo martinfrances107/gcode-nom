@@ -71,7 +71,7 @@ cd gcode2svg
 cargo run --release -- < ./assets/benchy.gcode > benchy.svg
 ```
 
-If a filename is passed in as a command line parameter then a obj file will be dumped to StdOut.
+If a filename is passed in as a command line parameter then a svg file will be dumped to StdOut.
 
 ```bash
 cd gocode2svg
