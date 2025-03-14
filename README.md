@@ -39,6 +39,13 @@ cd gcode2obj
 cargo run --release -- < ./assets/bency.gcode > bench.obj
 ```
 
+If a filename is passed in as a command line parameter then a obj file will be dumped to StdOut.
+
+```bash
+cd gocode2obj
+cargo run --release -- ../assets/X\ 6x6_0.15mm_PLA_MK3S_1h55m.gcode > X.obj
+```
+
 Which for example can be imported into blender for visualization.
 
 ![Benchy in Blender](https://github.com/martinfrances107/gcode-nom/blob/main/images/BlenderBenchy.png?raw=true)
@@ -62,6 +69,13 @@ Pass the gcode file into StdIn - the SVG file is sent to StdOut :-
 ```bash
 cd gcode2svg
 cargo run --release -- < ./assets/benchy.gcode > benchy.svg
+```
+
+If a filename is passed in as a command line parameter then a obj file will be dumped to StdOut.
+
+```bash
+cd gocode2svg
+cargo run --release -- ../assets/X\ 6x6_0.15mm_PLA_MK3S_1h55m.gcode > X.svg
 ```
 
 ### gcodeExtractThumbs

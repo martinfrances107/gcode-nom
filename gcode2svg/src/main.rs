@@ -13,17 +13,85 @@
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
 #![allow(clippy::many_single_char_names)]
+use clap::ArgAction;
+use clap::Parser;
+use gcode_nom::binary::bgcode_parser;
+use log::info;
+use std::fs::File;
 use std::io::stdin;
 use std::io::BufRead;
+use std::io::BufReader;
+use std::io::Read;
+use std::path::PathBuf;
 
 mod svg;
 
 use svg::Svg;
 
+// Occasionally want to apply Blender specific transform.
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Name of the file to convert.
+    file: Option<PathBuf>,
+}
+
 fn main() {
     env_logger::init();
-    let svg = stdin().lock().lines().map(|l| l.unwrap()).collect::<Svg>();
-    println!("{svg}");
+
+    let args = Args::parse();
+
+    if let Some(file) = args.file {
+        info!("File: {:?}", file);
+        if file.exists() {
+            if let Some(ext) = file.extension() {
+                if ext == "gcode" {
+                    info!("Reading gcode file");
+                    let file = File::open(file).expect("Failed to open file");
+                    let buffer = BufReader::new(file);
+                    let svg = buffer.lines().map(|l| l.unwrap()).collect::<Svg>();
+                    println!("{svg}");
+                } else if ext == "bgcode" {
+                    info!("Reading bgcode file");
+                    let file = File::open(file).expect("Failed to open file");
+                    let mut reader = BufReader::new(file);
+                    let mut buffer = vec![];
+                    if reader
+                        .read_to_end(&mut buffer)
+                        .expect("failed reading buffer")
+                        != 0usize
+                    {
+                        match bgcode_parser(&buffer) {
+                            // panic!("must handle bgcode files");
+                            Ok((_remain, bgcode)) => {
+                                log::info!("parser succeeded: Valid input");
+                                // let mut out = String::new();
+                                // bgcode
+                                //     .markdown(&mut out)
+                                //     .expect("failed to generate markdown");
+                                // println!("{}", &out);
+                            }
+                            Err(e) => {
+                                log::error!("Unhandled error decoding file {e}");
+                                panic!("Unhandled error decoding file {e}");
+                            }
+                        }
+                    }
+                    return;
+                } else {
+                    eprintln!("File extension is not supported");
+                }
+            } else {
+                eprintln!("File must have an extension");
+            }
+        } else {
+            eprintln!("File does not exist");
+        }
+    } else {
+        info!("Reading from stdin");
+        let svg = stdin().lock().lines().map(|l| l.unwrap()).collect::<Svg>();
+        println!("{svg}");
+    }
 }
 
 #[cfg(test)]
