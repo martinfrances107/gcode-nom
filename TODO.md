@@ -6,9 +6,6 @@
 
 [] - Get Deflate working
 
-[] - Get MeatPacking algorithm
-    <https://github.com/scottmudge/OctoPrint-MeatPack>
-
 [] - Benchmarks use [samply](https://crates.io/crates/samply). Maybe criterion.
 
 [] - Add optional switch -o for output file -i for input

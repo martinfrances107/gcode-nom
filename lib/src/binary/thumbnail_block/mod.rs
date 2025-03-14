@@ -18,6 +18,8 @@ mod param;
 use param::param_parser;
 use param::Param;
 
+use crate::binary::Markdown;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ThumbnailBlock {
     header: BlockHeader,
@@ -46,16 +48,31 @@ impl Display for ThumbnailBlock {
     }
 }
 
-impl ThumbnailBlock {
+impl Markdown for Vec<ThumbnailBlock> {
     /// Write to formatter a markdown block.
-    pub fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
+    fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
     where
         W: Write,
     {
-        // TODO: In markdown. All titles (for a given level), must be unique
-        // otherwise, as per spec,  table of content block cannot be constructed.
-        writeln!(f, "## ThumbnailBlock")?;
+        writeln!(f, "## ThumbnailBlocks")?;
         writeln!(f)?;
+        for (i, thumbnail) in self.iter().enumerate() {
+            // All titles (for a given level), must be unique
+            // otherwise, as per spec,  table of content block cannot be constructed.
+            writeln!(f, "### ThumbnailBlock {i}")?;
+            thumbnail.headless_markdown(f)?;
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+}
+
+impl ThumbnailBlock {
+    /// Write to formatter a markdown block.
+    pub(super) fn headless_markdown<W>(&self, f: &mut W) -> core::fmt::Result
+    where
+        W: Write,
+    {
         writeln!(f, "### Params")?;
         write!(f, "{}", self.param)?;
         writeln!(f, "DataBlock omitted")?;

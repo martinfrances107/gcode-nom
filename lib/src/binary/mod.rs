@@ -46,6 +46,17 @@ use slicer_block::{slicer_parser_with_checksum, SlicerBlock};
 use thumbnail_block::thumbnail_parser_with_checksum;
 use thumbnail_block::ThumbnailBlock;
 
+/// A trait for markdown formatting.
+pub trait Markdown {
+    /// Write to formatter a markdown block.
+    ///
+    /// # Errors
+    ///   When a call to write fails.
+    fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
+    where
+        W: core::fmt::Write;
+}
+
 /// Structure of the binary file.
 ///
 /// extension .bgcode
@@ -101,12 +112,12 @@ impl Display for Bgcode {
     }
 }
 
-impl Bgcode {
+impl Markdown for Bgcode {
     /// Write to formatter a markdown block.
     ///
     /// # Errors
     ///   When match fails.
-    pub fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
+    fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
     where
         W: std::fmt::Write,
     {
@@ -120,26 +131,14 @@ impl Bgcode {
 
         self.printer_metadata.markdown(&mut *f)?;
 
-        if self.thumbnails.is_empty() {
-            writeln!(f, "No optional thumbnail block")?;
-        } else {
-            for thumb in &self.thumbnails {
-                thumb.markdown(&mut *f)?;
-            }
-        }
+        self.thumbnails.markdown(&mut *f)?;
 
         self.print_metadata.markdown(&mut *f)?;
 
-        self.slicer.markdown(f)?;
+        self.slicer.markdown(&mut *f)?;
 
-        if self.gcode.is_empty() {
-            writeln!(f, "No optional thumbnail block")?;
-        } else {
-            for g in &self.gcode {
-                // writeln!(f, "{g}")?;
-                g.markdown(&mut *f)?;
-            }
-        }
+        self.gcode.markdown(f)?;
+
         Ok(())
     }
 }

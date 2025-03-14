@@ -15,6 +15,8 @@ use checksum_type::{checksum_type_parser, ChecksumType};
 use preamble::preamble;
 use version::{version_parser, Version};
 
+use super::Markdown;
+
 //  Current value for Version is 1
 //
 // Possible values for Checksum type are:
@@ -38,9 +40,9 @@ impl Display for FileHeader {
     }
 }
 
-impl FileHeader {
+impl Markdown for FileHeader {
     /// Write to formatter a markdown block.
-    pub fn markdown<W>(&self, mut f: W) -> core::fmt::Result
+    fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
     where
         W: std::fmt::Write,
     {

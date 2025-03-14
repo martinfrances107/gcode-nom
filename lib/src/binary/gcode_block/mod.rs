@@ -4,6 +4,7 @@ use std::sync::LazyLock;
 use super::{
     block_header::{block_header_parser, BlockHeader},
     compression_type::CompressionType,
+    Markdown,
 };
 
 use heatshrink::{decode, Config};
@@ -53,14 +54,30 @@ impl Display for GCodeBlock {
     }
 }
 
+impl Markdown for Vec<GCodeBlock> {
+    fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
+    where
+        W: core::fmt::Write,
+    {
+        writeln!(f, "## GCodeBlocks")?;
+        writeln!(f)?;
+        for (i, gcode) in self.iter().enumerate() {
+            // All titles (for a given level), must be unique
+            writeln!(f, "### GCodeBlock {i}")?;
+            writeln!(f)?;
+            gcode.headless_markdown(&mut *f)?;
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+}
+
 impl GCodeBlock {
     /// Write to formatter a markdown block.
-    pub fn markdown<W>(&self, mut f: W) -> core::fmt::Result
+    pub(super) fn headless_markdown<W>(&self, mut f: W) -> core::fmt::Result
     where
         W: std::fmt::Write,
     {
-        writeln!(f, "## GCodeBlock ")?;
-        writeln!(f)?;
         writeln!(f, "### Params")?;
         writeln!(f, "encoding {:#?}", self.encoding)?;
         writeln!(f)?;
