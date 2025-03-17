@@ -76,11 +76,17 @@ fn main() {
                         match bgcode_parser(&buffer) {
                             Ok((_remain, bgcode)) => {
                                 log::info!("parser succeeded: Valid input");
-                                let mut out = String::new();
-                                bgcode
-                                    .markdown(&mut out)
-                                    .expect("failed to generate markdown");
-                                println!("{}", &out);
+                                let combined = &bgcode
+                                    .gcode
+                                    .iter()
+                                    .map(|gcode| gcode.data.clone())
+                                    .collect::<String>();
+
+                                let obj = combined
+                                    .lines()
+                                    .map(std::string::ToString::to_string)
+                                    .collect::<Obj>();
+                                println!("{obj}");
                             }
                             Err(e) => {
                                 log::error!("Unhandled error decoding file {e}");
