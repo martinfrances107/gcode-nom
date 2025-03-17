@@ -1,6 +1,6 @@
 /// This is a bodge
 ///
-/// It is a copy of double() from nom.
+/// It is a copy of `double()` from nom.
 ///
 /// The only difference is that it does not parse the optional
 /// exponent part of the float.
