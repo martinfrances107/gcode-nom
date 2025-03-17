@@ -1,14 +1,10 @@
 # TASKS
 
-[]  publish binary.
-
 [] - Missing compression algorithms
 
 [] - Get Deflate working
 
 [] - Benchmarks use [samply](https://crates.io/crates/samply). Maybe criterion.
-
-[] - Add optional switch -o for output file -i for input
 
 [] - Identify any M-code that should not be dropped.
 

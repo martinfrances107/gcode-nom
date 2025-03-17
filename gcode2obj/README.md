@@ -11,7 +11,9 @@ Rust 2021 Edition.
 
 A G-code visualization tool written in [rust](https://www.rust-lang.org/)
 
-A nom based parser, outputs a "Wavefront Obj" file which can be imported into blender and a Bevy app for visualization
+A nom based parser, outputs a "Wavefront Obj" file which can be imported into blender for visualization.
+
+Both .gcode files and binary .bgcode files are accepeted
 
 ## How to use
 
@@ -21,7 +23,14 @@ Pass the gcode file in as 'StdIn' and the program will send the obj file to 'Std
 cargo run --release -- < ../assets/bency.gcode > benchy.obj
 ```
 
-Which for example can be imported into blender for visualization.
+Binary ".bgcode" files must be passed in by filename :-
+
+```bash
+## Binary bgcoode files must be passed in as an argument beacuse they are not utf-8 encoded
+cargo run --release --  ../assets/both\ parts.bgcode > both.obj
+```
+
+Here the obj files are imported in to blender and processed.
 
 ![Benchy in Blender](<https://github.com/martinfrances107/gcode-nom/blob/main/images/BlenderBenchy.png?raw=true>)
 ![Lego bricks](https://github.com/martinfrances107/gcode-nom/blob/main/images/lego.png?raw=true)
@@ -35,8 +44,6 @@ Within blender :-
 see [todo](TODO.md)
 
 ## Future work
-
-* As the gcode-nom library developes we could handle binary-gcode files.
 
 * I have only tested against gcode files that use absolute positioning.
 I must test will relative positioning.
