@@ -4,7 +4,11 @@ use core::hash::Hasher;
 use nom::bytes::complete::tag;
 use nom::combinator::map;
 use nom::multi::many0;
-use nom::number::complete::double;
+// BUGFIX: using double_no_exponent from double.rs
+// as parsing a float with an exponent conflicts
+// with the E parameter in GCode.
+// use nom::number::complete::double;
+use crate::double::double_no_exponent as double;
 use nom::sequence::preceded;
 use nom::IResult;
 use nom::Parser;

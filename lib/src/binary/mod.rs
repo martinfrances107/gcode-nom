@@ -26,7 +26,6 @@ mod print_metadata_block;
 mod printer_metadata_block;
 mod slicer_block;
 mod thumbnail_block;
-
 use core::fmt::Display;
 
 use file_handler::{file_header_parser, FileHeader};
