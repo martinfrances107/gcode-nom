@@ -22,6 +22,8 @@ use param::param_parser;
 use param::Encoding;
 
 mod param;
+/// Converts a gcode block into a SVG file.
+pub mod svg;
 
 static CONFIG_W12_L4: LazyLock<Config> =
     LazyLock::new(|| Config::new(12, 4).expect("Failed to configure HeatshrinkW11L4 decoder"));

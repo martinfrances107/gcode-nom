@@ -16,12 +16,15 @@
 //!
 //! <https://github.com/rust-av/flavors/blob/master/src/parser.rs>
 //!
+
+/// Public: Contains the SVG converter.
+pub mod gcode_block;
+
 mod block_header;
 mod compression_type;
 mod default_params;
 mod file_handler;
 mod file_metadata_block;
-mod gcode_block;
 mod print_metadata_block;
 mod printer_metadata_block;
 mod slicer_block;

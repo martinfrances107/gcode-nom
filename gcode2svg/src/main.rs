@@ -13,9 +13,9 @@
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
 #![allow(clippy::many_single_char_names)]
-use clap::ArgAction;
 use clap::Parser;
 use gcode_nom::binary::bgcode_parser;
+use gcode_nom::binary::gcode_block::svg::Svg;
 use log::info;
 use std::fs::File;
 use std::io::stdin;
@@ -23,10 +23,6 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Read;
 use std::path::PathBuf;
-
-mod svg;
-
-use svg::Svg;
 
 // Occasionally want to apply Blender specific transform.
 #[derive(Parser, Debug)]
