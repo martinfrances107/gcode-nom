@@ -28,11 +28,15 @@ pub mod svg;
 static CONFIG_W12_L4: LazyLock<Config> =
     LazyLock::new(|| Config::new(12, 4).expect("Failed to configure HeatshrinkW11L4 decoder"));
 
+/// A wrapper for a series of gcode commands.
+///
+/// also wraps header, encoding and checksum
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct GCodeBlock {
+pub struct GCodeBlock {
     header: BlockHeader,
     encoding: Encoding,
-    data: String,
+    /// A series of gcode commands
+    pub data: String,
     checksum: Option<u32>,
 }
 

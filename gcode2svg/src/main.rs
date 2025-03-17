@@ -58,14 +58,18 @@ fn main() {
                         != 0usize
                     {
                         match bgcode_parser(&buffer) {
-                            // panic!("must handle bgcode files");
                             Ok((_remain, bgcode)) => {
                                 log::info!("parser succeeded: Valid input");
-                                // let mut out = String::new();
-                                // bgcode
-                                //     .markdown(&mut out)
-                                //     .expect("failed to generate markdown");
-                                // println!("{}", &out);
+                                let combined = &bgcode
+                                    .gcode
+                                    .iter()
+                                    .map(|gcode| gcode.data.clone())
+                                    .collect::<String>();
+                                let svg = combined
+                                    .lines()
+                                    .map(std::string::ToString::to_string)
+                                    .collect::<Svg>();
+                                println!("{svg}");
                             }
                             Err(e) => {
                                 log::error!("Unhandled error decoding file {e}");
