@@ -11,6 +11,8 @@ Rust 2021 Edition.
 
 A library containing a full set of [nom](https://crates.io/crates/nom) parsers for decoding gcode files.
 
+Both .gcode files and binary .bgcode files are recognised.
+
 Based on this library the workspace contains a series of visualization tools
 
 * gcode2obj - Generates "WaveFront Obj" files.
@@ -19,10 +21,6 @@ Based on this library the workspace contains a series of visualization tools
 * bgcodeViewer - Generates a report by turning on all the logging and them attempts to parse the file.
 
 I intend the parsers to be as strictly compliant as possible. This is under-going rapid development. Please create issues here, or send me gcode files which expose unimplemented sections.
-
-Sections gcode and bgcode files are compressed  using a variety of algorithms. The HeatShrink and MeatPacking algorithms are not yet implemented.
-
-For "binary gcode files" ['.bgcode' extension] the parser are streaming parsers.
 
 See [nom](https://crates.io/crates/nom) - "A byte-oriented, zero-copy, parser combinator library"
 
@@ -80,7 +78,11 @@ cargo run --release -- ../assets/X\ 6x6_0.15mm_PLA_MK3S_1h55m.gcode > X.svg
 
 ### gcodeExtractThumbs
 
- Extracts
+ Iterates over all the embedded thumbnail block and save the images to disk
+
+ ```bash
+ cargo run --release  --  ../assets/both\ parts.bgcode
+ ```
 
 ### bgcodeViewer
 
