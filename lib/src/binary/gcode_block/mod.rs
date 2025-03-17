@@ -29,7 +29,7 @@ static CONFIG_W12_L4: LazyLock<Config> =
     LazyLock::new(|| Config::new(12, 4).expect("Failed to configure HeatshrinkW11L4 decoder"));
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct GCodeBlock {
+pub(crate) struct GCodeBlock {
     header: BlockHeader,
     encoding: Encoding,
     data: String,
@@ -99,7 +99,7 @@ impl GCodeBlock {
 }
 
 static CODE_BLOCK_ID: u16 = 1u16;
-pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
+pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
