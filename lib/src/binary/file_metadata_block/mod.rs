@@ -1,6 +1,8 @@
+use core::f32::consts::E;
 use core::fmt::Display;
 
 use inflate::inflate_bytes_zlib;
+use nom::Err::{self, Error};
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -106,32 +108,66 @@ pub fn file_metadata_parser_with_checksum(
     // Decompress datablock
     let (after_data, data) = match compression_type {
         CompressionType::None => {
-            let (remain, data_raw) = take(uncompressed_size)(after_param)?;
-            let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
+            let (remain, data_raw) = take(uncompressed_size)(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "file_metadata: Failed to extract raw(uncompressed) data block: {e:#?}"
+                    ))
+                })
+            })?;
+            let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
+                Error(BlockError::Decompression(format!(
+                    "file_metadata: Failed to convert raw data to string: {e:#?}"
+                )))
+            })?;
             (remain, data)
         }
         CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "file_metadata: Compression::Default - Failed to extract compressed data block: {e:#?}"
+                    ))
+                })
+            })?;
 
             match inflate_bytes_zlib(encoded) {
                 Ok(decoded) => {
-                    let data = String::from_utf8(decoded).expect("raw data error");
+                    let data = String::from_utf8(decoded).map_err(|e| {
+                        Error(BlockError::Decompression(format!(
+                            "file_metadata: Failed to convert decompressed data to string: {e:#?}"
+                        )))
+                    })?;
                     (remain, data)
                 }
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
-                    panic!()
+                    return Err(Error(BlockError::Decompression(format!(
+                        "file_metadata: Failed to decode decompression: {msg}"
+                    ))))?;
                 }
             }
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            let (_remain, _data_compressed) = take(uncompressed_size)(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "file_metadata: Compression::HeatShrink11 - Failed to extract compressed data block: {e:#?}"
+                    ))
+                })
+            })?;
             // Must decompress here
             log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(uncompressed_size)(after_param)?;
+            let (_remain, _data_compressed) = take(uncompressed_size)(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "file_metadata: Compression::HeatShrink12 - Failed to extract compressed data block: {e:#?}"
+                    ))
+                })
+            })?;
             // Must decompress here
             log::info!("TODO: Must implement decompression");
             todo!()
