@@ -4,6 +4,9 @@ use crate::command::Command;
 use crate::params::PosVal;
 use crate::PositionMode;
 
+/// SVG representation of a G-Code file.
+///
+/// wraps the min and max x, y values of the SVG.
 #[derive(Debug, Clone)]
 pub struct Svg {
     min_x: f64,
@@ -54,7 +57,6 @@ impl Svg {
 
 impl Display for Svg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // viewBox="0 0 10 10"
         let width = self.max_x - self.min_x;
         let height = self.max_y - self.min_y;
         let vb = format!("{} {} {} {}", self.min_x, self.min_y, width, height);
@@ -75,6 +77,8 @@ style="fill:none;stroke:green;stroke-width:0.05" />
     }
 }
 
+/// Retruns a SVG given a collection of G-Code commands.
+///
 /// TODO: Want to iterate over something more flexible
 /// ie. Drop String for something more generic `AsRef<&str>`?
 impl FromIterator<String> for Svg {
