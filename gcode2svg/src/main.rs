@@ -60,12 +60,11 @@ fn main() {
                         match bgcode_parser(&buffer) {
                             Ok((_remain, bgcode)) => {
                                 log::info!("parser succeeded: Valid input");
-                                let combined = &bgcode
+                                let svg = &bgcode
                                     .gcode
                                     .iter()
                                     .map(|gcode| gcode.data.clone())
-                                    .collect::<String>();
-                                let svg = combined
+                                    .collect::<String>()
                                     .lines()
                                     .map(std::string::ToString::to_string)
                                     .collect::<Svg>();

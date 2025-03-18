@@ -76,13 +76,11 @@ fn main() {
                         match bgcode_parser(&buffer) {
                             Ok((_remain, bgcode)) => {
                                 log::info!("parser succeeded: Valid input");
-                                let combined = &bgcode
+                                let obj = &bgcode
                                     .gcode
                                     .iter()
                                     .map(|gcode| gcode.data.clone())
-                                    .collect::<String>();
-
-                                let obj = combined
+                                    .collect::<String>()
                                     .lines()
                                     .map(std::string::ToString::to_string)
                                     .collect::<Obj>();
