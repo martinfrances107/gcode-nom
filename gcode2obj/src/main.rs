@@ -58,14 +58,14 @@ fn main() -> std::io::Result<()> {
             if let Some(ext) = file.extension() {
                 if ext == "gcode" {
                     info!("Reading gcode file");
-                    let file = File::open(file).expect("Failed to open file");
+                    let file = File::open(file)?;
                     let buffer = BufReader::new(file);
                     let mut obj = buffer.lines().map(|l| l.unwrap()).collect::<Obj>();
                     obj.apply_blender_transform = args.apply_blender_transform;
                     println!("{obj}");
                 } else if ext == "bgcode" {
                     info!("Reading bgcode file");
-                    let file = File::open(file).expect("Failed to open file");
+                    let file = File::open(file)?;
                     let mut reader = BufReader::new(file);
                     let mut buffer = vec![];
                     if reader.read_to_end(&mut buffer)? != 0usize {
