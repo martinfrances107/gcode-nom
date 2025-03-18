@@ -32,7 +32,7 @@ struct Args {
     file: Option<PathBuf>,
 }
 
-fn main() {
+fn main() -> std::io::Result<()> {
     env_logger::init();
 
     let args = Args::parse();
@@ -52,11 +52,7 @@ fn main() {
                     let file = File::open(file).expect("Failed to open file");
                     let mut reader = BufReader::new(file);
                     let mut buffer = vec![];
-                    if reader
-                        .read_to_end(&mut buffer)
-                        .expect("failed reading buffer")
-                        != 0usize
-                    {
+                    if reader.read_to_end(&mut buffer)? != 0usize {
                         match bgcode_parser(&buffer) {
                             Ok((_remain, bgcode)) => {
                                 log::info!("parser succeeded: Valid input");
@@ -76,7 +72,6 @@ fn main() {
                             }
                         }
                     }
-                    return;
                 } else {
                     eprintln!("File extension is not supported");
                 }
@@ -91,6 +86,8 @@ fn main() {
         let svg = stdin().lock().lines().map(|l| l.unwrap()).collect::<Svg>();
         println!("{svg}");
     }
+
+    Ok(())
 }
 
 #[cfg(test)]

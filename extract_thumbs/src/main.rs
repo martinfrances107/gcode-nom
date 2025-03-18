@@ -50,9 +50,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut f = File::open(args.input)?;
     log::info!("done");
 
-    let state = f.read_to_end(&mut buffer);
-    match state {
-        Ok(_) => log::info!("state {state:?}"),
+    match f.read_to_end(&mut buffer) {
+        Ok(n_bytes) => log::info!("read {n_bytes} bytes from file"),
         Err(e) => log::error!("error {e:?}"),
     }
 
