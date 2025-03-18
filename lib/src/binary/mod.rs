@@ -29,12 +29,14 @@ mod print_metadata_block;
 mod printer_metadata_block;
 mod slicer_block;
 mod thumbnail_block;
+
 use core::fmt::Display;
 
 use file_handler::{file_header_parser, FileHeader};
 use file_metadata_block::{file_metadata_parser_with_checksum, FileMetadataBlock};
 use nom::{
     combinator::{eof, map, opt},
+    error::{ErrorKind, ParseError},
     multi::{many0, many_till},
     IResult, Parser,
 };
@@ -57,6 +59,78 @@ pub trait Markdown {
     fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
     where
         W: core::fmt::Write;
+}
+
+/// Error while parsing text into a `Bgcode` structure.
+#[derive(Debug)]
+pub enum BlockError {
+    /// Error parsing the file header.
+    FileHeader(String),
+    /// Error parsing the checksum.
+    Checksum(String),
+    /// A failure to decompress the data block
+    Decompression(String),
+    /// Error parsing the sub sections header.
+    Header(String),
+    /// Error parsing the parameter section.
+    Param(String),
+    /// Not sure this is used
+    Kind(String),
+}
+
+impl<I> ParseError<I> for BlockError
+where
+    I: std::fmt::Debug,
+{
+    fn from_error_kind(input: I, kind: ErrorKind) -> Self {
+        let message = format!("{kind:?}:\t{input:?}\n");
+        Self::Kind(message)
+    }
+
+    // if combining multiple errors, we show them one after the other
+    fn append(input: I, kind: ErrorKind, other: Self) -> Self {
+        match other {
+            Self::FileHeader(message) => {
+                let message = format!("{message}{kind:?}:\t{input:?}\n");
+                Self::FileHeader(message)
+            }
+            Self::Checksum(message) => {
+                let message = format!("{message}{kind:?}:\t{input:?}\n");
+                Self::Checksum(message)
+            }
+            Self::Decompression(message) => {
+                let message = format!("{message}{kind:?}:\t{input:?}\n");
+                Self::Decompression(message)
+            }
+
+            Self::Header(message) => {
+                let message = format!("{message}{kind:?}:\t{input:?}\n");
+                Self::Header(message)
+            }
+            Self::Param(message) => {
+                let message = format!("{message}{kind:?}:\t{input:?}\n");
+                Self::Param(message)
+            }
+            Self::Kind(message) => {
+                let message = format!("{message}{kind:?}:\t{input:?}\n");
+                Self::Kind(message)
+            }
+        }
+    }
+
+    fn from_char(input: I, c: char) -> Self {
+        let message = format!("'{c}':\t{input:?}\n",);
+        println!("{message}");
+        // big match statement append message to existing message
+        todo!()
+    }
+
+    fn or(self, _other: Self) -> Self {
+        // let message = format!("{}\tOR\n{}\n", self.message, other.message);
+        // println!("{message}");
+        // Self::Other(message)
+        todo!()
+    }
 }
 
 /// Structure of the binary file.
@@ -149,7 +223,7 @@ impl Markdown for Bgcode {
 ///
 /// # Errors
 ///   When the bytes stream is not a valid file.
-pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode> {
+pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode, BlockError> {
     map(
         (
             file_header_parser,

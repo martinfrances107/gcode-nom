@@ -12,7 +12,10 @@ use nom::{
 use crate::binary::default_params::param_parser;
 use crate::binary::default_params::Param;
 
-use super::{block_header::block_header_parser, block_header::BlockHeader, CompressionType};
+use super::{
+    block_header::{block_header_parser, BlockHeader},
+    BlockError, CompressionType,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileMetadataBlock {
@@ -70,7 +73,9 @@ impl FileMetadataBlock {
 }
 
 static FILE_METADATA_BLOCK_ID: u16 = 0u16;
-pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMetadataBlock> {
+pub fn file_metadata_parser_with_checksum(
+    input: &[u8],
+) -> IResult<&[u8], FileMetadataBlock, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -80,7 +85,9 @@ pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMe
             *block_type == FILE_METADATA_BLOCK_ID
         }),
         block_header_parser,
-    ).parse(input)?;
+    ).parse(input).map_err(|e| {
+        e.map(|e| BlockError::FileHeader(format!("file_metadata: Failed preamble version and checksum: {e:#?}")))
+    })?;
     log::info!("Found file metadata block id.");
     let BlockHeader {
         compression_type,
@@ -88,7 +95,13 @@ pub fn file_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], FileMe
         compressed_size,
     } = header.clone();
 
-    let (after_param, param) = param_parser(after_block_header)?;
+    let (after_param, param) = param_parser(after_block_header).map_err(|e| {
+        e.map(|e| {
+            BlockError::Param(format!(
+                "file_metadata: Failed to decode parameter block: {e:#?}"
+            ))
+        })
+    })?;
 
     // Decompress datablock
     let (after_data, data) = match compression_type {

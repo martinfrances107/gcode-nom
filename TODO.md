@@ -8,6 +8,11 @@
 
 [] - Identify any M-code that should not be dropped.
 
+[] - cleanup .expect() .expect("raw data error") is used 11
+    times. Must do more diverse messages
+    Or
+    Must reject the data block as not parsing!!
+
 [] -Tests
      -- unit test for all Blocks.
      -- no unit testing of Block types.

@@ -1,6 +1,8 @@
 use core::fmt::Display;
 use std::sync::LazyLock;
 
+use crate::binary::BlockError;
+
 use super::{
     block_header::{block_header_parser, BlockHeader},
     compression_type::CompressionType,
@@ -12,6 +14,7 @@ use inflate::inflate_bytes_zlib;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
+    error::Error,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
     IResult, Parser,
@@ -31,7 +34,7 @@ static CONFIG_W12_L4: LazyLock<Config> =
 /// A wrapper for a series of gcode commands.
 ///
 /// also wraps header, encoding and checksum
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct GCodeBlock {
     header: BlockHeader,
     encoding: Encoding,
@@ -103,7 +106,7 @@ impl GCodeBlock {
 }
 
 static CODE_BLOCK_ID: u16 = 1u16;
-pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock> {
+pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -114,7 +117,9 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         }),
         block_header_parser,
     )
-    .parse(input)?;
+    .parse(input)
+    // TODO must convert to sub type BlockHeaderError
+    .expect("Failed to parse block header");
     log::info!("Found G-code block id.");
     let BlockHeader {
         compression_type,
@@ -122,17 +127,54 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         uncompressed_size,
     } = header.clone();
 
-    let (after_param, encoding) = param_parser(after_block_header)?;
+    let (after_param, encoding) =
+    // FIXME: must conver to sub type.
+        param_parser(after_block_header).expect("Failed to parse param block");
     log::info!("encoding {encoding}");
-    // Decompress data block
+    // Decompress data block.
     let (after_data, data) = match compression_type {
         CompressionType::None => {
-            let (remain, data_raw) = take(uncompressed_size)(after_param)?;
-            let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
-            (remain, data)
+            // Take the raw data block.
+            let (remain, data_raw) =
+                match take::<_, _, Error<&[u8]>>(uncompressed_size)(after_param) {
+                    Ok((remain, data_raw)) => (remain, data_raw),
+                    Err(e) => {
+                        log::error!("Failed to parse data block {e}");
+                        let gbe = BlockError::Decompression(String::from(
+                            "Failed take the raw(compressed) data block",
+                        ));
+
+                        return Err(nom::Err::Error(gbe));
+                    }
+                };
+
+            match String::from_utf8(data_raw.to_vec()) {
+                Ok(data) => (remain, data),
+                Err(e) => {
+                    log::error!("Failed to decode decompression failed {e}");
+                    let gbe = BlockError::Decompression(String::from(
+                        "Compression::None - payload was not a valid utf8 string",
+                    ));
+
+                    return Err(nom::Err::Error(gbe));
+                }
+            }
         }
         CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+            // Take the raw data block.
+            let (remain, encoded) =
+                match take::<_, _, BlockError>(compressed_size.unwrap())(after_param) {
+                    Ok((remain, encoded)) => (remain, encoded),
+                    Err(e) => {
+                        log::error!(
+                        "CompressionType::Deflate Failed take the raw(compressed) data block {e}"
+                    );
+                        let gbe = BlockError::Decompression(String::from(
+                            "CompressionType::Deflate Failed take the raw(compressed) data block",
+                        ));
+                        return Err(nom::Err::Error(gbe));
+                    }
+                };
 
             match inflate_bytes_zlib(encoded) {
                 Ok(decoded) => {
@@ -146,7 +188,9 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
             }
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            let (_remain, _data_compressed) =
+                take::<_, _, BlockError>(compressed_size.unwrap())(after_param)
+                    .expect("heatshrink11");
             // Must decompress here
 
             // use CONFIG_W11_L4 here
@@ -154,7 +198,8 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+            let (remain, encoded) = take::<_, _, BlockError>(compressed_size.unwrap())(after_param)
+                .expect("heatshrink");
 
             // TODO Figure out why size is is off by 1 -  crashes with buffer was not large enough.
             let mut scratch = vec![0u8; 1 + uncompressed_size as usize];
@@ -201,7 +246,15 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         }
     };
 
-    let (after_checksum, checksum) = le_u32(after_data)?;
+    // let (after_checksum, checksum) = le_u32::<_, GcodeBlockError>(after_data).expect("checksum");
+    let (after_checksum, checksum) = match le_u32::<_, BlockError>(after_data) {
+        Ok((after_checksum, checksum)) => (after_checksum, checksum),
+        Err(e) => {
+            log::error!("Failed to parse checksum {e}");
+            let gbe = BlockError::Checksum(String::from("Failed to extract checksum"));
+            return Err(nom::Err::Error(gbe));
+        }
+    };
 
     let param_size = 2;
     let payload_size = match compression_type {
@@ -217,7 +270,10 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         log::debug!("checksum match");
     } else {
         log::error!("fail checksum");
-        panic!("gcode metadata block failed checksum");
+        let gbe = BlockError::Checksum(format!(
+            "FAILURE: checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ",
+        ));
+        return Err(nom::Err::Error(gbe));
     }
 
     Ok((

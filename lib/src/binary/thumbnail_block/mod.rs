@@ -4,6 +4,7 @@ use std::fmt::Write;
 use super::{
     block_header::{block_header_parser, BlockHeader},
     compression_type::CompressionType,
+    BlockError,
 };
 use inflate::inflate_bytes_zlib;
 use nom::{
@@ -86,7 +87,7 @@ impl ThumbnailBlock {
 }
 
 static THUMBNAIL_BLOCK_ID: u16 = 5u16;
-pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailBlock> {
+pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailBlock, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -97,7 +98,14 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         }),
         block_header_parser,
     )
-    .parse(input)?;
+    .parse(input)
+    .map_err(|e| {
+        e.map(|e| {
+            BlockError::FileHeader(format!(
+                "thumbnail: Failed preamble version and checksum: {e:#?}"
+            ))
+        })
+    })?;
 
     log::info!("Found thumbnail block id");
     let BlockHeader {
@@ -106,7 +114,13 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         compressed_size,
     } = header.clone();
 
-    let (after_param, param) = param_parser(after_block_header)?;
+    let (after_param, param) = param_parser(after_block_header).map_err(|e| {
+        e.map(|e| {
+            BlockError::Param(format!(
+                "thumbnail: Failed to decode parameter block: {e:#?}"
+            ))
+        })
+    })?;
 
     // Decompress data block
     let (after_data, data) = match compression_type {

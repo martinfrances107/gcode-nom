@@ -9,9 +9,9 @@ use nom::{
     IResult, Parser,
 };
 
-use super::default_params::param_parser;
 use super::default_params::Param;
 use super::{block_header::block_header_parser, block_header::BlockHeader, CompressionType};
+use super::{default_params::param_parser, BlockError};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrintMetadataBlock {
@@ -69,7 +69,9 @@ impl PrintMetadataBlock {
 }
 
 static PRINT_METADATA_BLOCK_ID: u16 = 4u16;
-pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock> {
+pub fn print_metadata_parser_with_checksum(
+    input: &[u8],
+) -> IResult<&[u8], PrintMetadataBlock, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -79,7 +81,10 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
             *block_type == PRINT_METADATA_BLOCK_ID
         }),
         block_header_parser,
-    ).parse(input)?;
+    ).parse(input)
+    .map_err(|e| {
+        e.map(|e| BlockError::FileHeader(format!("Failed preamble version and checksum: {e:#?}")))
+    })?;
 
     log::info!("Found print metadata block id");
     let BlockHeader {
@@ -88,7 +93,13 @@ pub fn print_metadata_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Print
         compressed_size,
     } = header.clone();
 
-    let (after_param, param) = param_parser(after_block_header)?;
+    let (after_param, param) = param_parser(after_block_header).map_err(|e| {
+        e.map(|e| {
+            BlockError::Param(format!(
+                "printer_metadata: Failed to decode parameter block: {e:#?}"
+            ))
+        })
+    })?;
 
     // Decompress data block
     let (after_data, data) = match compression_type {

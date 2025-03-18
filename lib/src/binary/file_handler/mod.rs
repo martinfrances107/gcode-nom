@@ -15,7 +15,7 @@ use checksum_type::{checksum_type_parser, ChecksumType};
 use preamble::preamble;
 use version::{version_parser, Version};
 
-use super::Markdown;
+use super::{BlockError, Markdown};
 
 //  Current value for Version is 1
 //
@@ -55,8 +55,8 @@ impl Markdown for FileHeader {
     }
 }
 
-pub fn file_header_parser(input: &[u8]) -> IResult<&[u8], FileHeader> {
-    preceded(
+pub fn file_header_parser(input: &[u8]) -> IResult<&[u8], FileHeader, BlockError> {
+    let out = preceded(
         preamble,
         map(
             pair(version_parser, checksum_type_parser),
@@ -67,4 +67,8 @@ pub fn file_header_parser(input: &[u8]) -> IResult<&[u8], FileHeader> {
         ),
     )
     .parse(input)
+    .map_err(|e| {
+        e.map(|e| BlockError::FileHeader(format!("Failed preamble version and checksum: {e:#?}")))
+    })?;
+    Ok(out)
 }
