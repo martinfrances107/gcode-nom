@@ -1,8 +1,7 @@
-use core::f32::consts::E;
 use core::fmt::Display;
 
 use inflate::inflate_bytes_zlib;
-use nom::Err::{self, Error};
+use nom::Err::Error;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -174,7 +173,11 @@ pub fn file_metadata_parser_with_checksum(
         }
     };
 
-    let (after_checksum, checksum) = le_u32(after_data)?;
+    let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
+        e.map(|e: nom::error::Error<_>| {
+            BlockError::Checksum(format!("file_metadata: Failed to decode checksum: {e:#?}"))
+        })
+    })?;
 
     let param_size = 2;
     let block_size = header.size_in_bytes() + param_size + header.payload_size_in_bytes();
@@ -188,7 +191,9 @@ pub fn file_metadata_parser_with_checksum(
         log::debug!("checksum match");
     } else {
         log::error!("failed checksum");
-        panic!("file metadata block failed checksum");
+        return Err(Error(BlockError::Checksum(format!(
+            "file_metadata: Checksum mismatch: expected 0x{checksum:04x} got 0x{computed_checksum:04x}"
+        ))));
     }
 
     Ok((
