@@ -68,14 +68,17 @@ impl Markdown for Vec<GCodeBlock> {
     where
         W: core::fmt::Write,
     {
-        writeln!(f, "## GCodeBlocks")?;
+        if self.is_empty() {
+            return Ok(());
+        }
         writeln!(f)?;
+        writeln!(f, "## GCodeBlocks")?;
         for (i, gcode) in self.iter().enumerate() {
+            writeln!(f)?;
             // All titles (for a given level), must be unique
             writeln!(f, "### GCodeBlock {i}")?;
             writeln!(f)?;
             gcode.headless_markdown(&mut *f)?;
-            writeln!(f)?;
         }
         Ok(())
     }
@@ -88,6 +91,7 @@ impl GCodeBlock {
         W: std::fmt::Write,
     {
         writeln!(f, "### Params")?;
+        writeln!(f)?;
         writeln!(f, "encoding {:#?}", self.encoding)?;
         writeln!(f)?;
         writeln!(f, "<details>")?;

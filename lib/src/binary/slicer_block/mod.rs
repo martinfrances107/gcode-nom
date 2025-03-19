@@ -51,9 +51,11 @@ impl SlicerBlock {
     where
         W: Write,
     {
+        writeln!(f)?;
         writeln!(f, "## SlicerBlock")?;
         writeln!(f)?;
         writeln!(f, "### Params")?;
+        writeln!(f)?;
         writeln!(f, "params {:#?}", self.param)?;
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;

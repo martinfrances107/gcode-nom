@@ -46,6 +46,7 @@ impl Markdown for FileHeader {
     where
         W: std::fmt::Write,
     {
+        writeln!(f)?;
         writeln!(f, "## File Header")?;
         writeln!(f)?;
         writeln!(f, "{}", self.version)?;

@@ -47,9 +47,11 @@ impl PrinterMetadataBlock {
     where
         W: std::fmt::Write,
     {
+        writeln!(f)?;
         writeln!(f, "## PrinterMetadataBlock")?;
         writeln!(f)?;
         writeln!(f, "### Params")?;
+        writeln!(f)?;
         writeln!(f, "params {:#?}", self.param)?;
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;

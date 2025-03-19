@@ -54,9 +54,11 @@ impl FileMetadataBlock {
     where
         W: std::fmt::Write,
     {
+        writeln!(f)?;
         writeln!(f, "## FileMetadataBlock")?;
         writeln!(f)?;
         writeln!(f, "### Params")?;
+        writeln!(f)?;
         writeln!(f, "params 0x{:?}", self.param)?;
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
@@ -125,7 +127,7 @@ pub fn file_metadata_parser_with_checksum(
             let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
                 e.map(|e: nom::error::Error<_>| {
                     BlockError::Decompression(format!(
-                        "file_metadata: Compression::Default - Failed to extract compressed data block: {e:#?}"
+                        "file_metadata: Compression::Deflate - Failed to extract compressed data block: {e:#?}"
                     ))
                 })
             })?;
@@ -134,7 +136,7 @@ pub fn file_metadata_parser_with_checksum(
                 Ok(decoded) => {
                     let data = String::from_utf8(decoded).map_err(|e| {
                         Error(BlockError::Decompression(format!(
-                            "file_metadata: Failed to convert decompressed data to string: {e:#?}"
+                            "file_metadata: Compression Deflate - Failed to convert decompress: {e:#?}"
                         )))
                     })?;
                     (remain, data)
@@ -142,7 +144,7 @@ pub fn file_metadata_parser_with_checksum(
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
                     return Err(Error(BlockError::Decompression(format!(
-                        "file_metadata: Failed to decode decompression: {msg}"
+                        "file_metadata: Compression: Deflate - Failed to decompress: {msg}"
                     ))))?;
                 }
             }

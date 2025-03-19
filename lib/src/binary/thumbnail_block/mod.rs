@@ -56,14 +56,15 @@ impl Markdown for Vec<ThumbnailBlock> {
     where
         W: Write,
     {
-        writeln!(f, "## ThumbnailBlocks")?;
         writeln!(f)?;
+        writeln!(f, "## ThumbnailBlocks")?;
         for (i, thumbnail) in self.iter().enumerate() {
             // All titles (for a given level), must be unique
             // otherwise, as per spec,  table of content block cannot be constructed.
-            writeln!(f, "### ThumbnailBlock {i}")?;
-            thumbnail.headless_markdown(f)?;
             writeln!(f)?;
+            writeln!(f, "### ThumbnailBlock {i}")?;
+            writeln!(f)?;
+            thumbnail.headless_markdown(f)?;
         }
         Ok(())
     }
@@ -76,6 +77,7 @@ impl ThumbnailBlock {
         W: Write,
     {
         writeln!(f, "### Params")?;
+        writeln!(f)?;
         write!(f, "{}", self.param)?;
         writeln!(f, "DataBlock omitted")?;
         writeln!(f)?;
