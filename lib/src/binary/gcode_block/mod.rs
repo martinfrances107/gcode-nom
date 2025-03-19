@@ -264,8 +264,9 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         Ok((after_checksum, checksum)) => (after_checksum, checksum),
         Err(e) => {
             log::error!("Failed to parse checksum {e}");
-            let gbe = BlockError::Checksum(String::from("Failed to extract checksum"));
-            return Err(nom::Err::Error(gbe));
+            return Err(nom::Err::Error(BlockError::Checksum(String::from(
+                "Failed to extract checksum",
+            ))));
         }
     };
 
@@ -283,10 +284,9 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         log::debug!("checksum match");
     } else {
         log::error!("fail checksum");
-        let gbe = BlockError::Checksum(format!(
+        return Err(nom::Err::Error(BlockError::Checksum(format!(
             "FAIL: checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ",
-        ));
-        return Err(nom::Err::Error(gbe));
+        ))));
     }
 
     Ok((
