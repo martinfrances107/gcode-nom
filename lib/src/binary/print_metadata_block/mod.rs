@@ -105,38 +105,73 @@ pub fn print_metadata_parser_with_checksum(
     let (after_data, data) = match compression_type {
         CompressionType::None => {
             let (remain, data_raw) = take(uncompressed_size)(after_param)?;
-            let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
+            let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
+                nom::Err::Error(BlockError::Decompression(format!(
+                    "printer_metadata: Compression None - Failed to extract data block: {e:#?}"
+                )))
+            })?;
             (remain, data)
         }
         CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "printer_metadata: Compression Deflate - Failed to extract data block: {e:#?}"
+                    ))
+                })
+            })?;
 
             match inflate_bytes_zlib(encoded) {
                 Ok(decoded) => {
-                    let data = String::from_utf8(decoded).expect("raw data error");
+                    let data = String::from_utf8(decoded).map_err(|e| {
+                        nom::Err::Error(BlockError::Decompression(format!(
+                            "printer_metadata: Compression Deflate - Failed to decode data block as utf8: {e:#?}"
+                        )))
+                    })?;
                     (remain, data)
                 }
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
-                    panic!()
+                    return Err(nom::Err::Error(BlockError::Decompression(format!(
+                        "printer_metadata: Compression Deflate - Failed to decode data block: {msg}"
+                    ))));
                 }
             }
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "printer_metadata: Compression HeatShrink11 - Failed to extract data block: {e:#?}"
+                    ))
+                })
+            })?;
+
             // Must decompress here
             log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "printer_metadata: Compression HeatShrink12 - Failed to extract data block: {e:#?}"
+                    ))
+                })
+            })?;
             // Must decompress here
             log::info!("TODO: Must implement decompression");
             todo!()
         }
     };
 
-    let (after_checksum, checksum) = le_u32(after_data)?;
+    let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
+        e.map(|e: nom::error::Error<_>| {
+            BlockError::Checksum(format!(
+                "printer_metadata: Failed to extract checksum: {e:#?}"
+            ))
+        })
+    })?;
 
     let param_size = 2;
     let payload_size = match compression_type {
@@ -154,7 +189,9 @@ pub fn print_metadata_parser_with_checksum(
         log::debug!("checksum match");
     } else {
         log::error!("fail checksum");
-        panic!("print metadata block failed checksum");
+        return Err(nom::Err::Error(BlockError::Checksum(format!(
+            "printer_metadata: checksum mismatch: expected 0x{checksum:04x} computed 0x{computed_checksum:04x}"
+        ))));
     }
 
     Ok((
