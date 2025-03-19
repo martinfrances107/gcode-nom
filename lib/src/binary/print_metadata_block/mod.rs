@@ -104,10 +104,16 @@ pub fn print_metadata_parser_with_checksum(
     // Decompress data block
     let (after_data, data) = match compression_type {
         CompressionType::None => {
-            let (remain, data_raw) = take(uncompressed_size)(after_param)?;
+            let (remain, data_raw) = take(uncompressed_size)(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "printer_metadata: Compression None - Failed to extract data block: {e:#?}"
+                    ))
+                })
+            })?;
             let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
                 nom::Err::Error(BlockError::Decompression(format!(
-                    "printer_metadata: Compression None - Failed to extract data block: {e:#?}"
+                    "printer_metadata: Compression None - Failed to process data block as utf8: {e:#?}"
                 )))
             })?;
             (remain, data)

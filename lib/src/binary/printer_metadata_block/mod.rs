@@ -101,37 +101,81 @@ pub fn printer_metadata_parser_with_checksum(
     // Decompress data block
     let (after_data, data) = match compression_type {
         CompressionType::None => {
-            let (remain, data_raw) = take(uncompressed_size)(after_param)?;
-            let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
+            let (remain, data_raw) = take(uncompressed_size)(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "printer_metadata: No compression - Failed to process raw data: {e:#?}"
+                    ))
+                })
+            })?;
+            let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
+                log::error!("Failed to decode raw data {e}");
+                nom::Err::Error(BlockError::Decompression(format!(
+                    "printer_metadata: No compression - Failed to process raw data as a utf8: {e:#?}"
+                )))
+            })?;
             (remain, data)
         }
         CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "printer_metadata: Deflate - Failed to extract compressed data: {e:#?}"
+                    ))
+                })
+            })?;
 
             match inflate_bytes_zlib(encoded) {
                 Ok(decoded) => {
-                    let data = String::from_utf8(decoded).expect("raw data error");
+                    let data = String::from_utf8(decoded).map_err(|e| {
+                        log::error!("Failed to decode decompressed data {e}");
+                        nom::Err::Error(BlockError::Decompression(format!(
+                            "printer_metadata: Deflate - Failed to process inflated data as utf8: {e:#?}"
+                        )))
+                    })?;
                     (remain, data)
                 }
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
-                    panic!()
+                    return Err(nom::Err::Error(BlockError::Decompression(format!(
+                        "printer_metadata: Deflate - Failed to decode decompressed data: {msg}"
+                    ))));
                 }
             }
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            let (_remain, _data_compressed) =
+                take(compressed_size.unwrap())(after_param).map_err(|e| {
+                    e.map(|e: nom::error::Error<_>| {
+                        BlockError::Decompression(format!(
+                        "printer_metadata: HeatShrink11 - Failed to extract compressed data: {e:#?}"
+                    ))
+                    })
+                })?;
             // Must decompress here
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            let (_remain, _data_compressed) =
+                take(compressed_size.unwrap())(after_param).map_err(|e| {
+                    e.map(|e: nom::error::Error<_>| {
+                        BlockError::Decompression(format!(
+                        "printer_metadata: HeatShrink12 - Failed to extract compressed data: {e:#?}"
+                    ))
+                    })
+                })?;
             // Must decompress here
             todo!()
         }
     };
 
-    let (after_checksum, checksum) = le_u32(after_data)?;
+    let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
+        e.map(|e: nom::error::Error<_>| {
+            BlockError::Checksum(format!(
+                "printer_metadata: Failed to decode checksum: {e:#?}"
+            ))
+        })
+    })?;
 
     let param_size = 2;
     let block_size = header.size_in_bytes() + param_size + header.payload_size_in_bytes();
@@ -145,7 +189,9 @@ pub fn printer_metadata_parser_with_checksum(
         log::debug!("checksum match");
     } else {
         log::error!("fail checksum");
-        // panic!("printer metadata block failed checksum");
+        return Err(nom::Err::Error(BlockError::Checksum(format!(
+            "printer_metadata: Checksum mismatch: {checksum} != {computed_checksum}"
+        ))));
     }
 
     Ok((

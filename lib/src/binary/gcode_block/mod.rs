@@ -118,8 +118,11 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         block_header_parser,
     )
     .parse(input)
-    // TODO must convert to sub type BlockHeaderError
-    .expect("Failed to parse block header");
+    .map_err(|e| {
+        log::error!("Failed to parse block header {e}");
+        e.map(|e| BlockError::FileHeader(format!("Failed preamble version and checksum: {e:#?}")))
+    })?;
+
     log::info!("Found G-code block id.");
     let BlockHeader {
         compression_type,
@@ -127,63 +130,58 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         uncompressed_size,
     } = header.clone();
 
-    let (after_param, encoding) =
-    // FIXME: must conver to sub type.
-        param_parser(after_block_header).expect("Failed to parse param block");
+    let (after_param, encoding) = param_parser(after_block_header).map_err(|e| {
+        log::error!("Failed to parse param {e}");
+        e.map(|e| BlockError::FileHeader(format!("Failed to parse param {e:#?}")))
+    })?;
+
     log::info!("encoding {encoding}");
     // Decompress data block.
     let (after_data, data) = match compression_type {
         CompressionType::None => {
             // Take the raw data block.
-            let (remain, data_raw) =
-                match take::<_, _, Error<&[u8]>>(uncompressed_size)(after_param) {
-                    Ok((remain, data_raw)) => (remain, data_raw),
-                    Err(e) => {
-                        log::error!("Failed to parse data block {e}");
-                        let gbe = BlockError::Decompression(String::from(
-                            "Failed take the raw(compressed) data block",
-                        ));
+            let (remain, data_raw) = take::<_, _, Error<&[u8]>>(uncompressed_size)(after_param)
+                .map_err(|e| {
+                    e.map(|e: nom::error::Error<_>| {
+                        BlockError::Decompression(format!(
+                            "printer_metadata: No compression - Failed to process raw data: {e:#?}"
+                        ))
+                    })
+                })?;
 
-                        return Err(nom::Err::Error(gbe));
-                    }
-                };
-
-            match String::from_utf8(data_raw.to_vec()) {
-                Ok(data) => (remain, data),
-                Err(e) => {
-                    log::error!("Failed to decode decompression failed {e}");
-                    let gbe = BlockError::Decompression(String::from(
-                        "Compression::None - payload was not a valid utf8 string",
-                    ));
-
-                    return Err(nom::Err::Error(gbe));
-                }
-            }
+            let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
+                nom::Err::Error(BlockError::Decompression(format!(
+                    "printer_metadata: Compression None - Failed to process data block as utf8: {e:#?}"
+                )))
+            })?;
+            (remain, data)
         }
         CompressionType::Deflate => {
             // Take the raw data block.
-            let (remain, encoded) =
-                match take::<_, _, BlockError>(compressed_size.unwrap())(after_param) {
-                    Ok((remain, encoded)) => (remain, encoded),
-                    Err(e) => {
-                        log::error!(
-                        "CompressionType::Deflate Failed take the raw(compressed) data block {e}"
-                    );
-                        let gbe = BlockError::Decompression(String::from(
-                            "CompressionType::Deflate Failed take the raw(compressed) data block",
-                        ));
-                        return Err(nom::Err::Error(gbe));
-                    }
-                };
+            let (remain, encoded) = take::<_, _, BlockError>(compressed_size.unwrap())(after_param)
+                .map_err(|e| {
+                    e.map(|e| {
+                        BlockError::Decompression(format!(
+                            "printer_metadata: Deflate - Failed to process raw data: {e:#?}"
+                        ))
+                    })
+                })?;
 
             match inflate_bytes_zlib(encoded) {
                 Ok(decoded) => {
-                    let data = String::from_utf8(decoded).expect("raw data error");
+                    let data = String::from_utf8(decoded).map_err(|e| {
+                        log::error!("Failed to decode decompressed data {e}");
+                        nom::Err::Error(BlockError::Decompression(format!(
+                            "printer_metadata: Deflate - Failed to process inflated data as utf8: {e:#?}"
+                        )))
+                    })?;
                     (remain, data)
                 }
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
-                    panic!()
+                    return Err(nom::Err::Error(BlockError::Decompression(format!(
+                        "printer_metadata: Deflate - Failed to process inflated data as utf8: {msg}"
+                    ))));
                 }
             }
         }
