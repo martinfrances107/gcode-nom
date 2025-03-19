@@ -187,8 +187,13 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         }
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) =
-                take::<_, _, BlockError>(compressed_size.unwrap())(after_param)
-                    .expect("heatshrink11");
+                take::<_, _, BlockError>(compressed_size.unwrap())(after_param).map_err(|e| {
+                        log::error!("Failed to decode decompressed data {e}");
+                        nom::Err::Error(BlockError::Decompression(format!(
+                            "printer_metadata: HeatShrink11 - Failed to process inflated data as utf8: {e:#?}"
+                        )))
+                    })?;
+
             // Must decompress here
 
             // use CONFIG_W11_L4 here
@@ -197,7 +202,13 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         }
         CompressionType::HeatShrink12 => {
             let (remain, encoded) = take::<_, _, BlockError>(compressed_size.unwrap())(after_param)
-                .expect("heatshrink");
+                .map_err(|e| {
+                    e.map(|e| {
+                        BlockError::Decompression(format!(
+                            "printer_metadata: HeatShrink12 - Failed to extract raw data: {e:#?}"
+                        ))
+                    })
+                })?;
 
             // TODO Figure out why size is is off by 1 -  crashes with buffer was not large enough.
             let mut scratch = vec![0u8; 1 + uncompressed_size as usize];
@@ -205,7 +216,12 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
             let data = match decode(encoded, &mut scratch, &CONFIG_W12_L4) {
                 Ok(decoded_hs) => match encoding {
                     Encoding::None => String::from_utf8(decoded_hs.to_vec())
-                        .expect("Simple heatshrink12 output is a bad string"),
+                        .map_err(|e| {
+                            log::error!("Failed to decode decompressed data {e}");
+                            nom::Err::Error(BlockError::Decompression(format!(
+                                "printer_metadata: HeatShrink12 - Failed to process inflated data as utf8: {e:#?}"
+                            )))
+                        })?,
                     Encoding::MeatPackAlgorithm => {
                         log::error!("Must decode with standard meat packing algorithm");
                         panic!();
@@ -244,7 +260,6 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         }
     };
 
-    // let (after_checksum, checksum) = le_u32::<_, GcodeBlockError>(after_data).expect("checksum");
     let (after_checksum, checksum) = match le_u32::<_, BlockError>(after_data) {
         Ok((after_checksum, checksum)) => (after_checksum, checksum),
         Err(e) => {
@@ -269,7 +284,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
     } else {
         log::error!("fail checksum");
         let gbe = BlockError::Checksum(format!(
-            "FAILURE: checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ",
+            "FAIL: checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ",
         ));
         return Err(nom::Err::Error(gbe));
     }
