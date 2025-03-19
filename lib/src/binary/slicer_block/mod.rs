@@ -99,45 +99,87 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
     } = header.clone();
 
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|e| BlockError::Param(format!("slider: Failed to decode parameter block: {e:#?}")))
+        e.map(|e: nom::error::Error<_>| {
+            BlockError::Param(format!("slider: Failed to decode parameter block: {e:#?}"))
+        })
     })?;
 
     // Decompress data block
     let (after_data, data) = match compression_type {
         CompressionType::None => {
-            let (remain, data_raw) = take(uncompressed_size)(after_param)?;
-            let data = String::from_utf8(data_raw.to_vec()).expect("raw data error");
+            let (remain, data_raw) = take(uncompressed_size)(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "slicer: Compression None - Failed to extract data block: {e:#?}"
+                    ))
+                })
+            })?;
+            let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
+                nom::Err::Error(BlockError::Decompression(format!(
+                    "slicer: Compression None Failed to decode data block as utf8: {e:#?}"
+                )))
+            })?;
             (remain, data)
         }
         CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
+                e.map(|e: nom::error::Error<_>| {
+                    BlockError::Decompression(format!(
+                        "slicer: Compression Deflate - Failed to extract raw(compressed) data block: {e:#?}"
+                    ))
+                })
+            })?;
 
             match inflate_bytes_zlib(encoded) {
                 Ok(decoded) => {
-                    let data = String::from_utf8(decoded).expect("raw data error");
+                    let data = String::from_utf8(decoded).map_err(|e| {
+                        nom::Err::Error(BlockError::Decompression(format!(
+                            "slicer: Compression Deflate - Failed to decode data block as utf8: {e:#?}"
+                        )))
+                    })?;
                     (remain, data)
                 }
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
-                    panic!()
+                    return Err(nom::Err::Error(BlockError::Decompression(format!(
+                        "slicer: Compression Deflate - Failed to decode data block: {msg}"
+                    ))));
                 }
             }
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            let (_remain, _data_compressed) =
+                take(compressed_size.unwrap())(after_param).map_err(|e| {
+                    e.map(|e: nom::error::Error<_>| {
+                        BlockError::Decompression(format!(
+                        "slicer: Compression HeatShrink11 - Failed to extract data block: {e:#?}"
+                    ))
+                    })
+                })?;
             // Must decompress here
             log::info!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            let (_remain, _data_compressed) =
+                take(compressed_size.unwrap())(after_param).map_err(|e| {
+                    e.map(|e: nom::error::Error<_>| {
+                        BlockError::Decompression(format!(
+                        "slicer: Compression HeatShrink12 - Failed to extract data block: {e:#?}"
+                    ))
+                    })
+                })?;
             // Must decompress here
             log::info!("TODO: Must implement decompression");
             todo!()
         }
     };
 
-    let (after_checksum, checksum) = le_u32(after_data)?;
+    let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
+        e.map(|e: nom::error::Error<_>| {
+            BlockError::Checksum(format!("slicer: Failed to extract checksum: {e:#?}"))
+        })
+    })?;
 
     let param_size = 2;
     let payload_size = match compression_type {
@@ -153,7 +195,9 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
         log::debug!("checksum match");
     } else {
         log::error!("fail checksum");
-        panic!("slicer metadata block failed checksum");
+        return Err(nom::Err::Error(BlockError::Checksum(format!(
+            "slicer: checksum mismatch 0x{checksum:04x} computed 0x{computed_checksum:04x}"
+        ))));
     }
 
     Ok((
