@@ -11,6 +11,7 @@
 [] -Tests
      -- unit test for all Blocks.
      -- no unit testing of Block types.
+     -- How to test binary blocks?
 
 After basic functionality
 
