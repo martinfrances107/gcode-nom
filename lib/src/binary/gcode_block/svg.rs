@@ -62,7 +62,7 @@ impl Display for Svg {
         let vb = format!("{} {} {} {}", self.min_x, self.min_y, width, height);
         write!(
             f,
-            "<svg height=\"{height}\" width=\"{width}\" xmlns=\"http://www.w3.org/2000/svg\" viewBox =\"{vb}\"> <path d=\""
+            "<svg height=\"{height}\" width=\"{width}\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"{vb}\"> <path d=\""
         )?;
         for part in &self.parts {
             write!(f, "{part}")?;
@@ -182,7 +182,7 @@ impl FromIterator<String> for Svg {
                         }
                     }
                 }
-                Command::G21 => svg.parts.push("M0,0".to_string()),
+                Command::G21 => svg.parts.push("M0 0".to_string()),
                 Command::G90 => position_mode = PositionMode::Absolute,
                 Command::G91 => position_mode = PositionMode::Relative,
                 // G92- Set Current Position
