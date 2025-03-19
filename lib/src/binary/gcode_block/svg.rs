@@ -88,6 +88,9 @@ impl FromIterator<String> for Svg {
     {
         let mut svg = Self::default();
 
+        // Invalid if the <path>'s d string does not start with a move.
+        svg.parts.push("M0 0".to_string());
+
         let mut is_extruding = true;
         // Positioning mode for all axes (A, B, C), (U, V, W),  (X, Y, Z).
         let mut position_mode = PositionMode::default();

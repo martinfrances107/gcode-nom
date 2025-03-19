@@ -7,5 +7,9 @@ time cargo run --release --  <  ../assets/T\ 2x3_0.15mm_PLA_MK3S_1h3m.gcode > T.
 ## No StdIn, passed filename as an argument.
 time cargo run --release --   ../assets/X\ 6x6_0.15mm_PLA_MK3S_1h55m.gcode > X.svg
 ## Binary bgcoode files must be passed in as an argument beacuse they are not utf-8 encoded.
-time RUST_LOG=trace cargo run --release --  ../assets/both\ parts.bgcode > both.svg
+time cargo run --release -- ../assets/both\ parts.bgcode > both.svg
+time cargo run --release -- ../assets/mini_cube_b.bgcode > mini_cube_b.svg
+time cargo run --release -- ../assets/benchy2-mk4s.bgcode > benchy2-mk4s.svg
+# time cargo run --release -- ../assets/gear-holder-print-in-place_04n_022mm_pla_mk4_6h49m.bgcode > gear-holder.svg
+
 brave *.svg
