@@ -64,18 +64,18 @@ pub trait Markdown {
 /// Error while parsing text into a `Bgcode` structure.
 #[derive(Debug)]
 pub enum BlockError {
-    /// Error parsing the file header.
-    FileHeader(String),
     /// Error parsing the checksum.
     Checksum(String),
     /// A failure to decompress the data block
     Decompression(String),
+    /// Error parsing the file header.
+    FileHeader(String),
+    /// Traps when  EOF is called
+    Kind(String),
     /// Error parsing the sub sections header.
     Header(String),
     /// Error parsing the parameter section.
     Param(String),
-    /// Not sure this is used
-    Kind(String),
 }
 
 impl<I> ParseError<I> for BlockError
@@ -83,6 +83,7 @@ where
     I: std::fmt::Debug,
 {
     fn from_error_kind(input: I, kind: ErrorKind) -> Self {
+        // This is trapping an EOF error
         let message = format!("{kind:?}:\t{input:?}\n");
         Self::Kind(message)
     }
