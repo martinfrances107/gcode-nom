@@ -10,6 +10,7 @@ use inflate::inflate_bytes_zlib;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
+    error::Error,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
     IResult, Parser,
@@ -125,33 +126,67 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     // Decompress data block
     let (after_data, data) = match compression_type {
         CompressionType::None => {
-            let (remain, data) = take(uncompressed_size)(after_param)?;
+            let (remain, data) = take(uncompressed_size)(after_param).map_err(|e| {
+                e.map(|e: Error<_>| {
+                    BlockError::Decompression(format!(
+                        "thumbnail: Compression None - Failed to extract data block: {e:#?}"
+                    ))
+                })
+            })?;
             (remain, data.to_vec())
         }
         CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
+            let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
+                e.map(|e: Error<_>| {
+                    BlockError::Decompression(format!(
+                        "thumbnail: Compression Deflate - Failed to extract data block: {e:#?}"
+                    ))
+                })
+            })?;
 
             match inflate_bytes_zlib(encoded) {
                 Ok(decoded) => (remain, decoded),
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
-                    panic!()
+                    return Err(nom::Err::Error(BlockError::Decompression(format!(
+                        "thumbnail: Compression Deflate - Failed to decode data block: {msg}"
+                    ))));
                 }
             }
         }
         CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            let (_remain, _data_compressed) =
+                take(compressed_size.unwrap())(after_param).map_err(|e| {
+                    e.map(|e: Error<_>| {
+                        BlockError::Decompression(format!(
+                        "thumbnail: Compression HeatShrink11 - Failed to extract data block: {e:#?}"
+                    ))
+                    })
+                })?;
             log::info!("TODO: Must implement HeatShrink11");
             unimplemented!("HeatShrink11 is not yet implemented");
         }
         CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param)?;
+            let (_remain, _data_compressed) =
+                take(compressed_size.unwrap())(after_param).map_err(|e| {
+                    e.map(|e: Error<_>| {
+                        BlockError::Decompression(format!(
+                        "thumbnail: Compression HeatShrink12 - Failed to extract data block: {e:#?}"
+                    ))
+                    })
+                })?;
             log::info!("TODO: Must implement heatshrink12");
             unimplemented!("HeatShrink11 is not yet implemented");
         }
     };
 
-    let (after_checksum, checksum) = le_u32(after_data)?;
+    let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
+        e.map(|e: Error<_>| {
+            BlockError::Checksum(format!(
+                "thumbnail: Failed to decode checksum block: {e:#?}"
+            ))
+        })
+    })?;
 
     let param_size = 6;
     let block_size = header.size_in_bytes() + param_size + header.payload_size_in_bytes();
@@ -163,7 +198,9 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         log::debug!("checksum match");
     } else {
         log::error!("failed checksum");
-        panic!("file metadata block failed checksum");
+        return Err(nom::Err::Error(BlockError::Checksum(format!(
+            "thumbnail: checksum mismatch: expected 0x{checksum:04x} computed 0x{computed_checksum:04x}"
+        ))));
     }
 
     Ok((
