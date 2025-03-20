@@ -154,8 +154,8 @@ pub fn printer_metadata_parser_with_checksum(
                     ))
                     })
                 })?;
-            // Must decompress here
-            todo!()
+
+            unimplemented!("printer_metadata_block: Decoding with the meatpacking algorithm is not yet support please create an issue.");
         }
         CompressionType::HeatShrink12 => {
             let (_remain, _data_compressed) =
@@ -167,7 +167,7 @@ pub fn printer_metadata_parser_with_checksum(
                     })
                 })?;
             // Must decompress here
-            todo!()
+            unimplemented!("printer_metadata_block: Decoding with the meatpacking algorithm is not yet support please create an issue.");
         }
     };
 

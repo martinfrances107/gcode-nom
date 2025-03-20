@@ -228,7 +228,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                         })?,
                     Encoding::MeatPackAlgorithm => {
                         log::error!("Must decode with standard meat packing algorithm");
-                        panic!();
+                        unimplemented!("Decoding with the meatpacking algorithm is not yet support please create an issue.");
                     }
                     Encoding::MeatPackModifiedAlgorithm => {
                         let mut data = String::new();

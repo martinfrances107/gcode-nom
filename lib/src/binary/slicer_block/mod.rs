@@ -159,7 +159,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
                     })
                 })?;
             // Must decompress here
-            log::info!("TODO: Must implement decompression");
+            log::error!("TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
@@ -172,7 +172,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
                     })
                 })?;
             // Must decompress here
-            log::info!("TODO: Must implement decompression");
+            log::error!("TODO: Must implement decompression");
             todo!()
         }
     };
