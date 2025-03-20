@@ -46,4 +46,4 @@ see [todo](TODO.md)
 ## Future work
 
 * I have only tested against gcode files that use absolute positioning.
-I must test will relative positioning.
+I must test with code than uses relative positioning.

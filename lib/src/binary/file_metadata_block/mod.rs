@@ -106,7 +106,7 @@ pub fn file_metadata_parser_with_checksum(
         })
     })?;
 
-    // Decompress datablock
+    // Decompress data-block
     let (after_data, data) = match compression_type {
         CompressionType::None => {
             let (remain, data_raw) = take(uncompressed_size)(after_param).map_err(|e| {

@@ -157,7 +157,7 @@ pub fn print_metadata_parser_with_checksum(
 
             // Must decompress here
             log::error!("TODO: Must implement decompression");
-            unimplemented!("print_metadata_block: Ecoding with the meatpacking algorithm is not yet support please create an issue.");
+            unimplemented!("print_metadata_block: Encoding with the meatpacking algorithm is not yet support please create an issue.");
         }
         CompressionType::HeatShrink12 => {
             let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param).map_err(|e| {

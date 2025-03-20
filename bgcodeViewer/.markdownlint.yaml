@@ -1,0 +1,8 @@
+{
+  # Html in markdown
+  "MD033": false,
+  # Multiple header with the same value
+  "MD024": false,
+  # Line length over 80
+  "MD013": false,
+}

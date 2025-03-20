@@ -1,4 +1,4 @@
-//! The new binarized G-code file consists of a file header followed by an ordered succession of blocks, in the following sequence:
+//! The new binary G-code file consists of a file header followed by an ordered succession of blocks, in the following sequence:
 //!
 //! File Header
 //! File Metadata Block (optional)
@@ -144,7 +144,7 @@ pub struct Bgcode {
     pub file_metadata: Option<FileMetadataBlock>,
     /// A file block.
     pub printer_metadata: PrinterMetadataBlock,
-    /// A colleciton of image blocks.
+    /// A collection of image blocks.
     pub thumbnails: Vec<ThumbnailBlock>,
     /// A file block.
     pub print_metadata: PrintMetadataBlock,

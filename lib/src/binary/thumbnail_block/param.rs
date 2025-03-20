@@ -66,7 +66,7 @@ impl TryFrom<u16> for Format {
             1 => Ok(Self::Jpg),
             2 => Ok(Self::Qoi),
             bad_value => {
-                let msg = format!("Format Value was not recognised Ox{bad_value:02X}");
+                let msg = format!("Format Value was not recognized Ox{bad_value:02X}");
                 Err(msg)
             }
         }
