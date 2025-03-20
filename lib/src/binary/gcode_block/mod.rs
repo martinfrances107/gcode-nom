@@ -56,7 +56,7 @@ impl Display for GCodeBlock {
         writeln!(f)?;
         write!(f, "-------------------------- GCodeBlock ")?;
         match self.checksum {
-            Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X} ---------")?,
+            Some(checksum) => writeln!(f, "Checksum Ox{checksum:X} ---------")?,
             None => writeln!(f, "No checksum")?,
         };
         Ok(())
@@ -102,7 +102,7 @@ impl GCodeBlock {
         writeln!(f)?;
 
         match self.checksum {
-            Some(checksum) => writeln!(f, "Ckecksum Ox{checksum:X}")?,
+            Some(checksum) => writeln!(f, "Checksum Ox{checksum:X}")?,
             None => writeln!(f, "No checksum")?,
         };
         Ok(())
