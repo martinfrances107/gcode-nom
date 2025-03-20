@@ -98,7 +98,7 @@ pub fn print_metadata_parser_with_checksum(
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
         e.map(|e| {
             BlockError::Param(format!(
-                "printer_metadata: Failed to decode parameter block: {e:#?}"
+                "print_metadata: Failed to decode parameter block: {e:#?}"
             ))
         })
     })?;
@@ -109,13 +109,13 @@ pub fn print_metadata_parser_with_checksum(
             let (remain, data_raw) = take(uncompressed_size)(after_param).map_err(|e| {
                 e.map(|e: nom::error::Error<_>| {
                     BlockError::Decompression(format!(
-                        "printer_metadata: Compression None - Failed to extract data block: {e:#?}"
+                        "print_metadata: Compression None - Failed to extract data block: {e:#?}"
                     ))
                 })
             })?;
             let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
                 nom::Err::Error(BlockError::Decompression(format!(
-                    "printer_metadata: Compression None - Failed to process data block as utf8: {e:#?}"
+                    "print_metadata: Compression None - Failed to process data block as utf8: {e:#?}"
                 )))
             })?;
             (remain, data)
@@ -163,7 +163,7 @@ pub fn print_metadata_parser_with_checksum(
             let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param).map_err(|e| {
                 e.map(|e: nom::error::Error<_>| {
                     BlockError::Decompression(format!(
-                        "printer_metadata: Compression HeatShrink12 - Failed to extract data block: {e:#?}"
+                        "print_metadata: Compression HeatShrink12 - Failed to extract data block: {e:#?}"
                     ))
                 })
             })?;
@@ -176,7 +176,7 @@ pub fn print_metadata_parser_with_checksum(
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
         e.map(|e: nom::error::Error<_>| {
             BlockError::Checksum(format!(
-                "printer_metadata: Failed to extract checksum: {e:#?}"
+                "print_metadata: Failed to extract checksum: {e:#?}"
             ))
         })
     })?;
@@ -198,7 +198,7 @@ pub fn print_metadata_parser_with_checksum(
     } else {
         log::error!("fail checksum");
         return Err(nom::Err::Error(BlockError::Checksum(format!(
-            "printer_metadata: checksum mismatch: expected 0x{checksum:04x} computed 0x{computed_checksum:04x}"
+            "print_metadata: checksum mismatch: expected 0x{checksum:04x} computed 0x{computed_checksum:04x}"
         ))));
     }
 
