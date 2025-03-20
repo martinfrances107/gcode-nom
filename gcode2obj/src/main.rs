@@ -28,7 +28,6 @@ use std::path::PathBuf;
 mod obj;
 
 use gcode_nom::binary::bgcode_parser;
-use gcode_nom::binary::Markdown;
 
 use log::info;
 use obj::Obj;
