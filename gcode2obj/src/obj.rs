@@ -114,11 +114,15 @@ impl FromIterator<String> for Obj {
             let mut x = f64::NAN;
             let mut y = f64::NAN;
             match command {
-                // A non printable move.
-                Command::G0(_) => {
-                    todo!();
+                // A non printing move.
+                Command::G0(_payload) => {
+                    //FIXME: When I start implementing relative positioning.
+                    //
+                    // I must update th position state
+                    // At the moment only "benchy2-mk4s.bgcode" gets here.
+                    // in Absolute positioning mode.
                 }
-                // A printable move.
+                // A printing move.
                 Command::G1(mut payload) => {
                     for param in payload.drain() {
                         match param {
