@@ -148,14 +148,14 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                 .map_err(|e| {
                     e.map(|e: nom::error::Error<_>| {
                         BlockError::Decompression(format!(
-                            "printer_metadata: No compression - Failed to process raw data: {e:#?}"
+                            "gcode_block: No compression - Failed to process raw data: {e:#?}"
                         ))
                     })
                 })?;
 
             let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
                 nom::Err::Error(BlockError::Decompression(format!(
-                    "printer_metadata: Compression None - Failed to process data block as utf8: {e:#?}"
+                    "gcode_block: Compression None - Failed to process data block as utf8: {e:#?}"
                 )))
             })?;
             (remain, data)
@@ -166,7 +166,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                 .map_err(|e| {
                     e.map(|e| {
                         BlockError::Decompression(format!(
-                            "printer_metadata: Deflate - Failed to process raw data: {e:#?}"
+                            "gcode_block: Deflate - Failed to process raw data: {e:#?}"
                         ))
                     })
                 })?;
@@ -176,7 +176,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                     let data = String::from_utf8(decoded).map_err(|e| {
                         log::error!("Failed to decode decompressed data {e}");
                         nom::Err::Error(BlockError::Decompression(format!(
-                            "printer_metadata: Deflate - Failed to process inflated data as utf8: {e:#?}"
+                            "gcode block: Deflate - Failed to process inflated data as utf8: {e:#?}"
                         )))
                     })?;
                     (remain, data)
@@ -184,7 +184,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
                     return Err(nom::Err::Error(BlockError::Decompression(format!(
-                        "printer_metadata: Deflate - Failed to process inflated data as utf8: {msg}"
+                        "gcode block: Deflate - Failed to process inflated data as utf8: {msg}"
                     ))));
                 }
             }
@@ -192,11 +192,11 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) =
                 take::<_, _, BlockError>(compressed_size.unwrap())(after_param).map_err(|e| {
-                        log::error!("Failed to decode decompressed data {e}");
-                        nom::Err::Error(BlockError::Decompression(format!(
-                            "printer_metadata: HeatShrink11 - Failed to process inflated data as utf8: {e:#?}"
-                        )))
-                    })?;
+                    log::error!("Failed to decode decompressed data {e}");
+                    nom::Err::Error(BlockError::Decompression(format!(
+                    "gcode_block: HeatShrink11 - Failed to process inflated data as utf8: {e:#?}"
+                )))
+                })?;
 
             // Must decompress here
 
@@ -209,7 +209,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                 .map_err(|e| {
                     e.map(|e| {
                         BlockError::Decompression(format!(
-                            "printer_metadata: HeatShrink12 - Failed to extract raw data: {e:#?}"
+                            "gcode_block: HeatShrink12 - Failed to extract raw data: {e:#?}"
                         ))
                     })
                 })?;
@@ -223,7 +223,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                         .map_err(|e| {
                             log::error!("Failed to decode decompressed data {e}");
                             nom::Err::Error(BlockError::Decompression(format!(
-                                "printer_metadata: HeatShrink12 - Failed to process inflated data as utf8: {e:#?}"
+                                "gcode_block: HeatShrink12 - Failed to process inflated data as utf8: {e:#?}"
                             )))
                         })?,
                     Encoding::MeatPackAlgorithm => {

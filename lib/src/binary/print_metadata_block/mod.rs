@@ -124,7 +124,7 @@ pub fn print_metadata_parser_with_checksum(
             let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
                 e.map(|e: nom::error::Error<_>| {
                     BlockError::Decompression(format!(
-                        "printer_metadata: Compression Deflate - Failed to extract data block: {e:#?}"
+                        "print_metadata: Compression Deflate - Failed to extract data block: {e:#?}"
                     ))
                 })
             })?;
@@ -133,7 +133,7 @@ pub fn print_metadata_parser_with_checksum(
                 Ok(decoded) => {
                     let data = String::from_utf8(decoded).map_err(|e| {
                         nom::Err::Error(BlockError::Decompression(format!(
-                            "printer_metadata: Compression Deflate - Failed to decode data block as utf8: {e:#?}"
+                            "print_metadata: Compression Deflate - Failed to decode data block as utf8: {e:#?}"
                         )))
                     })?;
                     (remain, data)
@@ -141,7 +141,7 @@ pub fn print_metadata_parser_with_checksum(
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
                     return Err(nom::Err::Error(BlockError::Decompression(format!(
-                        "printer_metadata: Compression Deflate - Failed to decode data block: {msg}"
+                        "print_metadata: Compression Deflate - Failed to decode data block: {msg}"
                     ))));
                 }
             }
