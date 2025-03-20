@@ -77,7 +77,7 @@ style="fill:none;stroke:green;stroke-width:0.05" />
     }
 }
 
-/// Retruns a SVG given a collection of G-Code commands.
+/// Returns a SVG given a collection of G-Code commands.
 ///
 /// TODO: Want to iterate over something more flexible
 /// ie. Drop String for something more generic `AsRef<&str>`?
@@ -96,7 +96,7 @@ impl FromIterator<String> for Svg {
         let mut position_mode = PositionMode::default();
         let mut z = 0_f64;
         for line in iter {
-            let (_, command) = Command::parse_line(&line).expect("Command not parseable");
+            let (_, command) = Command::parse_line(&line).expect("Command is not parsable");
             let mut x = f64::NAN;
             let mut y = f64::NAN;
 
