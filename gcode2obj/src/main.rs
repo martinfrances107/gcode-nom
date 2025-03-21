@@ -7,7 +7,7 @@
 //! Parses `StdIn` as a gcode file - the OBJ file is send to `StdOut` :-
 //!
 //! ```bash
-//! cargo run --release -- < ../assets/bency.gcode > benchy.obj
+//! cargo run --release -- < ../assets/benchy.gcode > benchy.obj
 //! ```
 #![deny(clippy::all)]
 #![warn(clippy::cargo)]
