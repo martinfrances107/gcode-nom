@@ -1,4 +1,5 @@
 use core::fmt::{Display, Write};
+use std::borrow::Cow;
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
@@ -19,13 +20,13 @@ use super::default_params::param_parser;
 use super::default_params::Param;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SlicerBlock {
+pub struct SlicerBlock<'a> {
     header: BlockHeader,
     param: Param,
-    data: String,
+    data: Cow<'a, [u8]>,
     checksum: Option<u32>,
 }
-impl Display for SlicerBlock {
+impl Display for SlicerBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(
             f,
@@ -34,7 +35,7 @@ impl Display for SlicerBlock {
         writeln!(f, "Params")?;
         writeln!(f, "params {:#?}", self.param)?;
         writeln!(f)?;
-        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f, "DataBlock {:?}", self.data)?;
         writeln!(f)?;
         write!(f, "-------------------------- SlicerBlock ")?;
         match self.checksum {
@@ -45,7 +46,7 @@ impl Display for SlicerBlock {
     }
 }
 
-impl SlicerBlock {
+impl SlicerBlock<'_> {
     /// Write to formatter a markdown block.
     pub fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
     where
@@ -60,7 +61,7 @@ impl SlicerBlock {
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
         writeln!(f, "<br>")?;
-        writeln!(f, "{}", self.data)?;
+        writeln!(f, "{:?}", String::from_utf8_lossy(&self.data))?;
         writeln!(f, "</details>")?;
         writeln!(f)?;
         match self.checksum {
@@ -116,12 +117,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
                     ))
                 })
             })?;
-            let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
-                nom::Err::Error(BlockError::Decompression(format!(
-                    "slicer: Compression None Failed to decode data block as utf8: {e:#?}"
-                )))
-            })?;
-            (remain, data)
+            (remain, Cow::from(data_raw))
         }
         CompressionType::Deflate => {
             let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
@@ -133,14 +129,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
             })?;
 
             match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => {
-                    let data = String::from_utf8(decoded).map_err(|e| {
-                        nom::Err::Error(BlockError::Decompression(format!(
-                            "slicer: Compression Deflate - Failed to decode data block as utf8: {e:#?}"
-                        )))
-                    })?;
-                    (remain, data)
-                }
+                Ok(decoded) => (remain, Cow::from(decoded)),
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
                     return Err(nom::Err::Error(BlockError::Decompression(format!(

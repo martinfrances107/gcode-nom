@@ -1,5 +1,5 @@
 use core::fmt::Display;
-use std::fmt::Write;
+use std::{borrow::Cow, fmt::Write};
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
@@ -23,14 +23,14 @@ use param::Param;
 use crate::binary::Markdown;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ThumbnailBlock {
+pub struct ThumbnailBlock<'a> {
     header: BlockHeader,
     pub param: Param,
     /// binary data.
-    pub data: Vec<u8>,
+    pub data: Cow<'a, [u8]>,
     checksum: Option<u32>,
 }
-impl Display for ThumbnailBlock {
+impl Display for ThumbnailBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(
             f,
@@ -50,7 +50,7 @@ impl Display for ThumbnailBlock {
     }
 }
 
-impl Markdown for Vec<ThumbnailBlock> {
+impl Markdown for Vec<ThumbnailBlock<'_>> {
     /// Write to formatter a markdown block.
     fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
     where
@@ -70,7 +70,7 @@ impl Markdown for Vec<ThumbnailBlock> {
     }
 }
 
-impl ThumbnailBlock {
+impl ThumbnailBlock<'_> {
     /// Write to formatter a markdown block.
     pub(super) fn headless_markdown<W>(&self, f: &mut W) -> core::fmt::Result
     where
@@ -135,7 +135,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
                     ))
                 })
             })?;
-            (remain, data.to_vec())
+            (remain, Cow::from(data))
         }
         CompressionType::Deflate => {
             let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
@@ -147,7 +147,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
             })?;
 
             match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => (remain, decoded),
+                Ok(decoded) => (remain, Cow::from(decoded)),
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
                     return Err(nom::Err::Error(BlockError::Decompression(format!(

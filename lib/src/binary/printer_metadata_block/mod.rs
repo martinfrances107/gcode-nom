@@ -1,4 +1,5 @@
 use core::fmt::Display;
+use std::borrow::Cow;
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
@@ -16,13 +17,13 @@ use nom::{
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct PrinterMetadataBlock {
+pub struct PrinterMetadataBlock<'a> {
     header: BlockHeader,
     param: Param,
-    data: String,
+    data: Cow<'a, [u8]>,
     checksum: Option<u32>,
 }
-impl Display for PrinterMetadataBlock {
+impl Display for PrinterMetadataBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(
             f,
@@ -30,7 +31,7 @@ impl Display for PrinterMetadataBlock {
         )?;
         writeln!(f, "Params")?;
         writeln!(f, "params {:#?}", self.param)?;
-        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f, "DataBlock {}", String::from_utf8_lossy(&self.data))?;
         writeln!(f)?;
         write!(f, "-------------------------- PrinterMetadataBlock ")?;
         match self.checksum {
@@ -41,7 +42,7 @@ impl Display for PrinterMetadataBlock {
     }
 }
 
-impl PrinterMetadataBlock {
+impl PrinterMetadataBlock<'_> {
     /// Write to formatter a markdown block.
     pub fn markdown<W>(&self, mut f: W) -> core::fmt::Result
     where
@@ -56,7 +57,7 @@ impl PrinterMetadataBlock {
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
         writeln!(f, "<br>")?;
-        writeln!(f, "{}", self.data)?;
+        writeln!(f, "{}", String::from_utf8_lossy(&self.data))?;
         writeln!(f, "</details>")?;
         writeln!(f)?;
         match self.checksum {
@@ -110,13 +111,7 @@ pub fn printer_metadata_parser_with_checksum(
                     ))
                 })
             })?;
-            let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
-                log::error!("Failed to decode raw data {e}");
-                nom::Err::Error(BlockError::Decompression(format!(
-                    "printer_metadata: No compression - Failed to process raw data as a utf8: {e:#?}"
-                )))
-            })?;
-            (remain, data)
+            (remain, Cow::from(data_raw))
         }
         CompressionType::Deflate => {
             let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
@@ -128,15 +123,7 @@ pub fn printer_metadata_parser_with_checksum(
             })?;
 
             match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => {
-                    let data = String::from_utf8(decoded).map_err(|e| {
-                        log::error!("Failed to decode decompressed data {e}");
-                        nom::Err::Error(BlockError::Decompression(format!(
-                            "printer_metadata: Deflate - Failed to process inflated data as utf8: {e:#?}"
-                        )))
-                    })?;
-                    (remain, data)
-                }
+                Ok(decoded) => (remain, Cow::from(decoded)),
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
                     return Err(nom::Err::Error(BlockError::Decompression(format!(

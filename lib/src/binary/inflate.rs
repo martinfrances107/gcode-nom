@@ -13,10 +13,7 @@ pub(super) fn inflate(
             let (remain, encoded) = take(compressed_size.unwrap())(after_param)?;
 
             match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => {
-                    let data = String::from_utf8(decoded).expect("raw data error");
-                    (remain, data)
-                }
+                Ok(decoded) => (remain, Cow::from(decoded)),
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
                     panic!()

@@ -1,4 +1,5 @@
 use core::fmt::Display;
+use std::borrow::Cow;
 
 use inflate::inflate_bytes_zlib;
 use nom::Err::Error;
@@ -19,15 +20,15 @@ use super::{
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct FileMetadataBlock {
+pub struct FileMetadataBlock<'a> {
     header: BlockHeader,
     param: Param,
     // This string is a table of "key  = value" pairs
-    data: String,
+    data: Cow<'a, [u8]>,
     checksum: Option<u32>,
 }
 
-impl Display for FileMetadataBlock {
+impl Display for FileMetadataBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(
             f,
@@ -36,7 +37,7 @@ impl Display for FileMetadataBlock {
         writeln!(f)?;
         write!(f, "Params")?;
         writeln!(f, "params 0x{:?}", self.param)?;
-        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f, "DataBlock {}", String::from_utf8_lossy(&self.data))?;
         writeln!(f)?;
 
         write!(f, "-------------------------- FileMetadataBlock ")?;
@@ -48,7 +49,7 @@ impl Display for FileMetadataBlock {
     }
 }
 
-impl FileMetadataBlock {
+impl FileMetadataBlock<'_> {
     /// Write to formatter a markdown block.
     pub fn markdown<W>(&self, mut f: W) -> core::fmt::Result
     where
@@ -63,7 +64,7 @@ impl FileMetadataBlock {
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
         writeln!(f, "<br>")?;
-        writeln!(f, "{}", self.data)?;
+        writeln!(f, "{:?}", String::from_utf8_lossy(&self.data))?;
         writeln!(f, "</details>")?;
         writeln!(f)?;
 
@@ -116,12 +117,7 @@ pub fn file_metadata_parser_with_checksum(
                     ))
                 })
             })?;
-            let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
-                Error(BlockError::Decompression(format!(
-                    "file_metadata: Failed to convert raw data to string: {e:#?}"
-                )))
-            })?;
-            (remain, data)
+            (remain, Cow::from(data_raw))
         }
         CompressionType::Deflate => {
             let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
@@ -133,14 +129,7 @@ pub fn file_metadata_parser_with_checksum(
             })?;
 
             match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => {
-                    let data = String::from_utf8(decoded).map_err(|e| {
-                        Error(BlockError::Decompression(format!(
-                            "file_metadata: Compression Deflate - Failed to convert decompress: {e:#?}"
-                        )))
-                    })?;
-                    (remain, data)
-                }
+                Ok(decoded) => (remain, Cow::from(decoded)),
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
                     return Err(Error(BlockError::Decompression(format!(

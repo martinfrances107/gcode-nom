@@ -59,7 +59,7 @@ fn main() -> std::io::Result<()> {
                                 let svg = &bgcode
                                     .gcode
                                     .iter()
-                                    .map(|gcode| gcode.data.clone())
+                                    .map(|gcode| String::from_utf8_lossy(&gcode.data))
                                     .collect::<String>()
                                     .lines()
                                     .map(std::string::ToString::to_string)

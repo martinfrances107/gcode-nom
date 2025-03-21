@@ -1,5 +1,5 @@
 use core::fmt::Display;
-use std::sync::LazyLock;
+use std::{borrow::Cow, sync::LazyLock};
 
 use crate::binary::BlockError;
 
@@ -35,15 +35,15 @@ static CONFIG_W12_L4: LazyLock<Config> =
 ///
 /// also wraps header, encoding and checksum
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct GCodeBlock {
+pub struct GCodeBlock<'a> {
     header: BlockHeader,
     encoding: Encoding,
     /// A series of gcode commands
-    pub data: String,
+    pub data: Cow<'a, [u8]>,
     checksum: Option<u32>,
 }
 
-impl Display for GCodeBlock {
+impl Display for GCodeBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(
             f,
@@ -52,7 +52,7 @@ impl Display for GCodeBlock {
         writeln!(f, "Params")?;
         writeln!(f, "encoding {:#?}", self.encoding)?;
         writeln!(f)?;
-        writeln!(f, "DataBlock {}", self.data)?;
+        writeln!(f, "DataBlock {:?}", String::from_utf8_lossy(&self.data))?;
         writeln!(f)?;
         write!(f, "-------------------------- GCodeBlock ")?;
         match self.checksum {
@@ -63,7 +63,7 @@ impl Display for GCodeBlock {
     }
 }
 
-impl Markdown for Vec<GCodeBlock> {
+impl Markdown for Vec<GCodeBlock<'_>> {
     fn markdown<W>(&self, f: &mut W) -> core::fmt::Result
     where
         W: core::fmt::Write,
@@ -84,7 +84,7 @@ impl Markdown for Vec<GCodeBlock> {
     }
 }
 
-impl GCodeBlock {
+impl GCodeBlock<'_> {
     /// Write to formatter a markdown block.
     pub(super) fn headless_markdown<W>(&self, mut f: W) -> core::fmt::Result
     where
@@ -97,7 +97,7 @@ impl GCodeBlock {
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
         writeln!(f, "<br>")?;
-        writeln!(f, "{}", self.data)?;
+        writeln!(f, "{:?}", String::from_utf8_lossy(&self.data))?;
         writeln!(f, "</details>")?;
         writeln!(f)?;
 
@@ -152,13 +152,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                         ))
                     })
                 })?;
-
-            let data = String::from_utf8(data_raw.to_vec()).map_err(|e| {
-                nom::Err::Error(BlockError::Decompression(format!(
-                    "gcode_block: Compression None - Failed to process data block as utf8: {e:#?}"
-                )))
-            })?;
-            (remain, data)
+            (remain, Cow::from(data_raw))
         }
         CompressionType::Deflate => {
             // Take the raw data block.
@@ -172,15 +166,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                 })?;
 
             match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => {
-                    let data = String::from_utf8(decoded).map_err(|e| {
-                        log::error!("Failed to decode decompressed data {e}");
-                        nom::Err::Error(BlockError::Decompression(format!(
-                            "gcode block: Deflate - Failed to process inflated data as utf8: {e:#?}"
-                        )))
-                    })?;
-                    (remain, data)
-                }
+                Ok(decoded) => (remain, Cow::from(decoded)),
                 Err(msg) => {
                     log::error!("Failed to decode decompression failed {msg}");
                     return Err(nom::Err::Error(BlockError::Decompression(format!(
@@ -219,19 +205,13 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
 
             let data = match decode(encoded, &mut scratch, &CONFIG_W12_L4) {
                 Ok(decoded_hs) => match encoding {
-                    Encoding::None => String::from_utf8(decoded_hs.to_vec())
-                        .map_err(|e| {
-                            log::error!("Failed to decode decompressed data {e}");
-                            nom::Err::Error(BlockError::Decompression(format!(
-                                "gcode_block: HeatShrink12 - Failed to process inflated data as utf8: {e:#?}"
-                            )))
-                        })?,
+                    Encoding::None => Cow::from(scratch),
                     Encoding::MeatPackAlgorithm => {
                         log::error!("Must decode with standard meat packing algorithm");
                         unimplemented!("Decoding with the meatpacking algorithm is not yet support please create an issue.");
                     }
                     Encoding::MeatPackModifiedAlgorithm => {
-                        let mut data = String::new();
+                        let mut data = vec![];
                         let mut unpacker = Unpacker::<64>::default();
                         for b in decoded_hs {
                             match unpacker.unpack(b) {
@@ -239,8 +219,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                                     // absorb byte and continue
                                 }
                                 Ok(MeatPackResult::Line(line)) => {
-                                    let line = std::str::from_utf8(line).unwrap();
-                                    data.push_str(line);
+                                    data.extend_from_slice(line);
                                 }
                                 Err(e) => {
                                     log::error!(
@@ -251,7 +230,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                                 }
                             }
                         }
-                        data
+                        Cow::from(data)
                     }
                 },
                 Err(e) => {

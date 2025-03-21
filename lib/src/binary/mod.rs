@@ -138,23 +138,23 @@ where
 ///
 /// extension .bgcode
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Bgcode {
+pub struct Bgcode<'a> {
     fh: FileHeader,
     /// A file block.
-    pub file_metadata: Option<FileMetadataBlock>,
+    pub file_metadata: Option<FileMetadataBlock<'a>>,
     /// A file block.
-    pub printer_metadata: PrinterMetadataBlock,
+    pub printer_metadata: PrinterMetadataBlock<'a>,
     /// A collection of image blocks.
-    pub thumbnails: Vec<ThumbnailBlock>,
+    pub thumbnails: Vec<ThumbnailBlock<'a>>,
     /// A file block.
-    pub print_metadata: PrintMetadataBlock,
+    pub print_metadata: PrintMetadataBlock<'a>,
     /// A file block.
-    pub slicer: SlicerBlock,
+    pub slicer: SlicerBlock<'a>,
     /// A collection of gcode blocks.
-    pub gcode: Vec<GCodeBlock>,
+    pub gcode: Vec<GCodeBlock<'a>>,
 }
 
-impl Display for Bgcode {
+impl Display for Bgcode<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         writeln!(f, "{}", self.fh)?;
 
@@ -189,7 +189,7 @@ impl Display for Bgcode {
     }
 }
 
-impl Markdown for Bgcode {
+impl Markdown for Bgcode<'_> {
     /// Write to formatter a markdown block.
     ///
     /// # Errors
