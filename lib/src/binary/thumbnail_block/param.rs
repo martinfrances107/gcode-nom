@@ -77,7 +77,7 @@ impl Display for Format {
         match self {
             Self::Png => write!(f, "png"),
             Self::Jpg => write!(f, "jpg"),
-            Self::Qoi => write!(f, "oci"),
+            Self::Qoi => write!(f, "qoi"),
         }
     }
 }
