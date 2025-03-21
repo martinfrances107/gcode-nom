@@ -4,10 +4,13 @@ use nom::combinator::map_res;
 use nom::error::{Error, ErrorKind};
 use nom::Parser;
 use nom::{number::streaming::le_u16, IResult};
+
+// Default Parameter encoding
+//
+// A empty placeholder, currently only the `GCodeBlock`
+// uses an extended set of this encoding.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct Param {
-    // possible values :-
-    // 0
     pub(super) encoding: Encoding,
 }
 
@@ -24,13 +27,9 @@ pub(super) fn param_parser(input: &[u8]) -> IResult<&[u8], Param> {
 // Encoding
 //
 // 0 = No encoding
-// 1 = MeatPack algorithm
-// 2 = MeatPack algorithm modified to keep comment lines
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) enum Encoding {
     None,
-    // MeatPack,
-    // MeatPackWithComments,
 }
 
 impl Display for Encoding {
@@ -43,8 +42,6 @@ impl TryFrom<u16> for Encoding {
     fn try_from(value: u16) -> Result<Self, Self::Error> {
         Ok(match value {
             0u16 => Self::None,
-            // 1u16 => Encoding::MeatPack,
-            // 2u16 => Encoding::MeatPackWithComments,
             bad_value => {
                 let msg = format!("Discarding version {bad_value:?}");
                 log::error!("{}", &msg);
