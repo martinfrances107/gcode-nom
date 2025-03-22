@@ -10,6 +10,11 @@
     how does the head move .. Is the position from the last
     section retained.
 
+    bench2-mk4a Loop at the tips of the segments
+     They are also stringy.
+
+[] - Make decoding a streaming parser.
+
 [] - BUG Missing compression algorithms
     HeadShrink (two modes to support)
     Have a working implementation in gcode block but its no uniformly applied.
@@ -23,26 +28,17 @@
 
 [] - Performance
 
-    extract thumbs has performance issues.
-
     gear-holder-print-in-place_04n_022mm_pla_mk4_6h49m.bgcode
 
-    HashMap - create a feature
+    is the target to test against.
 
-    Hashmap shows
-    I think read a whole file into memory might be a problem
-    large files seem to blow up more than one would expect from just the size increase.
-    In lots of places as I extract I clone into a string .. is that the problem
+    This file is now parsed in 2.1secs
 
     crate a profile_target
 
     Benchmarks use [samply](https://crates.io/crates/samply). Maybe criterion.
 
     DHAT, flamegraph?
-
-[] - use rustc-hash with config options to fall back to std::hash
-    if the library takes gocde files pull from a public network
-    the it may be subject to DOS!!!
 
 [] - Identify any M-code that should not be dropped.
 

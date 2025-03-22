@@ -21,3 +21,4 @@ gcode-nom = "0.3.0"
 clap = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
+hashbrown = "0.15.2"

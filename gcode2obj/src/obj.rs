@@ -9,11 +9,11 @@ use core::fmt::Display;
 use core::hash::Hash;
 use core::hash::Hasher;
 use core::mem;
-use std::collections::HashMap;
 
 use gcode_nom::command::Command;
 use gcode_nom::params::PosVal;
 use gcode_nom::PositionMode;
+use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
 struct Vertex(f64, f64, f64);
