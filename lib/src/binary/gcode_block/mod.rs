@@ -114,7 +114,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
-                "Looking for CODE_BLOCK_ID {CODE_BLOCK_ID} found {block_type} cond {}",
+                "gcode_block: Looking for CODE_BLOCK_ID {CODE_BLOCK_ID} found {block_type} cond {}",
                 *block_type == CODE_BLOCK_ID
             );
             *block_type == CODE_BLOCK_ID
@@ -124,7 +124,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
     .parse(input)
     .map_err(|e| {
         log::error!("Failed to parse block header {e}");
-        e.map(|e| BlockError::FileHeader(format!("Failed preamble version and checksum: {e:#?}")))
+        e.map(|e| BlockError::FileHeader(format!("Failed preamble version and checksum: {e:?}")))
     })?;
 
     log::info!("Found G-code block id.");
@@ -136,7 +136,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
 
     let (after_param, encoding) = param_parser(after_block_header).map_err(|e| {
         log::error!("Failed to parse param {e}");
-        e.map(|e| BlockError::FileHeader(format!("Failed to parse param {e:#?}")))
+        e.map(|e| BlockError::FileHeader(format!("Failed to parse param {e:?}")))
     })?;
 
     log::info!("encoding {encoding}");
@@ -148,7 +148,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                 .map_err(|e| {
                     e.map(|e: nom::error::Error<_>| {
                         BlockError::Decompression(format!(
-                            "gcode_block: No compression - Failed to process raw data: {e:#?}"
+                            "gcode_block: No compression - Failed to process raw data: {e:?}"
                         ))
                     })
                 })?;
@@ -160,7 +160,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                 .map_err(|e| {
                     e.map(|e| {
                         BlockError::Decompression(format!(
-                            "gcode_block: Deflate - Failed to process raw data: {e:#?}"
+                            "gcode_block: Deflate - Failed to process raw data: {e:?}"
                         ))
                     })
                 })?;
@@ -178,16 +178,16 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         CompressionType::HeatShrink11 => {
             let (_remain, _data_compressed) =
                 take::<_, _, BlockError>(compressed_size.unwrap())(after_param).map_err(|e| {
-                    log::error!("Failed to decode decompressed data {e}");
+                    log::error!("gcode_block: Failed to decode decompressed data {e}");
                     nom::Err::Error(BlockError::Decompression(format!(
-                    "gcode_block: HeatShrink11 - Failed to process inflated data as utf8: {e:#?}"
+                    "gcode_block: HeatShrink11 - Failed to process inflated data as utf8: {e:?}"
                 )))
                 })?;
 
             // Must decompress here
 
             // use CONFIG_W11_L4 here
-            log::info!("TODO: Must implement decompression");
+            log::info!("gcode_block: TODO: Must implement decompression");
             todo!()
         }
         CompressionType::HeatShrink12 => {
@@ -195,7 +195,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                 .map_err(|e| {
                     e.map(|e| {
                         BlockError::Decompression(format!(
-                            "gcode_block: HeatShrink12 - Failed to extract raw data: {e:#?}"
+                            "gcode_block: HeatShrink12 - Failed to extract raw data: {e:?}"
                         ))
                     })
                 })?;
@@ -222,11 +222,9 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                                     data.extend_from_slice(line);
                                 }
                                 Err(e) => {
-                                    log::error!(
-                                        "{}",
-                                        format!("failed to unpack meatpack data {e:#?}")
-                                    );
-                                    panic!();
+                                    let msg = format!("Failed running the deflate MeatPackModifiedAlgorithm 'unpack()' algorithm {e:?}");
+                                    log::error!("{}", msg);
+                                    return Err(nom::Err::Error(BlockError::Decompression(msg)));
                                 }
                             }
                         }
@@ -234,8 +232,9 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                     }
                 },
                 Err(e) => {
-                    log::error!("HeatShrink12: The output buffer was not large enough to hold the decompressed data {e:#?}");
-                    panic!();
+                    let msg = format!("GCodeBlock:  Failed running the deflate MeatPackModifiedAlgorithm 'decode()' algorithm {e:?}");
+                    log::error!("{}", msg);
+                    return Err(nom::Err::Error(BlockError::Decompression(msg)));
                 }
             };
 
@@ -246,10 +245,9 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
     let (after_checksum, checksum) = match le_u32::<_, BlockError>(after_data) {
         Ok((after_checksum, checksum)) => (after_checksum, checksum),
         Err(e) => {
-            log::error!("Failed to parse checksum {e}");
-            return Err(nom::Err::Error(BlockError::Checksum(String::from(
-                "Failed to extract checksum",
-            ))));
+            let msg = format!("gcode_block: Failed to extract checksum {e}");
+            log::error!("{}", msg);
+            return Err(nom::Err::Error(BlockError::Checksum(msg)));
         }
     };
 
@@ -262,9 +260,11 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
     let crc_input = &input[..block_size];
     let computed_checksum = crc32fast::hash(crc_input);
 
-    log::debug!("gcode checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+    log::debug!(
+        "gcode_block: checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} "
+    );
     if checksum == computed_checksum {
-        log::debug!("checksum match");
+        log::debug!("gcode_block: checksum match");
     } else {
         log::error!("fail checksum");
         return Err(nom::Err::Error(BlockError::Checksum(format!(
