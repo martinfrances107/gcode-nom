@@ -9,7 +9,6 @@ use nom::character::complete::space0;
 use nom::combinator::map;
 use nom::combinator::map_res;
 use nom::multi::many;
-use nom::multi::many0;
 use nom::sequence::preceded;
 use nom::sequence::terminated;
 use nom::IResult;
@@ -76,13 +75,11 @@ impl Command {
         // Most common first.
         alt((
             parse_g1,
+            parse_g0,
             map(tag("G21"), |_| Self::G21),
             map(tag("G90"), |_| Self::G90),
             map(tag("G91"), |_| Self::G91),
             parse_g92,
-            // Command::G0 - Non printing moves are infrequent.
-            //  eg "The benchy" example has none.
-            parse_g0,
             parse_comment,
             // Dropping "bed leveling", "dock sled", "Retract", "Stepper motor", "Mechanical Gantry Calibration"
             map(g_drop, Self::GDrop),
@@ -142,7 +139,7 @@ fn parse_comment(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g1(i: &str) -> IResult<&str, Command> {
     preceded(
-        (tag("G1"), many0(tag(" "))),
+        (tag("G1"), space0),
         map(pos_many, |vals: Vec<PosVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
@@ -159,7 +156,7 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g92(i: &str) -> IResult<&str, Command> {
     preceded(
-        (tag("G92"), many0(tag(" "))),
+        (tag("G92"), space0),
         map(pos_many, |vals: Vec<PosVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f63> value.
@@ -196,7 +193,7 @@ fn pos_val(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn m_drop(i: &str) -> IResult<&str, u16> {
-    map_res(preceded(tag("M"), digit1), str::parse).parse(i)
+    map_res(preceded((tag("M"), space0), digit1), str::parse).parse(i)
 }
 
 #[cfg(test)]

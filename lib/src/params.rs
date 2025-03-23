@@ -2,16 +2,17 @@ use core::hash::Hash;
 use core::hash::Hasher;
 
 use nom::bytes::complete::tag;
+use nom::character::complete::space0;
 use nom::combinator::map;
-use nom::multi::many0;
+use nom::sequence::preceded;
+use nom::IResult;
+use nom::Parser;
+
 // BUGFIX: using double_no_exponent from double.rs
 // as parsing a float with an exponent conflicts
 // with the E parameter in GCode.
 // use nom::number::complete::double;
 use crate::double::double_no_exponent as double;
-use nom::sequence::preceded;
-use nom::IResult;
-use nom::Parser;
 
 /// Parameters for `Command::G0` and `Command::G1`
 #[derive(Clone, Debug)]
@@ -105,7 +106,7 @@ impl Hash for PosVal {
 /// # Errors
 ///   When match fails.
 pub fn parse_a(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("A")), double), PosVal::A).parse(i)
+    map(preceded((space0, tag("A")), double), PosVal::A).parse(i)
 }
 
 /// Extracts B parameter - "G1 B95.110"
@@ -113,7 +114,7 @@ pub fn parse_a(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_b(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("B")), double), PosVal::B).parse(i)
+    map(preceded((space0, tag("B")), double), PosVal::B).parse(i)
 }
 
 /// Extracts C parameter - "G1 C95.110"
@@ -121,7 +122,7 @@ pub fn parse_b(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_c(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("C")), double), PosVal::C).parse(i)
+    map(preceded((space0, tag("C")), double), PosVal::C).parse(i)
 }
 
 /// Extracts E parameter - "G1 E95.110"
@@ -129,7 +130,7 @@ pub fn parse_c(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_e(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("E")), double), PosVal::E).parse(i)
+    map(preceded((space0, tag("E")), double), PosVal::E).parse(i)
 }
 
 /// Extracts F parameter - "G1 F95.110"
@@ -137,7 +138,7 @@ pub fn parse_e(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_f(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("F")), double), PosVal::F).parse(i)
+    map(preceded((space0, tag("F")), double), PosVal::F).parse(i)
 }
 
 /// Extracts S parameter - "G1 S95.110"
@@ -145,7 +146,7 @@ pub fn parse_f(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_s(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("S")), double), PosVal::S).parse(i)
+    map(preceded((space0, tag("S")), double), PosVal::S).parse(i)
 }
 
 /// Extracts U parameter - "G1 U95.110"
@@ -153,7 +154,7 @@ pub fn parse_s(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_u(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("U")), double), PosVal::U).parse(i)
+    map(preceded((space0, tag("U")), double), PosVal::U).parse(i)
 }
 
 /// Extracts V parameter - "G1 V95.110"
@@ -161,7 +162,7 @@ pub fn parse_u(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_v(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("V")), double), PosVal::V).parse(i)
+    map(preceded((space0, tag("V")), double), PosVal::V).parse(i)
 }
 
 /// Extracts W parameter - "G1 W95.110"
@@ -169,7 +170,7 @@ pub fn parse_v(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_w(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("W")), double), PosVal::W).parse(i)
+    map(preceded((space0, tag("W")), double), PosVal::W).parse(i)
 }
 
 /// Extracts X parameter - "G1 X95.110"
@@ -177,7 +178,7 @@ pub fn parse_w(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_x(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("X")), double), PosVal::X).parse(i)
+    map(preceded((space0, tag("X")), double), PosVal::X).parse(i)
 }
 
 /// Extracts Y parameter - "G1 Y95.110"
@@ -185,7 +186,7 @@ pub fn parse_x(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_y(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("Y")), double), PosVal::Y).parse(i)
+    map(preceded((space0, tag("Y")), double), PosVal::Y).parse(i)
 }
 
 /// Extracts Z parameter - "G1 Z95.110"
@@ -193,7 +194,7 @@ pub fn parse_y(i: &str) -> IResult<&str, PosVal> {
 /// # Errors
 ///   When match fails.
 pub fn parse_z(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((many0(tag(" ")), tag("Z")), double), PosVal::Z).parse(i)
+    map(preceded((space0, tag("Z")), double), PosVal::Z).parse(i)
 }
 
 #[cfg(test)]
