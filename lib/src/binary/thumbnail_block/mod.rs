@@ -38,7 +38,7 @@ impl Display for ThumbnailBlock<'_> {
         )?;
         writeln!(f)?;
         writeln!(f, "Params")?;
-        write!(f, "{}", self.param)?;
+        writeln!(f, "{}", self.param)?;
         writeln!(f, "DataBlock omitted")?;
         writeln!(f)?;
         write!(f, "-------------------------- ThumbnailBlock ")?;
@@ -78,7 +78,7 @@ impl ThumbnailBlock<'_> {
     {
         writeln!(f, "### Params")?;
         writeln!(f)?;
-        write!(f, "{}", self.param)?;
+        writeln!(f, "{}", self.param)?;
         writeln!(f, "DataBlock omitted")?;
         writeln!(f)?;
         match self.checksum {
