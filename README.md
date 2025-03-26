@@ -34,7 +34,7 @@ Pass the gcode file into StdIn - the obj file is sent to StdOut :-
 
 ```bash
 cd gcode2obj
-cargo run --release -- < ./assets/bency.gcode > bench.obj
+cargo run --release -- < ./assets/benchy.gcode > benchy.obj
 ```
 
 If a filename is passed in as a command line parameter then a obj file will be dumped to StdOut.
