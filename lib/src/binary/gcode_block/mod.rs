@@ -223,7 +223,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                                 }
                                 Err(e) => {
                                     let msg = format!("Failed running the deflate MeatPackModifiedAlgorithm 'unpack()' algorithm {e:?}");
-                                    log::error!("{}", msg);
+                                    log::error!("{msg}");
                                     return Err(nom::Err::Error(BlockError::Decompression(msg)));
                                 }
                             }
@@ -233,7 +233,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
                 },
                 Err(e) => {
                     let msg = format!("GCodeBlock:  Failed running the deflate MeatPackModifiedAlgorithm 'decode()' algorithm {e:?}");
-                    log::error!("{}", msg);
+                    log::error!("{msg}");
                     return Err(nom::Err::Error(BlockError::Decompression(msg)));
                 }
             };

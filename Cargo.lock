@@ -75,10 +75,10 @@ dependencies = [
 
 [[package]]
 name = "bgcodeValidator"
-version = "0.1.1"
+version = "0.4.0"
 dependencies = [
  "env_logger",
- "gcode-nom 0.3.0",
+ "gcode-nom 0.4.0",
  "log",
 ]
 
@@ -174,11 +174,11 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "extract_thumbs"
-version = "0.1.1"
+version = "0.4.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.3.0",
+ "gcode-nom 0.4.0",
  "log",
 ]
 
@@ -187,18 +187,6 @@ name = "foldhash"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
-
-[[package]]
-name = "gcode-nom"
-version = "0.3.0"
-dependencies = [
- "crc32fast",
- "heatshrink",
- "inflate",
- "log",
- "meatpack",
- "nom",
-]
 
 [[package]]
 name = "gcode-nom"
@@ -215,23 +203,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "gcode-nom"
+version = "0.4.0"
+dependencies = [
+ "crc32fast",
+ "heatshrink",
+ "inflate",
+ "log",
+ "meatpack",
+ "nom",
+]
+
+[[package]]
 name = "gcode2obj"
 version = "0.3.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gcode-nom 0.3.0",
  "hashbrown",
  "log",
 ]
 
 [[package]]
 name = "gcode2svg"
-version = "0.1.0"
+version = "0.4.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.3.0",
+ "gcode-nom 0.4.0",
  "log",
 ]
 
@@ -275,9 +275,9 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
 name = "jiff"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d699bc6dfc879fb1bf9bdff0d4c56f0884fc6f0d0eb0fba397a6d00cd9a6b85e"
+checksum = "c102670231191d07d37a35af3eb77f1f0dbf7a71be51a962dcd57ea607be7260"
 dependencies = [
  "jiff-static",
  "log",
@@ -288,9 +288,9 @@ dependencies = [
 
 [[package]]
 name = "jiff-static"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d16e75759ee0aa64c57a56acbf43916987b20c77373cb7e808979e02b93c9f9"
+checksum = "4cdde31a9d349f1b1f51a0b3714a5940ac022976f4b49485fc04be052b183b4c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -299,9 +299,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.26"
+version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30bde2b3dc3671ae49d8e2e9f044c7c005836e7a023ee57cffa25ab82764bb9e"
+checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
 
 [[package]]
 name = "meatpack"
