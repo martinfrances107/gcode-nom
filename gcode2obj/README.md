@@ -13,20 +13,20 @@ A G-code visualization tool written in [rust](https://www.rust-lang.org/)
 
 A nom based parser, outputs a "Wavefront Obj" file which can be imported into blender for visualization.
 
-Both .gcode files and binary .bgcode files are accepeted
+Both .gcode files and binary .bgcode files are accepted.
 
 ## How to use
 
 Pass the gcode file in as 'StdIn' and the program will send the obj file to 'StdOut' :-
 
 ```bash
-cargo run --release -- < ../assets/bency.gcode > benchy.obj
+cargo run --release -- < ../assets/benchy.gcode > benchy.obj
 ```
 
 Binary ".bgcode" files must be passed in by filename :-
 
 ```bash
-## Binary bgcoode files must be passed in as an argument beacuse they are not utf-8 encoded
+## Binary bgcoode files must be passed in as an argument because they are not utf-8 encoded
 cargo run --release --  ../assets/both\ parts.bgcode > both.obj
 ```
 
@@ -41,9 +41,15 @@ Within blender :-
 2) Converted into a "Curve".
 3) Finally a circular bevel object has been applied to make the object solid [ A circle to represent a 0.1mm fibre].
 
-see [todo](TODO.md)
+## Performance
+
+Currently 9.9MByte bgcode file can be processed into a 16MBytes obj file in 1m13secs.
 
 ## Future work
 
+* Make the nom-parser a streaming parse.
+
 * I have only tested against gcode files that use absolute positioning.
 I must test with code than uses relative positioning.
+
+* Make this a streaming parser.

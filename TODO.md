@@ -1,5 +1,7 @@
 # TASKS
 
+[] -
+
 [] - cube -- add groups to .obj file
     -- produce render.
 
@@ -10,19 +12,21 @@
     how does the head move .. Is the position from the last
     section retained.
 
-    bench2-mk4a Loop at the tips of the segments
+    bench2-mk4a Loop at the tips of the ridges
      They are also stringy.
+
+    "G0 and G1 Must be handled uniformly" maybe the fix.
 
 [] - Make decoding a streaming parser.
 
 [] - BUG Missing compression algorithms
-    HeadShrink (two modes to support)
-    Have a working implementation in gcode block but its no uniformly applied.
+     HeadShrink (two modes to support)
+     Have a working implementation in gcode block but its no uniformly applied.
 
-    HeatShrink is specific for GCODE::Commands ..
-    Does this apply to all sub blocks?
+     HeatShrink is specific for GCODE::Commands ..
+     Does this apply to all sub blocks?
 
-[]  - Image gallery choose visually appealing obj's and take a collage
+[] - Image gallery choose visually appealing obj's and take a collage
 
 ----
 
@@ -32,7 +36,8 @@
 
     is the target to test against.
 
-    This file is now parsed in 2.1secs
+
+    Need to add two transformers -- to convert to a streaming parser.
 
     crate a profile_target
 
