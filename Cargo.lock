@@ -90,9 +90,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "clap"
-version = "4.5.32"
+version = "4.5.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6088f3ae8c3608d19260cd7445411865a485688711b78b5be70d78cd96136f83"
+checksum = "e2c80cae4c3350dd8f1272c73e83baff9a6ba550b8bfbe651b3c45b78cd1751e"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -100,9 +100,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.32"
+version = "4.5.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22a7ef7f676155edfb82daa97f99441f3ebf4a58d5e32f295a56259f1b6facc8"
+checksum = "0123e386f691c90aa228219b5b1ee72d465e8e231c79e9c82324f016a62a741c"
 dependencies = [
  "anstream",
  "anstyle",
@@ -190,9 +190,7 @@ checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
 name = "gcode-nom"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7f8bd57509dbf3bc2e6bb1e637ddfc2b36d978dfd3ec7a9aeebe656626483cd"
+version = "0.4.0"
 dependencies = [
  "crc32fast",
  "heatshrink",
@@ -205,6 +203,8 @@ dependencies = [
 [[package]]
 name = "gcode-nom"
 version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb23568a0103d044af5e1ef740e2e9040c54d33fe2ddad2eefb8df7806c50774"
 dependencies = [
  "crc32fast",
  "heatshrink",
@@ -220,7 +220,7 @@ version = "0.3.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.3.0",
+ "gcode-nom 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hashbrown",
  "log",
 ]

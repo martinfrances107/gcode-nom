@@ -52,7 +52,7 @@ fn main() -> std::io::Result<()> {
     let args = Args::parse();
 
     if let Some(file) = args.file {
-        info!("File: {:?}", file);
+        info!("File: {file:?}");
         if file.exists() {
             if let Some(ext) = file.extension() {
                 if ext == "gcode" {
@@ -71,13 +71,10 @@ fn main() -> std::io::Result<()> {
                         match bgcode_parser(&buffer) {
                             Ok((_remain, bgcode)) => {
                                 log::info!("parser succeeded: Valid input");
-                                let obj = &bgcode
+                                let obj = bgcode
                                     .gcode
                                     .iter()
-                                    .map(|gcode| gcode.data.clone())
-                                    .collect::<String>()
-                                    .lines()
-                                    .map(std::string::ToString::to_string)
+                                    .flat_map(|gcode| gcode.data.lines().map_while(Result::ok))
                                     .collect::<Obj>();
                                 println!("{obj}");
                             }

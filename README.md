@@ -11,7 +11,7 @@ Rust 2021 Edition.
 
 A library containing a full set of [nom](https://crates.io/crates/nom) parsers for decoding gcode files.
 
-Both .gcode files and binary .bgcode files are recognised.
+Both .gcode files and binary .bgcode files are recognized.
 
 Based on this library the workspace contains a series of visualization tools
 

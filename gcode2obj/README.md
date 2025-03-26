@@ -45,11 +45,13 @@ Within blender :-
 
 Currently 9.9MByte bgcode file can be processed into a 16MBytes obj file in 1m13secs.
 
+[ See the git repository associated with this project...
+assets/gear-holder-print-in-place_04n_022mm_pla_mk4_6h49m.bgcode ]
+
 ## Future work
 
-* Make the nom-parser a streaming parse.
+* Make this nom-parser a "streaming / zero copy" parser. So only a small fragment of the large files is memory.
 
 * I have only tested against gcode files that use absolute positioning.
-I must test with code than uses relative positioning.
 
-* Make this a streaming parser.
+* I must test with code than uses relative positioning.
