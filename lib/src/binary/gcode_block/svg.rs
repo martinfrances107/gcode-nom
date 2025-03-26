@@ -114,18 +114,11 @@ impl FromIterator<String> for Svg {
                                 // or sucking filament back into the extruder.
                                 is_extruding = val > 0_f64;
                             }
-                            PosVal::F(_) => {
-                                // Silently drop.
-                            }
-                            pos_bad => {
-                                log::debug!("Unexpected param seen in Command::G1 {pos_bad:?}");
-                            }
+                            _ => {}
                         }
                     }
 
                     // Valid `Command::G0` -  Where X and Y and undefined
-                    //
-                    // "G1 E2.72551 F1800.00000"
                     if !x.is_nan() && !y.is_nan() {
                         // Convert x,y,z, into projected x,y.
                         let proj_x = y / 2. + x / 2.;
@@ -151,12 +144,7 @@ impl FromIterator<String> for Svg {
                             PosVal::E(val) => {
                                 is_extruding = val > 0_f64;
                             }
-                            PosVal::F(_) => {
-                                // silently drop
-                            }
-                            pos_bad => {
-                                log::debug!("SVG Unexpected param seen in Command::G1 {pos_bad:?}");
-                            }
+                            _ => {}
                         }
                     }
 
@@ -202,10 +190,7 @@ impl FromIterator<String> for Svg {
                                 // or sucking filament back into the extruder.
                                 is_extruding = val > 0_f64;
                             }
-                            PosVal::F(_) => { /*  silently drop */ }
-                            pos_bad => {
-                                log::debug!("Unexpected param seen in Command::G1 {pos_bad:?}");
-                            }
+                            _ => { /* Silently drop. */ }
                         }
                     }
 
