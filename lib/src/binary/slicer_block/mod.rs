@@ -1,13 +1,12 @@
 use core::fmt::{Display, Write};
-use std::borrow::Cow;
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
     compression_type::CompressionType,
+    inflate::decompress_data_block,
     BlockError,
 };
 
-use inflate::inflate_bytes_zlib;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -23,11 +22,15 @@ use super::default_params::Param;
 pub struct SlicerBlock<'a> {
     header: BlockHeader,
     param: Param,
-    data: Cow<'a, [u8]>,
+    data: &'a [u8],
     checksum: Option<u32>,
 }
 impl Display for SlicerBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let datablock: String = match decompress_data_block(&self.header, self.data) {
+            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+            Err(_e) => String::from("failed to decompress"),
+        };
         writeln!(
             f,
             "-------------------------- SlicerBlock --------------------------"
@@ -35,7 +38,7 @@ impl Display for SlicerBlock<'_> {
         writeln!(f, "Params")?;
         writeln!(f, "params {:#?}", self.param)?;
         writeln!(f)?;
-        writeln!(f, "DataBlock {:?}", self.data)?;
+        writeln!(f, "DataBlock {datablock:?}")?;
         writeln!(f)?;
         write!(f, "-------------------------- SlicerBlock ")?;
         match self.checksum {
@@ -52,6 +55,10 @@ impl SlicerBlock<'_> {
     where
         W: Write,
     {
+        let datablock: String = match decompress_data_block(&self.header, self.data) {
+            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+            Err(_e) => String::from("failed to decompress"),
+        };
         writeln!(f)?;
         writeln!(f, "## SlicerBlock")?;
         writeln!(f)?;
@@ -61,7 +68,7 @@ impl SlicerBlock<'_> {
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
         writeln!(f, "<br>")?;
-        writeln!(f, "{:?}", String::from_utf8_lossy(&self.data))?;
+        writeln!(f, "{datablock:?}",)?;
         writeln!(f, "</details>")?;
         writeln!(f)?;
         match self.checksum {
@@ -94,12 +101,6 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
     })?;
 
     log::info!("Found slicer block id");
-    let BlockHeader {
-        compression_type,
-        uncompressed_size,
-        compressed_size,
-        ..
-    } = header.clone();
 
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
         e.map(|e: nom::error::Error<_>| {
@@ -108,62 +109,9 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
     })?;
 
     // Decompress data block
-    let (after_data, data) = match compression_type {
-        CompressionType::None => {
-            let (remain, data_raw) = take(uncompressed_size)(after_param).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "slicer: Compression None - Failed to extract data block: {e:#?}"
-                    ))
-                })
-            })?;
-            (remain, Cow::from(data_raw))
-        }
-        CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "slicer: Compression Deflate - Failed to extract raw(compressed) data block: {e:#?}"
-                    ))
-                })
-            })?;
-
-            match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => (remain, Cow::from(decoded)),
-                Err(msg) => {
-                    log::error!("Failed to decode decompression failed {msg}");
-                    return Err(nom::Err::Error(BlockError::Decompression(format!(
-                        "slicer: Compression Deflate - Failed to decode data block: {msg}"
-                    ))));
-                }
-            }
-        }
-        CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) =
-                take(compressed_size.unwrap())(after_param).map_err(|e| {
-                    e.map(|e: nom::error::Error<_>| {
-                        BlockError::Decompression(format!(
-                        "slicer: Compression HeatShrink11 - Failed to extract data block: {e:#?}"
-                    ))
-                    })
-                })?;
-            // Must decompress here
-            log::error!("TODO: Must implement decompression");
-            todo!()
-        }
-        CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) =
-                take(compressed_size.unwrap())(after_param).map_err(|e| {
-                    e.map(|e: nom::error::Error<_>| {
-                        BlockError::Decompression(format!(
-                        "slicer: Compression HeatShrink12 - Failed to extract data block: {e:#?}"
-                    ))
-                    })
-                })?;
-            // Must decompress here
-            log::error!("TODO: Must implement decompression");
-            todo!()
-        }
+    let (after_data, data) = match header.compressed_size {
+        Some(size) => take(size)(after_param)?,
+        None => take(header.uncompressed_size)(after_param)?,
     };
 
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
@@ -173,9 +121,9 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
     })?;
 
     let param_size = 2;
-    let payload_size = match compression_type {
-        CompressionType::None => uncompressed_size as usize,
-        _ => compressed_size.unwrap() as usize,
+    let payload_size = match header.compression_type {
+        CompressionType::None => header.uncompressed_size as usize,
+        _ => header.compressed_size.unwrap() as usize,
     };
     let block_size = header.size_in_bytes() + param_size + payload_size;
     let crc_input = &input[..block_size];
