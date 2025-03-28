@@ -29,7 +29,7 @@ impl Display for FileMetadataBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let datablock: String = match decompress_data_block(&self.header, self.data) {
             Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
-            Err(_e) => String::from("failed decompress"),
+            Err(_e) => String::from("failed to decompress"),
         };
         writeln!(
             f,
@@ -58,7 +58,7 @@ impl FileMetadataBlock<'_> {
     {
         let datablock = match decompress_data_block(&self.header, self.data) {
             Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
-            Err(_e) => String::from("failed decompress"),
+            Err(_e) => String::from("failed to decompress"),
         };
         writeln!(f)?;
         writeln!(f, "## FileMetadataBlock")?;
