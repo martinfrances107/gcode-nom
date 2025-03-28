@@ -27,10 +27,11 @@ pub struct FileMetadataBlock<'a> {
 
 impl Display for FileMetadataBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let datablock: String = match decompress_data_block(&self.header, self.data) {
-            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
-            Err(_e) => String::from("failed to decompress"),
-        };
+        let datablock: String =
+            match decompress_data_block(self.data, &self.param.encoding, &self.header) {
+                Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+                Err(_e) => String::from("failed to decompress"),
+            };
         writeln!(
             f,
             "-------------------------- FileMetadataBlock --------------------------"
@@ -56,7 +57,7 @@ impl FileMetadataBlock<'_> {
     where
         W: std::fmt::Write,
     {
-        let datablock = match decompress_data_block(&self.header, self.data) {
+        let datablock = match decompress_data_block(self.data, &self.param.encoding, &self.header) {
             Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
             Err(_e) => String::from("failed to decompress"),
         };

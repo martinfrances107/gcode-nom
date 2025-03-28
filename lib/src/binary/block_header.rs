@@ -20,7 +20,7 @@ use super::compression_type::CompressionType;
 ///
 ///
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub(super) struct BlockHeader {
+pub struct BlockHeader {
     // Compression algorithm
     pub(super) compression_type: CompressionType,
     // Size of data when uncompressed

@@ -1,58 +1,54 @@
 use core::fmt::Display;
-use std::{borrow::Cow, sync::LazyLock};
 
-use crate::binary::BlockError;
-
-use super::{
-    block_header::{block_header_parser, BlockHeader},
-    compression_type::CompressionType,
-    Markdown,
-};
-
-use heatshrink::{decode, Config};
-use inflate::inflate_bytes_zlib;
+use crate::binary::{default_params::param_parser, BlockError};
 use nom::{
     bytes::streaming::take,
     combinator::verify,
-    error::Error,
     number::streaming::{le_u16, le_u32},
     sequence::preceded,
     IResult, Parser,
 };
 
-use meatpack::{MeatPackResult, Unpacker};
-use param::param_parser;
-use param::Encoding;
+use super::{
+    block_header::{block_header_parser, BlockHeader},
+    compression_type::CompressionType,
+    default_params::Param,
+    inflate::decompress_data_block,
+    Markdown,
+};
 
-mod param;
 /// Converts a gcode block into a SVG file.
 pub mod svg;
-
-static CONFIG_W12_L4: LazyLock<Config> =
-    LazyLock::new(|| Config::new(12, 4).expect("Failed to configure HeatshrinkW11L4 decoder"));
 
 /// A wrapper for a series of gcode commands.
 ///
 /// also wraps header, encoding and checksum
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct GCodeBlock<'a> {
-    header: BlockHeader,
-    encoding: Encoding,
+    /// Header
+    pub header: BlockHeader,
+    /// Param the data's encoding.
+    pub param: Param,
     /// A series of gcode commands
-    pub data: Cow<'a, [u8]>,
+    pub data: &'a [u8],
     checksum: Option<u32>,
 }
 
 impl Display for GCodeBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let datablock: String =
+            match decompress_data_block(self.data, &self.param.encoding, &self.header) {
+                Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+                Err(_e) => String::from("failed to decompress"),
+            };
         writeln!(
             f,
             "-------------------------- GCodeBlock --------------------------"
         )?;
         writeln!(f, "Params")?;
-        writeln!(f, "encoding {:#?}", self.encoding)?;
+        writeln!(f, "encoding {:#?}", self.param.encoding)?;
         writeln!(f)?;
-        writeln!(f, "DataBlock {:?}", String::from_utf8_lossy(&self.data))?;
+        writeln!(f, "DataBlock {datablock:?}")?;
         writeln!(f)?;
         write!(f, "-------------------------- GCodeBlock ")?;
         match self.checksum {
@@ -90,14 +86,18 @@ impl GCodeBlock<'_> {
     where
         W: std::fmt::Write,
     {
+        let datablock = match decompress_data_block(self.data, &self.param.encoding, &self.header) {
+            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+            Err(_e) => String::from("failed to decompress"),
+        };
         writeln!(f, "### Params")?;
         writeln!(f)?;
-        writeln!(f, "encoding {:#?}", self.encoding)?;
+        writeln!(f, "encoding {:#?}", self.param.encoding)?;
         writeln!(f)?;
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
         writeln!(f, "<br>")?;
-        writeln!(f, "{:?}", String::from_utf8_lossy(&self.data))?;
+        writeln!(f, "{datablock:?}")?;
         writeln!(f, "</details>")?;
         writeln!(f)?;
 
@@ -128,118 +128,16 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
     })?;
 
     log::info!("Found G-code block id.");
-    let BlockHeader {
-        compression_type,
-        compressed_size,
-        uncompressed_size,
-    } = header.clone();
-
-    let (after_param, encoding) = param_parser(after_block_header).map_err(|e| {
+    let (after_param, param) = param_parser(after_block_header).map_err(|e| {
         log::error!("Failed to parse param {e}");
         e.map(|e| BlockError::FileHeader(format!("Failed to parse param {e:?}")))
     })?;
 
-    log::info!("encoding {encoding}");
+    log::info!("param {param:?}");
     // Decompress data block.
-    let (after_data, data) = match compression_type {
-        CompressionType::None => {
-            // Take the raw data block.
-            let (remain, data_raw) = take::<_, _, Error<&[u8]>>(uncompressed_size)(after_param)
-                .map_err(|e| {
-                    e.map(|e: nom::error::Error<_>| {
-                        BlockError::Decompression(format!(
-                            "gcode_block: No compression - Failed to process raw data: {e:?}"
-                        ))
-                    })
-                })?;
-            (remain, Cow::from(data_raw))
-        }
-        CompressionType::Deflate => {
-            // Take the raw data block.
-            let (remain, encoded) = take::<_, _, BlockError>(compressed_size.unwrap())(after_param)
-                .map_err(|e| {
-                    e.map(|e| {
-                        BlockError::Decompression(format!(
-                            "gcode_block: Deflate - Failed to process raw data: {e:?}"
-                        ))
-                    })
-                })?;
-
-            match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => (remain, Cow::from(decoded)),
-                Err(msg) => {
-                    log::error!("Failed to decode decompression failed {msg}");
-                    return Err(nom::Err::Error(BlockError::Decompression(format!(
-                        "gcode block: Deflate - Failed to process inflated data as utf8: {msg}"
-                    ))));
-                }
-            }
-        }
-        CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) =
-                take::<_, _, BlockError>(compressed_size.unwrap())(after_param).map_err(|e| {
-                    log::error!("gcode_block: Failed to decode decompressed data {e}");
-                    nom::Err::Error(BlockError::Decompression(format!(
-                    "gcode_block: HeatShrink11 - Failed to process inflated data as utf8: {e:?}"
-                )))
-                })?;
-
-            // Must decompress here
-
-            // use CONFIG_W11_L4 here
-            log::info!("gcode_block: TODO: Must implement decompression");
-            todo!()
-        }
-        CompressionType::HeatShrink12 => {
-            let (remain, encoded) = take::<_, _, BlockError>(compressed_size.unwrap())(after_param)
-                .map_err(|e| {
-                    e.map(|e| {
-                        BlockError::Decompression(format!(
-                            "gcode_block: HeatShrink12 - Failed to extract raw data: {e:?}"
-                        ))
-                    })
-                })?;
-
-            // TODO Figure out why size is is off by 1 -  crashes with buffer was not large enough.
-            let mut scratch = vec![0u8; 1 + uncompressed_size as usize];
-
-            let data = match decode(encoded, &mut scratch, &CONFIG_W12_L4) {
-                Ok(decoded_hs) => match encoding {
-                    Encoding::None => Cow::from(scratch),
-                    Encoding::MeatPackAlgorithm => {
-                        log::error!("Must decode with standard meat packing algorithm");
-                        unimplemented!("Decoding with the meatpacking algorithm is not yet support please create an issue.");
-                    }
-                    Encoding::MeatPackModifiedAlgorithm => {
-                        let mut data = vec![];
-                        let mut unpacker = Unpacker::<64>::default();
-                        for b in decoded_hs {
-                            match unpacker.unpack(b) {
-                                Ok(MeatPackResult::WaitingForNextByte) => {
-                                    // absorb byte and continue
-                                }
-                                Ok(MeatPackResult::Line(line)) => {
-                                    data.extend_from_slice(line);
-                                }
-                                Err(e) => {
-                                    let msg = format!("Failed running the deflate MeatPackModifiedAlgorithm 'unpack()' algorithm {e:?}");
-                                    log::error!("{msg}");
-                                    return Err(nom::Err::Error(BlockError::Decompression(msg)));
-                                }
-                            }
-                        }
-                        Cow::from(data)
-                    }
-                },
-                Err(e) => {
-                    let msg = format!("GCodeBlock:  Failed running the deflate MeatPackModifiedAlgorithm 'decode()' algorithm {e:?}");
-                    log::error!("{msg}");
-                    return Err(nom::Err::Error(BlockError::Decompression(msg)));
-                }
-            };
-
-            (remain, data)
-        }
+    let (after_data, data) = match header.compressed_size {
+        Some(size) => take(size)(after_param)?,
+        None => take(header.uncompressed_size)(after_param)?,
     };
 
     let (after_checksum, checksum) = match le_u32::<_, BlockError>(after_data) {
@@ -252,10 +150,11 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
     };
 
     let param_size = 2;
-    let payload_size = match compression_type {
-        CompressionType::None => uncompressed_size as usize,
-        _ => compressed_size.unwrap() as usize,
+    let payload_size = match header.compression_type {
+        CompressionType::None => header.uncompressed_size as usize,
+        _ => header.compressed_size.unwrap() as usize,
     };
+
     let block_size = header.size_in_bytes() + param_size + payload_size;
     let crc_input = &input[..block_size];
     let computed_checksum = crc32fast::hash(crc_input);
@@ -276,7 +175,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         after_checksum,
         GCodeBlock {
             header,
-            encoding,
+            param,
             data,
             checksum: Some(checksum),
         },

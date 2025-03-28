@@ -16,6 +16,7 @@
 use clap::Parser;
 use gcode_nom::binary::bgcode_parser;
 use gcode_nom::binary::gcode_block::svg::Svg;
+use gcode_nom::binary::inflate::decompress_data_block;
 use log::info;
 use std::fs::File;
 use std::io::stdin;
@@ -59,7 +60,18 @@ fn main() -> std::io::Result<()> {
                                 let svg = &bgcode
                                     .gcode
                                     .iter()
-                                    .map(|gcode| String::from_utf8_lossy(&gcode.data))
+                                    .map(|gcode| {
+                                        match decompress_data_block(
+                                            gcode.data,
+                                            &gcode.param.encoding,
+                                            &gcode.header,
+                                        ) {
+                                            Ok((_remain, data)) => {
+                                                String::from_utf8_lossy(&data).to_string()
+                                            }
+                                            Err(_e) => panic!("failed to decompress data block"),
+                                        }
+                                    })
                                     .collect::<String>()
                                     .lines()
                                     .map(std::string::ToString::to_string)

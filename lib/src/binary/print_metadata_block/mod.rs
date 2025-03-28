@@ -23,10 +23,11 @@ pub struct PrintMetadataBlock<'a> {
 
 impl Display for PrintMetadataBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let datablock: String = match decompress_data_block(&self.header, self.data) {
-            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
-            Err(_e) => String::from("failed to decompress"),
-        };
+        let datablock: String =
+            match decompress_data_block(self.data, &self.param.encoding, &self.header) {
+                Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+                Err(_e) => String::from("failed to decompress"),
+            };
         writeln!(
             f,
             "-------------------------- PrintMetadataBlock --------------------------"
@@ -52,10 +53,11 @@ impl PrintMetadataBlock<'_> {
     where
         W: std::fmt::Write,
     {
-        let datablock: String = match decompress_data_block(&self.header, self.data) {
-            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
-            Err(_e) => String::from("failed to decompress"),
-        };
+        let datablock: String =
+            match decompress_data_block(self.data, &self.param.encoding, &self.header) {
+                Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+                Err(_e) => String::from("failed to decompress"),
+            };
         writeln!(f)?;
         writeln!(f, "## PrintMetadataBlock")?;
         writeln!(f)?;
