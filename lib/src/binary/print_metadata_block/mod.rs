@@ -1,7 +1,5 @@
 use core::fmt::Display;
-use std::borrow::Cow;
 
-use inflate::inflate_bytes_zlib;
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -10,21 +8,25 @@ use nom::{
     IResult, Parser,
 };
 
-use super::default_params::Param;
 use super::{block_header::block_header_parser, block_header::BlockHeader, CompressionType};
 use super::{default_params::param_parser, BlockError};
+use super::{default_params::Param, inflate::decompress_data_block};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrintMetadataBlock<'a> {
     header: BlockHeader,
     param: Param,
     // This string is a table of "key  = value" pairs
-    data: Cow<'a, [u8]>,
+    data: &'a [u8],
     checksum: Option<u32>,
 }
 
 impl Display for PrintMetadataBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let datablock: String = match decompress_data_block(&self.header, self.data) {
+            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+            Err(_e) => String::from("failed to decompress"),
+        };
         writeln!(
             f,
             "-------------------------- PrintMetadataBlock --------------------------"
@@ -32,7 +34,7 @@ impl Display for PrintMetadataBlock<'_> {
         writeln!(f)?;
         write!(f, "Params")?;
         writeln!(f, "params 0x{:?}", self.param)?;
-        writeln!(f, "DataBlock {}", String::from_utf8_lossy(&self.data))?;
+        writeln!(f, "DataBlock {datablock}")?;
         writeln!(f)?;
 
         write!(f, "-------------------------- PrintMetadataBlock ")?;
@@ -50,6 +52,10 @@ impl PrintMetadataBlock<'_> {
     where
         W: std::fmt::Write,
     {
+        let datablock: String = match decompress_data_block(&self.header, self.data) {
+            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+            Err(_e) => String::from("failed to decompress"),
+        };
         writeln!(f)?;
         writeln!(f, "## PrintMetadataBlock")?;
         writeln!(f)?;
@@ -59,7 +65,7 @@ impl PrintMetadataBlock<'_> {
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
         writeln!(f, "<br>")?;
-        writeln!(f, "{}", String::from_utf8_lossy(&self.data))?;
+        writeln!(f, "{datablock}")?;
         writeln!(f, "</details>")?;
         writeln!(f)?;
 
@@ -105,61 +111,9 @@ pub fn print_metadata_parser_with_checksum(
     })?;
 
     // Decompress data block
-    let (after_data, data) = match compression_type {
-        CompressionType::None => {
-            let (remain, data_raw) = take(uncompressed_size)(after_param).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "print_metadata: Compression None - Failed to extract data block: {e:#?}"
-                    ))
-                })
-            })?;
-            (remain, Cow::from(data_raw))
-        }
-        CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "print_metadata: Compression Deflate - Failed to extract data block: {e:#?}"
-                    ))
-                })
-            })?;
-
-            match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => (remain, Cow::from(decoded)),
-                Err(msg) => {
-                    log::error!("Failed to decode decompression failed {msg}");
-                    return Err(nom::Err::Error(BlockError::Decompression(format!(
-                        "print_metadata: Compression Deflate - Failed to decode data block: {msg}"
-                    ))));
-                }
-            }
-        }
-        CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "printer_metadata: Compression HeatShrink11 - Failed to extract data block: {e:#?}"
-                    ))
-                })
-            })?;
-
-            // Must decompress here
-            log::error!("TODO: Must implement decompression");
-            unimplemented!("print_metadata_block: Encoding with the meatpacking algorithm is not yet support please create an issue.");
-        }
-        CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) = take(compressed_size.unwrap())(after_param).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "print_metadata: Compression HeatShrink12 - Failed to extract data block: {e:#?}"
-                    ))
-                })
-            })?;
-            // Must decompress here
-            log::error!("TODO: Must implement decompression");
-            todo!()
-        }
+    let (after_data, data) = match compressed_size {
+        Some(size) => take(size)(after_param)?,
+        None => take(uncompressed_size)(after_param)?,
     };
 
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
