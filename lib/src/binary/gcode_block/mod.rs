@@ -246,7 +246,7 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         Ok((after_checksum, checksum)) => (after_checksum, checksum),
         Err(e) => {
             let msg = format!("gcode_block: Failed to extract checksum {e}");
-            log::error!("{}", msg);
+            log::error!("{msg}");
             return Err(nom::Err::Error(BlockError::Checksum(msg)));
         }
     };
