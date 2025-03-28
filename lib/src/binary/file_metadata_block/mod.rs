@@ -107,7 +107,11 @@ pub fn file_metadata_parser_with_checksum(
         })
     })?;
 
-    let (after_data, data) = take(header.uncompressed_size)(after_param)?;
+    // Decompress data block
+    let (after_data, data) = match header.compressed_size {
+        Some(size) => take(size)(after_param)?,
+        None => take(header.uncompressed_size)(after_param)?,
+    };
 
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
         e.map(|e: nom::error::Error<_>| {
