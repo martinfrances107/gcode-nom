@@ -1,13 +1,12 @@
 use core::fmt::Display;
-use std::borrow::Cow;
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
-    compression_type::CompressionType,
     default_params::{param_parser, Param},
+    inflate::decompress_data_block,
     BlockError,
 };
-use inflate::inflate_bytes_zlib;
+
 use nom::{
     bytes::streaming::take,
     combinator::verify,
@@ -20,18 +19,22 @@ use nom::{
 pub struct PrinterMetadataBlock<'a> {
     header: BlockHeader,
     param: Param,
-    data: Cow<'a, [u8]>,
+    data: &'a [u8],
     checksum: Option<u32>,
 }
 impl Display for PrinterMetadataBlock<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let datablock: String = match decompress_data_block(&self.header, self.data) {
+            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+            Err(_e) => String::from("failed to decompress"),
+        };
         writeln!(
             f,
             "-------------------------- PrinterMetadataBlock --------------------------"
         )?;
         writeln!(f, "Params")?;
         writeln!(f, "params {:#?}", self.param)?;
-        writeln!(f, "DataBlock {}", String::from_utf8_lossy(&self.data))?;
+        writeln!(f, "DataBlock {datablock}")?;
         writeln!(f)?;
         write!(f, "-------------------------- PrinterMetadataBlock ")?;
         match self.checksum {
@@ -48,6 +51,10 @@ impl PrinterMetadataBlock<'_> {
     where
         W: std::fmt::Write,
     {
+        let datablock: String = match decompress_data_block(&self.header, self.data) {
+            Ok((_remain, data)) => String::from_utf8_lossy(&data).to_string(),
+            Err(_e) => String::from("failed to decompress"),
+        };
         writeln!(f)?;
         writeln!(f, "## PrinterMetadataBlock")?;
         writeln!(f)?;
@@ -57,7 +64,7 @@ impl PrinterMetadataBlock<'_> {
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
         writeln!(f, "<br>")?;
-        writeln!(f, "{}", String::from_utf8_lossy(&self.data))?;
+        writeln!(f, "{datablock}")?;
         writeln!(f, "</details>")?;
         writeln!(f)?;
         match self.checksum {
@@ -87,11 +94,6 @@ pub fn printer_metadata_parser_with_checksum(
     })?;
 
     log::info!("Found printer metadata block id.");
-    let BlockHeader {
-        compression_type,
-        uncompressed_size,
-        compressed_size,
-    } = header.clone();
 
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
         e.map(|e| {
@@ -102,60 +104,9 @@ pub fn printer_metadata_parser_with_checksum(
     })?;
 
     // Decompress data block
-    let (after_data, data) = match compression_type {
-        CompressionType::None => {
-            let (remain, data_raw) = take(uncompressed_size)(after_param).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "printer_metadata: No compression - Failed to process raw data: {e:#?}"
-                    ))
-                })
-            })?;
-            (remain, Cow::from(data_raw))
-        }
-        CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "printer_metadata: Deflate - Failed to extract compressed data: {e:#?}"
-                    ))
-                })
-            })?;
-
-            match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => (remain, Cow::from(decoded)),
-                Err(msg) => {
-                    log::error!("Failed to decode decompression failed {msg}");
-                    return Err(nom::Err::Error(BlockError::Decompression(format!(
-                        "printer_metadata: Deflate - Failed to decode decompressed data: {msg}"
-                    ))));
-                }
-            }
-        }
-        CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) =
-                take(compressed_size.unwrap())(after_param).map_err(|e| {
-                    e.map(|e: nom::error::Error<_>| {
-                        BlockError::Decompression(format!(
-                        "printer_metadata: HeatShrink11 - Failed to extract compressed data: {e:#?}"
-                    ))
-                    })
-                })?;
-
-            unimplemented!("printer_metadata_block: Decoding with the meatpacking algorithm is not yet support please create an issue.");
-        }
-        CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) =
-                take(compressed_size.unwrap())(after_param).map_err(|e| {
-                    e.map(|e: nom::error::Error<_>| {
-                        BlockError::Decompression(format!(
-                        "printer_metadata: HeatShrink12 - Failed to extract compressed data: {e:#?}"
-                    ))
-                    })
-                })?;
-            // Must decompress here
-            unimplemented!("printer_metadata_block: Decoding with the meatpacking algorithm is not yet support please create an issue.");
-        }
+    let (after_data, data) = match header.compressed_size {
+        Some(size) => take(size)(after_param)?,
+        None => take(header.uncompressed_size)(after_param)?,
     };
 
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
