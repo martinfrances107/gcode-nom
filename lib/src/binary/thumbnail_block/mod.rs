@@ -26,8 +26,7 @@ use crate::binary::Markdown;
 pub struct ThumbnailBlock<'a> {
     header: BlockHeader,
     pub param: Param,
-    /// binary data.
-    pub data: Cow<'a, [u8]>,
+    pub data: &'a [u8],
     checksum: Option<u32>,
 }
 impl Display for ThumbnailBlock<'_> {
@@ -111,11 +110,6 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     })?;
 
     log::info!("Found thumbnail block id");
-    let BlockHeader {
-        compression_type,
-        uncompressed_size,
-        compressed_size,
-    } = header.clone();
 
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
         e.map(|e| {
@@ -126,60 +120,9 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
     })?;
 
     // Decompress data block
-    let (after_data, data) = match compression_type {
-        CompressionType::None => {
-            let (remain, data) = take(uncompressed_size)(after_param).map_err(|e| {
-                e.map(|e: Error<_>| {
-                    BlockError::Decompression(format!(
-                        "thumbnail: Compression None - Failed to extract data block: {e:#?}"
-                    ))
-                })
-            })?;
-            (remain, Cow::from(data))
-        }
-        CompressionType::Deflate => {
-            let (remain, encoded) = take(compressed_size.unwrap())(after_param).map_err(|e| {
-                e.map(|e: Error<_>| {
-                    BlockError::Decompression(format!(
-                        "thumbnail: Compression Deflate - Failed to extract data block: {e:#?}"
-                    ))
-                })
-            })?;
-
-            match inflate_bytes_zlib(encoded) {
-                Ok(decoded) => (remain, Cow::from(decoded)),
-                Err(msg) => {
-                    log::error!("Failed to decode decompression failed {msg}");
-                    return Err(nom::Err::Error(BlockError::Decompression(format!(
-                        "thumbnail: Compression Deflate - Failed to decode data block: {msg}"
-                    ))));
-                }
-            }
-        }
-        CompressionType::HeatShrink11 => {
-            let (_remain, _data_compressed) =
-                take(compressed_size.unwrap())(after_param).map_err(|e| {
-                    e.map(|e: Error<_>| {
-                        BlockError::Decompression(format!(
-                        "thumbnail: Compression HeatShrink11 - Failed to extract data block: {e:#?}"
-                    ))
-                    })
-                })?;
-            log::info!("TODO: Must implement HeatShrink11");
-            unimplemented!("HeatShrink11 is not yet implemented");
-        }
-        CompressionType::HeatShrink12 => {
-            let (_remain, _data_compressed) =
-                take(compressed_size.unwrap())(after_param).map_err(|e| {
-                    e.map(|e: Error<_>| {
-                        BlockError::Decompression(format!(
-                        "thumbnail: Compression HeatShrink12 - Failed to extract data block: {e:#?}"
-                    ))
-                    })
-                })?;
-            log::info!("TODO: Must implement heatshrink12");
-            unimplemented!("HeatShrink11 is not yet implemented");
-        }
+    let (after_data, data) = match header.compressed_size {
+        Some(size) => take(size)(after_param)?,
+        None => take(header.uncompressed_size)(after_param)?,
     };
 
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
@@ -190,8 +133,8 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
         })
     })?;
 
-    let param_size = 6;
-    let block_size = header.size_in_bytes() + param_size + header.payload_size_in_bytes();
+    static PARAM_SIZE: usize = 6;
+    let block_size = header.size_in_bytes() + PARAM_SIZE + header.payload_size_in_bytes();
     let crc_input = &input[..block_size];
     let computed_checksum = crc32fast::hash(crc_input);
 
