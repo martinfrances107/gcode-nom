@@ -20,10 +20,14 @@ static CONFIG_W12_L4: LazyLock<Config> =
 
 /// Decompresses the data block
 ///
-/// depends on :-
+/// Using the appropriate decompression algorithm and encoding type.
 ///
-/// compression_type
-/// encoding type
+/// # Panics
+///  Some decompression algorithms are unimplemented
+///
+/// # Errors
+///
+/// When matching fails.
 pub fn decompress_data_block<'a>(
     data: &'a [u8],
     encoding: &Encoding,
