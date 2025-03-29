@@ -110,7 +110,7 @@ impl GCodeBlock<'_> {
 }
 
 static CODE_BLOCK_ID: u16 = 1u16;
-pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
+pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -149,28 +149,6 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
         }
     };
 
-    let param_size = 2;
-    let payload_size = match header.compression_type {
-        CompressionType::None => header.uncompressed_size as usize,
-        _ => header.compressed_size.unwrap() as usize,
-    };
-
-    let block_size = header.size_in_bytes() + param_size + payload_size;
-    let crc_input = &input[..block_size];
-    let computed_checksum = crc32fast::hash(crc_input);
-
-    log::debug!(
-        "gcode_block: checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} "
-    );
-    if checksum == computed_checksum {
-        log::debug!("gcode_block: checksum match");
-    } else {
-        log::error!("fail checksum");
-        return Err(nom::Err::Error(BlockError::Checksum(format!(
-            "FAIL: checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ",
-        ))));
-    }
-
     Ok((
         after_checksum,
         GCodeBlock {
@@ -180,4 +158,30 @@ pub(crate) fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBl
             checksum: Some(checksum),
         },
     ))
+}
+
+pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
+    let (remain, gcode) = gcode_parser(input)?;
+    if let Some(checksum) = gcode.checksum {
+        let param_size = 2;
+        let payload_size = match gcode.header.compression_type {
+            CompressionType::None => gcode.header.uncompressed_size as usize,
+            _ => gcode.header.compressed_size.unwrap() as usize,
+        };
+        let block_size = gcode.header.size_in_bytes() + param_size + payload_size;
+        let crc_input = &input[..block_size];
+        let computed_checksum = crc32fast::hash(crc_input);
+
+        log::debug!("gcode checksum 0x{checksum:04x} computed checksum 0x{computed_checksum:04x} ");
+        if checksum == computed_checksum {
+            log::debug!("checksum match");
+        } else {
+            log::error!("fail checksum");
+            return Err(nom::Err::Error(BlockError::Checksum(format!(
+                "slicer: checksum mismatch 0x{checksum:04x} computed 0x{computed_checksum:04x}"
+            ))));
+        }
+    }
+
+    Ok((remain, gcode))
 }
