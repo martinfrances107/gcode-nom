@@ -36,7 +36,9 @@ mod thumbnail_block;
 use core::fmt::Display;
 
 use file_handler::{file_header_parser, FileHeader};
-use file_metadata_block::{file_metadata_parser_with_checksum, FileMetadataBlock};
+use file_metadata_block::{
+    file_metadata_parser, file_metadata_parser_with_checksum, FileMetadataBlock,
+};
 use nom::{
     combinator::{eof, map, opt},
     error::{ErrorKind, ParseError},
@@ -45,13 +47,15 @@ use nom::{
 };
 
 use compression_type::CompressionType;
-use gcode_block::{gcode_parser_with_checksum, GCodeBlock};
-use print_metadata_block::{print_metadata_parser_with_checksum, PrintMetadataBlock};
-use printer_metadata_block::printer_metadata_parser_with_checksum;
+use gcode_block::{gcode_parser, gcode_parser_with_checksum, GCodeBlock};
+use print_metadata_block::{
+    print_metadata_parser, print_metadata_parser_with_checksum, PrintMetadataBlock,
+};
 use printer_metadata_block::PrinterMetadataBlock;
-use slicer_block::{slicer_parser_with_checksum, SlicerBlock};
-use thumbnail_block::thumbnail_parser_with_checksum;
+use printer_metadata_block::{printer_metadata_parser, printer_metadata_parser_with_checksum};
+use slicer_block::{slicer_parser, slicer_parser_with_checksum, SlicerBlock};
 use thumbnail_block::ThumbnailBlock;
+use thumbnail_block::{thumbnail_parser, thumbnail_parser_with_checksum};
 
 /// A trait for markdown formatting.
 pub trait Markdown {
@@ -225,9 +229,54 @@ impl Markdown for Bgcode<'_> {
 
 /// Parses a binary gcode
 ///
+/// Fast version checksum is logged but not validated.
+///
 /// # Errors
 ///   When the bytes stream is not a valid file.
 pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode, BlockError> {
+    map(
+        (
+            file_header_parser,
+            opt(file_metadata_parser),
+            printer_metadata_parser,
+            many0(thumbnail_parser),
+            print_metadata_parser,
+            slicer_parser,
+            // eof here asserts than what remains is_empty()
+            many_till(gcode_parser, eof),
+        ),
+        |(
+            fh,
+            file_metadata,
+            printer_metadata,
+            thumbnail,
+            print_metadata,
+            slicer,
+            (gcode, _remain),
+        )| {
+            log::info!("File has been validated");
+            Bgcode {
+                fh,
+                file_metadata,
+                printer_metadata,
+                thumbnails: thumbnail,
+                print_metadata,
+                slicer,
+                gcode,
+            }
+        },
+    )
+    .parse(input)
+}
+
+/// Parses a binary gcode
+///
+/// Slower more exacting version where each block is rejected
+/// if checksum fails.
+///
+/// # Errors
+///   When the bytes stream is not a valid file.
+pub fn bgcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Bgcode, BlockError> {
     map(
         (
             file_header_parser,
