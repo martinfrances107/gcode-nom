@@ -13,17 +13,18 @@
 #![warn(missing_debug_implementations)]
 #![warn(missing_docs)]
 #![allow(clippy::many_single_char_names)]
-use clap::Parser;
-use gcode_nom::binary::bgcode_parser;
-use gcode_nom::binary::gcode_block::svg::Svg;
-use gcode_nom::binary::inflate::decompress_data_block;
-use log::info;
 use std::fs::File;
 use std::io::stdin;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Read;
 use std::path::PathBuf;
+
+use clap::Parser;
+use gcode_nom::binary::gcode_block::extractor::extract_gcode;
+use gcode_nom::binary::gcode_block::svg::Svg;
+use gcode_nom::binary::inflate::decompress_data_block;
+use log::info;
 
 // Occasionally want to apply Blender specific transform.
 #[derive(Parser, Debug)]
@@ -54,11 +55,11 @@ fn main() -> std::io::Result<()> {
                     let mut reader = BufReader::new(file);
                     let mut buffer = vec![];
                     if reader.read_to_end(&mut buffer)? != 0usize {
-                        match bgcode_parser(&buffer) {
-                            Ok((_remain, bgcode)) => {
+                        // match bgcode_parser(&buffer) {
+                        match extract_gcode(&buffer) {
+                            Ok((_remain, gcode_blocks)) => {
                                 log::info!("parser succeeded: Valid input");
-                                let svg = &bgcode
-                                    .gcode
+                                let svg = &gcode_blocks
                                     .iter()
                                     .map(|gcode| {
                                         match decompress_data_block(

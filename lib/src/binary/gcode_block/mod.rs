@@ -17,6 +17,7 @@ use super::{
     Markdown,
 };
 
+pub mod extractor;
 /// Converts a gcode block into a SVG file.
 pub mod svg;
 
