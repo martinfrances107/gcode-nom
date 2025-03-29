@@ -1,12 +1,11 @@
 use core::fmt::Display;
-use std::{borrow::Cow, fmt::Write};
+use std::fmt::Write;
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
-    compression_type::CompressionType,
     BlockError,
 };
-use inflate::inflate_bytes_zlib;
+
 use nom::{
     bytes::streaming::take,
     combinator::verify,

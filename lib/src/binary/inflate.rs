@@ -18,6 +18,12 @@ use inflate::inflate_bytes_zlib;
 static CONFIG_W12_L4: LazyLock<Config> =
     LazyLock::new(|| Config::new(12, 4).expect("Failed to configure HeatshrinkW11L4 decoder"));
 
+/// Decompresses the data block
+///
+/// depends on :-
+///
+/// compression_type
+/// encoding type
 pub fn decompress_data_block<'a>(
     data: &'a [u8],
     encoding: &Encoding,
