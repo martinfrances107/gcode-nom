@@ -1,6 +1,5 @@
 use core::fmt::Display;
 
-use nom::Err::Error;
 use nom::{
     bytes::streaming::take,
     combinator::verify,

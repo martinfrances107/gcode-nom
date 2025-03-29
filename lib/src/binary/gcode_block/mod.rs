@@ -110,6 +110,14 @@ impl GCodeBlock<'_> {
 }
 
 static CODE_BLOCK_ID: u16 = 1u16;
+
+/// Parses a gcode block without validating checksum.
+///
+/// See also `gcode_parser_with_checksum()`.
+///
+/// # Errors
+///
+/// When no match is found.
 pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
@@ -160,6 +168,13 @@ pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
     ))
 }
 
+/// Parses a gcode block, while validating checksum.
+///
+/// See also `gcode_parser()`.
+///
+/// # Errors
+///
+/// When no match is found.
 pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
     let (remain, gcode) = gcode_parser(input)?;
     if let Some(checksum) = gcode.checksum {
