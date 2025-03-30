@@ -137,11 +137,7 @@ pub fn print_metadata_parser_with_checksum(
 
     if let Some(checksum) = pm.checksum {
         let param_size = 2;
-        let payload_size = match pm.header.compression_type {
-            CompressionType::None => pm.header.uncompressed_size as usize,
-            _ => pm.header.compressed_size.unwrap() as usize,
-        };
-        let block_size = pm.header.size_in_bytes() + param_size + payload_size;
+        let block_size = pm.header.size_in_bytes() + param_size + pm.header.payload_size_in_bytes();
         let crc_input = &input[..block_size];
         let computed_checksum = crc32fast::hash(crc_input);
 

@@ -138,11 +138,8 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
     let (remain, slicer) = slicer_parser(input)?;
     if let Some(checksum) = slicer.checksum {
         let param_size = 2;
-        let payload_size = match slicer.header.compression_type {
-            CompressionType::None => slicer.header.uncompressed_size as usize,
-            _ => slicer.header.compressed_size.unwrap() as usize,
-        };
-        let block_size = slicer.header.size_in_bytes() + param_size + payload_size;
+        let block_size =
+            slicer.header.size_in_bytes() + param_size + slicer.header.payload_size_in_bytes();
         let crc_input = &input[..block_size];
         let computed_checksum = crc32fast::hash(crc_input);
 
