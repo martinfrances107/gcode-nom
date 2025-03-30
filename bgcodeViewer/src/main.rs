@@ -21,7 +21,7 @@
 extern crate env_logger;
 extern crate gcode_nom;
 
-use gcode_nom::binary::bgcode_parser;
+use gcode_nom::binary::bgcode_parser_with_checksum;
 use gcode_nom::binary::Markdown;
 use std::io::{stdin, BufReader, Read};
 
@@ -32,7 +32,7 @@ fn main() -> std::io::Result<()> {
 
     let mut buffer = vec![];
     if reader.read_to_end(&mut buffer)? != 0usize {
-        match bgcode_parser(&buffer) {
+        match bgcode_parser_with_checksum(&buffer) {
             Ok((_remain, bgcode)) => {
                 log::info!("parser succeeded: Valid input");
                 let mut out = String::new();
