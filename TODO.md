@@ -32,11 +32,21 @@
 
 [] - Performance
 
+    Recognizers usually take an input array, and return either
+    an error, or a tuple containing the recognized part, and the
+    rest of the input. This tuple is often a cause of a lot of data
+    copying between parsers.
+
+    <http://spw15.langsec.org/papers/couprie-nom.pdf>
+
+    The repository mention in the pdf have been renamed
+
+    <https://github.com/rust-bakery/parser_benchmarks>
+
+
     gear-holder-print-in-place_04n_022mm_pla_mk4_6h49m.bgcode
 
     is the target to test against.
-
-
     Need to add two transformers -- to convert to a streaming parser.
 
     crate a profile_target
