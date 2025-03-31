@@ -24,6 +24,14 @@ I intend the parsers to be as strictly compliant as possible. This is under-goin
 
 See [nom](https://crates.io/crates/nom) - "A byte-oriented, zero-copy, parser combinator library"
 
+## Changelog
+
+ Between version 0.4 and 0.5 a major performance misconception was unpicked.
+
+A 9.9MByte file is processed 60 times faster. Now in 1.3secs
+
+[ See the assets folder associated with this repository "gear-holder-print-in-place_04n_022mm_pla_mk4_6h49m.bgcode" ]
+
 ## Tools
 
 ### gcode2obj

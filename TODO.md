@@ -17,8 +17,6 @@
 
     "G0 and G1 Must be handled uniformly" maybe the fix.
 
-[] - Make decoding a streaming parser.
-
 [] - BUG Missing compression algorithms
      HeadShrink (two modes to support)
      Have a working implementation in gcode block but its no uniformly applied.
@@ -32,10 +30,10 @@
 
 [] - Performance
 
-    Recognizers usually take an input array, and return either
+    "Recognizers usually take an input array, and return either
     an error, or a tuple containing the recognized part, and the
     rest of the input. This tuple is often a cause of a lot of data
-    copying between parsers.
+    copying between parsers."
 
     <http://spw15.langsec.org/papers/couprie-nom.pdf>
 
@@ -53,7 +51,7 @@
 
     Benchmarks use [samply](https://crates.io/crates/samply). Maybe criterion.
 
-    DHAT, flamegraph?
+    DHAT
 
 [] - Identify any M-code that should not be dropped.
 
