@@ -65,7 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     thumbnail_block.param.format
                 );
 
-                println!("writing {path_str:#?}");
+                println!("writing {path_str:?}");
                 std::fs::write(path_str, &thumbnail_block.data).unwrap();
             }
         }

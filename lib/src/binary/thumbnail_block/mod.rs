@@ -101,21 +101,15 @@ pub fn thumbnail_parser(input: &[u8]) -> IResult<&[u8], ThumbnailBlock, BlockErr
     )
     .parse(input)
     .map_err(|e| {
-        e.map(|e| {
-            BlockError::FileHeader(format!(
-                "thumbnail: Failed preamble version and checksum: {e:#?}"
-            ))
+        e.map(|_e| {
+            BlockError::FileHeader("thumbnail: Failed preamble version and checksum".to_string())
         })
     })?;
 
     log::info!("Found thumbnail block id");
 
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|e| {
-            BlockError::Param(format!(
-                "thumbnail: Failed to decode parameter block: {e:#?}"
-            ))
-        })
+        e.map(|_e| BlockError::Param("thumbnail: Failed to decode parameter block".to_string()))
     })?;
 
     // Decompress data block

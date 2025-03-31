@@ -2,7 +2,6 @@ use core::fmt::{Display, Write};
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
-    compression_type::CompressionType,
     inflate::decompress_data_block,
     BlockError,
 };
@@ -94,18 +93,16 @@ pub fn slicer_parser(input: &[u8]) -> IResult<&[u8], SlicerBlock, BlockError> {
     )
     .parse(input)
     .map_err(|e| {
-        e.map(|e| {
-            BlockError::FileHeader(format!(
-                "Slicer: Failed preamble version and checksum: {e:#?}"
-            ))
+        e.map(|_e| {
+            BlockError::FileHeader("Slicer: Failed preamble version and checksum".to_string())
         })
     })?;
 
     log::info!("Found slicer block id");
 
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|e: nom::error::Error<_>| {
-            BlockError::Param(format!("slider: Failed to decode parameter block: {e:#?}"))
+        e.map(|_e: nom::error::Error<_>| {
+            BlockError::Param("slider: Failed to decode parameter block".to_string())
         })
     })?;
 
@@ -116,8 +113,8 @@ pub fn slicer_parser(input: &[u8]) -> IResult<&[u8], SlicerBlock, BlockError> {
     };
 
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
-        e.map(|e: nom::error::Error<_>| {
-            BlockError::Checksum(format!("slicer: Failed to extract checksum: {e:#?}"))
+        e.map(|_e: nom::error::Error<_>| {
+            BlockError::Checksum("slicer: Failed to extract checksum".to_string())
         })
     })?;
 

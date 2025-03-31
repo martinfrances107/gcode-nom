@@ -15,7 +15,6 @@ use super::{
 use crate::binary::default_params::param_parser;
 use crate::binary::default_params::Param;
 use crate::binary::inflate::decompress_data_block;
-use crate::binary::CompressionType;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FileMetadataBlock<'a> {
@@ -94,16 +93,12 @@ pub fn file_metadata_parser(input: &[u8]) -> IResult<&[u8], FileMetadataBlock, B
         }),
         block_header_parser,
     ).parse(input).map_err(|e| {
-        e.map(|e| BlockError::FileHeader(format!("file_metadata: Failed preamble version and checksum: {e:#?}")))
+        e.map(|_e| BlockError::FileHeader("file_metadata: Failed preamble version and checksum".to_string()))
     })?;
     log::info!("Found file metadata block id.");
 
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|e| {
-            BlockError::Param(format!(
-                "file_metadata: Failed to decode parameter block: {e:#?}"
-            ))
-        })
+        e.map(|_e| BlockError::Param("file_metadata: Failed to decode parameter block".to_string()))
     })?;
 
     // Decompress data block
@@ -113,8 +108,8 @@ pub fn file_metadata_parser(input: &[u8]) -> IResult<&[u8], FileMetadataBlock, B
     };
 
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
-        e.map(|e: nom::error::Error<_>| {
-            BlockError::Checksum(format!("file_metadata: Failed to decode checksum: {e:#?}"))
+        e.map(|_e: nom::error::Error<_>| {
+            BlockError::Checksum("file_metadata: Failed to decode checksum".to_string())
         })
     })?;
 

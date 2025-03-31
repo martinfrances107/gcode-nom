@@ -1,7 +1,5 @@
 use core::fmt::Display;
 
-use crate::binary::CompressionType;
-
 use super::{
     block_header::{block_header_parser, BlockHeader},
     default_params::{param_parser, Param},
@@ -92,16 +90,14 @@ pub fn printer_metadata_parser(input: &[u8]) -> IResult<&[u8], PrinterMetadataBl
         block_header_parser,
     ).parse(input)
     .map_err(|e| {
-        e.map(|e| BlockError::FileHeader(format!("Failed preamble version and checksum: {e:#?}")))
+        e.map(|_e| BlockError::FileHeader("Failed preamble version and checksum".to_string()))
     })?;
 
     log::info!("Found printer metadata block id.");
 
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|e| {
-            BlockError::Param(format!(
-                "printer_metadata: Failed to decode parameter block: {e:#?}"
-            ))
+        e.map(|_e| {
+            BlockError::Param("printer_metadata: Failed to decode parameter block".to_string())
         })
     })?;
 
@@ -112,10 +108,8 @@ pub fn printer_metadata_parser(input: &[u8]) -> IResult<&[u8], PrinterMetadataBl
     };
 
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
-        e.map(|e: nom::error::Error<_>| {
-            BlockError::Checksum(format!(
-                "printer_metadata: Failed to decode checksum: {e:#?}"
-            ))
+        e.map(|_e: nom::error::Error<_>| {
+            BlockError::Checksum("printer_metadata: Failed to decode checksum".to_string())
         })
     })?;
 

@@ -11,12 +11,12 @@ use nom::{
 
 use super::{
     block_header::{block_header_parser, BlockHeader},
-    compression_type::CompressionType,
     default_params::Param,
     inflate::decompress_data_block,
     Markdown,
 };
 
+/// Parser extracts Vec<GCodeBlock> from file.
 pub mod extractor;
 /// Converts a gcode block into a SVG file.
 pub mod svg;
@@ -133,13 +133,13 @@ pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
     .parse(input)
     .map_err(|e| {
         log::error!("Failed to parse block header {e}");
-        e.map(|e| BlockError::FileHeader(format!("Failed preamble version and checksum: {e:?}")))
+        e.map(|_e| BlockError::FileHeader("Failed preamble version and checksum".to_string()))
     })?;
 
     log::info!("Found G-code block id.");
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
         log::error!("Failed to parse param {e}");
-        e.map(|e| BlockError::FileHeader(format!("Failed to parse param {e:?}")))
+        e.map(|_e| BlockError::FileHeader("Failed to parse param".to_string()))
     })?;
 
     log::info!("param {param:?}");
@@ -151,8 +151,8 @@ pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
 
     let (after_checksum, checksum) = match le_u32::<_, BlockError>(after_data) {
         Ok((after_checksum, checksum)) => (after_checksum, checksum),
-        Err(e) => {
-            let msg = format!("gcode_block: Failed to extract checksum {e}");
+        Err(_e) => {
+            let msg = "gcode_block: Failed to extract checksum".to_string();
             log::error!("{msg}");
             return Err(nom::Err::Error(BlockError::Checksum(msg)));
         }

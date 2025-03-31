@@ -8,7 +8,7 @@ use nom::{
     IResult, Parser,
 };
 
-use super::{block_header::block_header_parser, block_header::BlockHeader, CompressionType};
+use super::{block_header::block_header_parser, block_header::BlockHeader};
 use super::{default_params::param_parser, BlockError};
 use super::{default_params::Param, inflate::decompress_data_block};
 
@@ -92,16 +92,14 @@ pub fn print_metadata_parser(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock,
         block_header_parser,
     ).parse(input)
     .map_err(|e| {
-        e.map(|e| BlockError::FileHeader(format!("Failed preamble version and checksum: {e:#?}")))
+        e.map(|_e| BlockError::FileHeader("Failed preamble version and checksum".to_string()))
     })?;
 
     log::info!("Found print metadata block id");
 
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|e| {
-            BlockError::Param(format!(
-                "print_metadata: Failed to decode parameter block: {e:#?}"
-            ))
+        e.map(|_e| {
+            BlockError::Param("print_metadata: Failed to decode parameter block".to_string())
         })
     })?;
 
@@ -112,10 +110,8 @@ pub fn print_metadata_parser(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock,
     };
 
     let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
-        e.map(|e: nom::error::Error<_>| {
-            BlockError::Checksum(format!(
-                "print_metadata: Failed to extract checksum: {e:#?}"
-            ))
+        e.map(|_e: nom::error::Error<_>| {
+            BlockError::Checksum("print_metadata: Failed to extract checksum".to_string())
         })
     })?;
 

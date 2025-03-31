@@ -69,7 +69,7 @@ pub fn file_header_parser(input: &[u8]) -> IResult<&[u8], FileHeader, BlockError
     )
     .parse(input)
     .map_err(|e| {
-        e.map(|e| BlockError::FileHeader(format!("Failed preamble version and checksum: {e:#?}")))
+        e.map(|_e| BlockError::FileHeader("Failed preamble version and checksum".to_string()))
     })?;
     Ok(out)
 }

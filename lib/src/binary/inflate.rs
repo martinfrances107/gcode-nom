@@ -37,20 +37,21 @@ pub fn decompress_data_block<'a>(
     let (after_data, data) = match header.compression_type {
         CompressionType::None => {
             let (remain, data_raw) = take(header.uncompressed_size)(data).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "Failed to extract raw(uncompressed) data block: {e:#?}"
-                    ))
+                e.map(|_e: nom::error::Error<_>| {
+                    BlockError::Decompression(
+                        "Failed to extract raw(uncompressed) data block".to_string(),
+                    )
                 })
             })?;
             (remain, data_raw.to_vec())
         }
         CompressionType::Deflate => {
             let (remain, encoded) = take(header.compressed_size.unwrap())(data).map_err(|e| {
-                e.map(|e: nom::error::Error<_>| {
-                    BlockError::Decompression(format!(
-                        "Compression::Deflate - Failed to extract compressed data block: {e:#?}"
-                    ))
+                e.map(|_e: nom::error::Error<_>| {
+                    BlockError::Decompression(
+                        "Compression::Deflate - Failed to extract compressed data block"
+                            .to_string(),
+                    )
                 })
             })?;
 
@@ -107,20 +108,20 @@ pub fn decompress_data_block<'a>(
                                 Ok(MeatPackResult::Line(line)) => {
                                     data.extend_from_slice(line);
                                 }
-                                Err(e) => {
-                                    let msg = format!("Failed running the deflate MeatPackModifiedAlgorithm 'unpack()' algorithm {e:?}");
-                                    log::error!("{msg}");
-                                    return Err(nom::Err::Error(BlockError::Decompression(msg)));
+                                Err(_e) => {
+                                    // let msg = format!("Failed running the deflate MeatPackModifiedAlgorithm 'unpack()' algorithm {e:?}");
+                                    // log::error!("{msg}");
+                                    return Err(nom::Err::Error(BlockError::Decompression("Failed running the deflate MeatPackModifiedAlgorithm 'unpack()' algorithm".to_string())));
                                 }
                             }
                         }
                         data
                     }
                 },
-                Err(e) => {
-                    let msg = format!("GCodeBlock:  Failed running the deflate MeatPackModifiedAlgorithm 'decode()' algorithm {e:?}");
-                    log::error!("{msg}");
-                    return Err(nom::Err::Error(BlockError::Decompression(msg)));
+                Err(_e) => {
+                    // let msg = format!("GCodeBlock:  Failed running the deflate MeatPackModifiedAlgorithm 'decode()' algorithm {e:?}");
+                    // log::error!("{msg}");
+                    return Err(nom::Err::Error(BlockError::Decompression("GCodeBlock:  Failed running the deflate MeatPackModifiedAlgorithm 'decode()".to_string())));
                 }
             };
 
