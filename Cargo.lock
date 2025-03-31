@@ -75,10 +75,10 @@ dependencies = [
 
 [[package]]
 name = "bgcodeValidator"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "env_logger",
- "gcode-nom 0.4.0",
+ "gcode-nom 0.5.0",
  "log",
 ]
 
@@ -174,11 +174,11 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "extract_thumbs"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.4.0",
+ "gcode-nom 0.5.0",
  "log",
 ]
 
@@ -187,18 +187,6 @@ name = "foldhash"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
-
-[[package]]
-name = "gcode-nom"
-version = "0.4.0"
-dependencies = [
- "crc32fast",
- "heatshrink",
- "inflate",
- "log",
- "meatpack",
- "nom",
-]
 
 [[package]]
 name = "gcode-nom"
@@ -215,23 +203,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "gcode-nom"
+version = "0.5.0"
+dependencies = [
+ "crc32fast",
+ "heatshrink",
+ "inflate",
+ "log",
+ "meatpack",
+ "nom",
+]
+
+[[package]]
 name = "gcode2obj"
 version = "0.4.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gcode-nom 0.4.0",
  "hashbrown",
  "log",
 ]
 
 [[package]]
 name = "gcode2svg"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.4.0",
+ "gcode-nom 0.5.0",
  "log",
 ]
 
