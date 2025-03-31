@@ -133,13 +133,13 @@ pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
     .parse(input)
     .map_err(|e| {
         log::error!("Failed to parse block header {e}");
-        e.map(|_e| BlockError::FileHeader("Failed preamble version and checksum".to_string()))
+        e.map(|_e| BlockError::Gcode)
     })?;
 
     log::info!("Found G-code block id.");
     let (after_param, param) = param_parser(after_block_header).map_err(|e| {
         log::error!("Failed to parse param {e}");
-        e.map(|_e| BlockError::FileHeader("Failed to parse param".to_string()))
+        e.map(|_e| BlockError::Gcode)
     })?;
 
     log::info!("param {param:?}");
@@ -154,7 +154,7 @@ pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
         Err(_e) => {
             let msg = "gcode_block: Failed to extract checksum".to_string();
             log::error!("{msg}");
-            return Err(nom::Err::Error(BlockError::Checksum(msg)));
+            return Err(nom::Err::Error(BlockError::Gcode));
         }
     };
 
@@ -190,9 +190,7 @@ pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock, Bl
             log::debug!("checksum match");
         } else {
             log::error!("fail checksum");
-            return Err(nom::Err::Error(BlockError::Checksum(format!(
-                "slicer: checksum mismatch 0x{checksum:04x} computed 0x{computed_checksum:04x}"
-            ))));
+            return Err(nom::Err::Error(BlockError::Gcode));
         }
     }
 

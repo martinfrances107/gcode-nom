@@ -90,16 +90,13 @@ pub fn printer_metadata_parser(input: &[u8]) -> IResult<&[u8], PrinterMetadataBl
         block_header_parser,
     ).parse(input)
     .map_err(|e| {
-        e.map(|_e| BlockError::FileHeader("Failed preamble version and checksum".to_string()))
+        e.map(|_e| BlockError::PrinterMetaData)
     })?;
 
     log::info!("Found printer metadata block id.");
 
-    let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|_e| {
-            BlockError::Param("printer_metadata: Failed to decode parameter block".to_string())
-        })
-    })?;
+    let (after_param, param) =
+        param_parser(after_block_header).map_err(|e| e.map(|_e| BlockError::PrinterMetaData))?;
 
     // Decompress data block
     let (after_data, data) = match header.compressed_size {
@@ -107,11 +104,8 @@ pub fn printer_metadata_parser(input: &[u8]) -> IResult<&[u8], PrinterMetadataBl
         None => take(header.uncompressed_size)(after_param)?,
     };
 
-    let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
-        e.map(|_e: nom::error::Error<_>| {
-            BlockError::Checksum("printer_metadata: Failed to decode checksum".to_string())
-        })
-    })?;
+    let (after_checksum, checksum) = le_u32(after_data)
+        .map_err(|e| e.map(|_e: nom::error::Error<_>| BlockError::PrinterMetaData))?;
 
     Ok((
         after_checksum,
@@ -141,9 +135,7 @@ pub fn printer_metadata_parser_with_checksum(
             log::debug!("checksum match");
         } else {
             log::error!("fail checksum");
-            return Err(nom::Err::Error(BlockError::Checksum(format!(
-                "slicer: checksum mismatch 0x{checksum:04x} computed 0x{computed_checksum:04x}"
-            ))));
+            return Err(nom::Err::Error(BlockError::PrinterMetaData));
         }
     }
 

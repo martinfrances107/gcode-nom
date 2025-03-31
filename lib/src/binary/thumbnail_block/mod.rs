@@ -100,17 +100,12 @@ pub fn thumbnail_parser(input: &[u8]) -> IResult<&[u8], ThumbnailBlock, BlockErr
         block_header_parser,
     )
     .parse(input)
-    .map_err(|e| {
-        e.map(|_e| {
-            BlockError::FileHeader("thumbnail: Failed preamble version and checksum".to_string())
-        })
-    })?;
+    .map_err(|e| e.map(|_e| BlockError::Thumbnail))?;
 
     log::info!("Found thumbnail block id");
 
-    let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|_e| BlockError::Param("thumbnail: Failed to decode parameter block".to_string()))
-    })?;
+    let (after_param, param) =
+        param_parser(after_block_header).map_err(|e| e.map(|_e| BlockError::Thumbnail))?;
 
     // Decompress data block
     let (after_data, data) = match header.compressed_size {
@@ -118,13 +113,8 @@ pub fn thumbnail_parser(input: &[u8]) -> IResult<&[u8], ThumbnailBlock, BlockErr
         None => take(header.uncompressed_size)(after_param)?,
     };
 
-    let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
-        e.map(|e: Error<_>| {
-            BlockError::Checksum(format!(
-                "thumbnail: Failed to decode checksum block: {e:#?}"
-            ))
-        })
-    })?;
+    let (after_checksum, checksum) =
+        le_u32(after_data).map_err(|e| e.map(|_e: Error<_>| BlockError::Thumbnail))?;
 
     Ok((
         after_checksum,
@@ -157,9 +147,7 @@ pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailB
             log::debug!("checksum match");
         } else {
             log::error!("fail checksum");
-            return Err(nom::Err::Error(BlockError::Checksum(format!(
-                "thumbnail: checksum mismatch 0x{checksum:04x} computed 0x{computed_checksum:04x}"
-            ))));
+            return Err(nom::Err::Error(BlockError::Thumbnail));
         }
     }
 

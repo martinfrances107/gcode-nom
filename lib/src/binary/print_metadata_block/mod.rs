@@ -92,16 +92,13 @@ pub fn print_metadata_parser(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock,
         block_header_parser,
     ).parse(input)
     .map_err(|e| {
-        e.map(|_e| BlockError::FileHeader("Failed preamble version and checksum".to_string()))
+        e.map(|_e| BlockError::PrintMetaData)
     })?;
 
     log::info!("Found print metadata block id");
 
-    let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|_e| {
-            BlockError::Param("print_metadata: Failed to decode parameter block".to_string())
-        })
-    })?;
+    let (after_param, param) =
+        param_parser(after_block_header).map_err(|e| e.map(|_e| BlockError::PrintMetaData))?;
 
     // Decompress data block
     let (after_data, data) = match header.compressed_size {
@@ -109,11 +106,8 @@ pub fn print_metadata_parser(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock,
         None => take(header.uncompressed_size)(after_param)?,
     };
 
-    let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
-        e.map(|_e: nom::error::Error<_>| {
-            BlockError::Checksum("print_metadata: Failed to extract checksum".to_string())
-        })
-    })?;
+    let (after_checksum, checksum) = le_u32(after_data)
+        .map_err(|e| e.map(|_e: nom::error::Error<_>| BlockError::PrintMetaData))?;
 
     Ok((
         after_checksum,
@@ -144,9 +138,7 @@ pub fn print_metadata_parser_with_checksum(
             log::debug!("checksum match");
         } else {
             log::error!("fail checksum");
-            return Err(nom::Err::Error(BlockError::Checksum(format!(
-                "print_metadata: checksum mismatch 0x{checksum:04x} computed 0x{computed_checksum:04x}"
-            ))));
+            return Err(nom::Err::Error(BlockError::PrintMetaData));
         }
     }
 

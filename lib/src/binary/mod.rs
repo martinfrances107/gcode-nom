@@ -71,73 +71,53 @@ pub trait Markdown {
 /// Error while parsing text into a `Bgcode` structure.
 #[derive(Debug)]
 pub enum BlockError {
-    /// Error parsing the checksum.
-    Checksum(String),
-    /// A failure to decompress the data block
-    Decompression(String),
-    /// Error parsing the file header.
-    FileHeader(String),
-    /// Traps when  EOF is called
-    Kind(String),
-    /// Error parsing the sub sections header.
-    Header(String),
-    /// Error parsing the parameter section.
-    Param(String),
+    /// Error decoding the file header block.
+    FileHeader,
+    /// Error decoding the file metadata block.
+    FileMetaData,
+    /// Error decoding a Gcode block
+    Gcode,
+    /// Error decoding the printer metadata block.
+    PrinterMetaData,
+    /// Error decoding the print metadata block.
+    PrintMetaData,
+    /// Error decoding the slicer block.
+    Slicer,
+    /// Error decoding the thumbnails block.
+    Thumbnail,
+    /// Unexpected end of file.
+    EOF,
+    /// `ParseError` return type.
+    ParseError,
 }
 
 impl<I> ParseError<I> for BlockError
 where
     I: std::fmt::Debug,
 {
-    fn from_error_kind(input: I, kind: ErrorKind) -> Self {
+    fn from_error_kind(_input: I, _kind: ErrorKind) -> Self {
         // This is trapping an EOF error
-        let message = format!("{kind:?}:\t{input:?}\n");
-        Self::Kind(message)
+        // let message = format!("{kind:?}:\t{input:?}\n");
+        Self::EOF
     }
 
     // if combining multiple errors, we show them one after the other
-    fn append(input: I, kind: ErrorKind, other: Self) -> Self {
-        match other {
-            Self::FileHeader(message) => {
-                let message = format!("{message}{kind:?}:\t{input:?}\n");
-                Self::FileHeader(message)
-            }
-            Self::Checksum(message) => {
-                let message = format!("{message}{kind:?}:\t{input:?}\n");
-                Self::Checksum(message)
-            }
-            Self::Decompression(message) => {
-                let message = format!("{message}{kind:?}:\t{input:?}\n");
-                Self::Decompression(message)
-            }
-
-            Self::Header(message) => {
-                let message = format!("{message}{kind:?}:\t{input:?}\n");
-                Self::Header(message)
-            }
-            Self::Param(message) => {
-                let message = format!("{message}{kind:?}:\t{input:?}\n");
-                Self::Param(message)
-            }
-            Self::Kind(message) => {
-                let message = format!("{message}{kind:?}:\t{input:?}\n");
-                Self::Kind(message)
-            }
-        }
+    fn append(_input: I, _kind: ErrorKind, _other: Self) -> Self {
+        Self::ParseError
     }
 
     fn from_char(input: I, c: char) -> Self {
         let message = format!("'{c}':\t{input:?}\n",);
         println!("{message}");
         // big match statement append message to existing message
-        todo!()
+        Self::ParseError
     }
 
     fn or(self, _other: Self) -> Self {
         // let message = format!("{}\tOR\n{}\n", self.message, other.message);
         // println!("{message}");
         // Self::Other(message)
-        todo!()
+        Self::ParseError
     }
 }
 

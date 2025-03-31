@@ -62,16 +62,13 @@ fn main() -> std::io::Result<()> {
                                 let svg = &gcode_blocks
                                     .iter()
                                     .map(|gcode| {
-                                        match decompress_data_block(
+                                        let (_remain, data) = decompress_data_block(
                                             gcode.data,
                                             &gcode.param.encoding,
                                             &gcode.header,
-                                        ) {
-                                            Ok((_remain, data)) => {
-                                                String::from_utf8_lossy(&data).to_string()
-                                            }
-                                            Err(_e) => panic!("failed to decompress data block"),
-                                        }
+                                        )
+                                        .expect("fail to decompress data block");
+                                        String::from_utf8_lossy(&data).to_string()
                                     })
                                     .collect::<String>()
                                     .lines()

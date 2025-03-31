@@ -92,19 +92,12 @@ pub fn slicer_parser(input: &[u8]) -> IResult<&[u8], SlicerBlock, BlockError> {
         block_header_parser,
     )
     .parse(input)
-    .map_err(|e| {
-        e.map(|_e| {
-            BlockError::FileHeader("Slicer: Failed preamble version and checksum".to_string())
-        })
-    })?;
+    .map_err(|e| e.map(|_e| BlockError::Slicer))?;
 
     log::info!("Found slicer block id");
 
-    let (after_param, param) = param_parser(after_block_header).map_err(|e| {
-        e.map(|_e: nom::error::Error<_>| {
-            BlockError::Param("slider: Failed to decode parameter block".to_string())
-        })
-    })?;
+    let (after_param, param) = param_parser(after_block_header)
+        .map_err(|e| e.map(|_e: nom::error::Error<_>| BlockError::Slicer))?;
 
     // Decompress data block
     let (after_data, data) = match header.compressed_size {
@@ -112,11 +105,8 @@ pub fn slicer_parser(input: &[u8]) -> IResult<&[u8], SlicerBlock, BlockError> {
         None => take(header.uncompressed_size)(after_param)?,
     };
 
-    let (after_checksum, checksum) = le_u32(after_data).map_err(|e| {
-        e.map(|_e: nom::error::Error<_>| {
-            BlockError::Checksum("slicer: Failed to extract checksum".to_string())
-        })
-    })?;
+    let (after_checksum, checksum) =
+        le_u32(after_data).map_err(|e| e.map(|_e: nom::error::Error<_>| BlockError::Slicer))?;
 
     Ok((
         after_checksum,
@@ -147,9 +137,7 @@ pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, 
             log::debug!("checksum match");
         } else {
             log::error!("fail checksum");
-            return Err(nom::Err::Error(BlockError::Checksum(format!(
-                "slicer: checksum mismatch 0x{checksum:04x} computed 0x{computed_checksum:04x}"
-            ))));
+            return Err(nom::Err::Error(BlockError::Slicer));
         }
     }
 
