@@ -15,6 +15,13 @@ A nom based parser, outputs a "Wavefront Obj" file which can be imported into bl
 
 Both .gcode files and binary .bgcode files are accepted.
 
+## Performance
+
+Currently 9.9MByte bgcode file can be processed into a 16MBytes obj file in 1.5secs.
+
+[ See the git repository associated with this project...
+assets/gear-holder-print-in-place_04n_022mm_pla_mk4_6h49m.bgcode ]
+
 ## How to use
 
 Pass the gcode file in as 'StdIn' and the program will send the obj file to 'StdOut' :-
@@ -40,13 +47,6 @@ Within blender :-
 1) This obj has been "Imported".
 2) Converted into a "Curve".
 3) Finally a circular bevel object has been applied to make the object solid [ A circle to represent a 0.1mm fibre].
-
-## Performance
-
-Currently 9.9MByte bgcode file can be processed into a 16MBytes obj file in 1m13secs.
-
-[ See the git repository associated with this project...
-assets/gear-holder-print-in-place_04n_022mm_pla_mk4_6h49m.bgcode ]
 
 ## Future work
 
