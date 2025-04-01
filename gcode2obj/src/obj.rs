@@ -103,8 +103,7 @@ impl<'a> FromIterator<GCodeBlock<'a>> for Obj {
         I: IntoIterator<Item = GCodeBlock<'a>>,
     {
         iter.into_iter()
-            .enumerate()
-            .flat_map(|(i, gcode)| {
+            .flat_map(|gcode| {
                 let (_remain, data) =
                     decompress_data_block(gcode.data, &gcode.param.encoding, &gcode.header)
                         .expect("fail to decompress data block");
