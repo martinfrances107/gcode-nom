@@ -25,16 +25,13 @@ use std::io::BufReader;
 use std::io::Read;
 use std::path::PathBuf;
 
-mod obj;
-
+use clap::ArgAction;
+use clap::Parser;
 use gcode_nom::binary::bgcode_parser;
-
-use gcode_nom::binary::inflate::decompress_data_block;
 use log::info;
 use obj::Obj;
 
-use clap::ArgAction;
-use clap::Parser;
+mod obj;
 
 // Occasionally want to apply Blender specific transform.
 #[derive(Parser, Debug)]
@@ -72,23 +69,8 @@ fn main() -> std::io::Result<()> {
                         match bgcode_parser(&buffer) {
                             Ok((_remain, bgcode)) => {
                                 log::info!("parser succeeded: Valid input");
-                                let obj = bgcode
-                                    .gcode
-                                    .iter()
-                                    .map(|gcode| {
-                                        let (_remain, data) = decompress_data_block(
-                                            gcode.data,
-                                            &gcode.param.encoding,
-                                            &gcode.header,
-                                        )
-                                        .expect("fail to decompress data block");
+                                let obj = bgcode.gcode.into_iter().collect::<Obj>();
 
-                                        String::from_utf8_lossy(&data).to_string()
-                                    })
-                                    .collect::<String>()
-                                    .lines()
-                                    .map(std::string::ToString::to_string)
-                                    .collect::<Obj>();
                                 println!("{obj}");
                             }
                             Err(e) => {

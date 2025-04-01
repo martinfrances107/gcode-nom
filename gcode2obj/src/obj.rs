@@ -10,6 +10,8 @@ use core::hash::Hash;
 use core::hash::Hasher;
 use core::mem;
 
+use gcode_nom::binary::gcode_block::GCodeBlock;
+use gcode_nom::binary::inflate::decompress_data_block;
 use gcode_nom::command::Command;
 use gcode_nom::params::PosVal;
 use gcode_nom::PositionMode;
@@ -95,6 +97,27 @@ impl Display for Obj {
     }
 }
 
+impl<'a> FromIterator<GCodeBlock<'a>> for Obj {
+    fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = GCodeBlock<'a>>,
+    {
+        iter.into_iter()
+            .enumerate()
+            .flat_map(|(i, gcode)| {
+                let (_remain, data) =
+                    decompress_data_block(gcode.data, &gcode.param.encoding, &gcode.header)
+                        .expect("fail to decompress data block");
+
+                String::from_utf8_lossy(&data)
+                    .to_string()
+                    .lines()
+                    .map(std::string::ToString::to_string)
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Self>()
+    }
+}
 /// TODO: Want to iterate over something more flexible
 /// ie. Drop String for something more generic `AsRef<&str>`?
 impl FromIterator<String> for Obj {
