@@ -97,7 +97,6 @@ where
 {
     fn from_error_kind(_input: I, _kind: ErrorKind) -> Self {
         // This is trapping an EOF error
-        // let message = format!("{kind:?}:\t{input:?}\n");
         Self::EOF
     }
 
@@ -114,9 +113,6 @@ where
     }
 
     fn or(self, _other: Self) -> Self {
-        // let message = format!("{}\tOR\n{}\n", self.message, other.message);
-        // println!("{message}");
-        // Self::Other(message)
         Self::ParseError
     }
 }
