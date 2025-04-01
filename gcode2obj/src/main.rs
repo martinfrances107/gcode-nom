@@ -29,6 +29,7 @@ mod obj;
 
 use gcode_nom::binary::bgcode_parser;
 
+use gcode_nom::binary::inflate::decompress_data_block;
 use log::info;
 use obj::Obj;
 
@@ -74,7 +75,19 @@ fn main() -> std::io::Result<()> {
                                 let obj = bgcode
                                     .gcode
                                     .iter()
-                                    .flat_map(|gcode| gcode.data.lines().map_while(Result::ok))
+                                    .map(|gcode| {
+                                        let (_remain, data) = decompress_data_block(
+                                            gcode.data,
+                                            &gcode.param.encoding,
+                                            &gcode.header,
+                                        )
+                                        .expect("fail to decompress data block");
+
+                                        String::from_utf8_lossy(&data).to_string()
+                                    })
+                                    .collect::<String>()
+                                    .lines()
+                                    .map(std::string::ToString::to_string)
                                     .collect::<Obj>();
                                 println!("{obj}");
                             }

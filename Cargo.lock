@@ -190,9 +190,7 @@ checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
 name = "gcode-nom"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb23568a0103d044af5e1ef740e2e9040c54d33fe2ddad2eefb8df7806c50774"
+version = "0.5.0"
 dependencies = [
  "crc32fast",
  "heatshrink",
@@ -205,6 +203,8 @@ dependencies = [
 [[package]]
 name = "gcode-nom"
 version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de9b19bea59abc5ccfc798837db79fbabdd4e2d62b7facb88cb5daabb7ffbe3a"
 dependencies = [
  "crc32fast",
  "heatshrink",
@@ -220,7 +220,7 @@ version = "0.4.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.4.0",
+ "gcode-nom 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hashbrown",
  "log",
 ]
