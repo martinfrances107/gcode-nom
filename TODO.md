@@ -1,6 +1,10 @@
 # TASKS
 
-[] -
+[] - Bezier curve paths
+
+[] - Make a streaming parser.
+
+  what speedup is expected 1.5s down to 500ms?
 
 [] - cube -- add groups to .obj file
     -- produce render.
