@@ -44,7 +44,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let metadata = fs::metadata(&args.input)?;
     // TODO: Why is the buffer size half the length?
-    let mut buffer = Vec::with_capacity((metadata.len() / 2) as usize);
+    let mut buffer = Vec::with_capacity((metadata.len() ) as usize);
 
     log::info!("Loading filename {} ... ", args.input.display());
     let mut f = File::open(args.input)?;
