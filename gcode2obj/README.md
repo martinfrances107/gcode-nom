@@ -55,3 +55,5 @@ Within blender :-
 * I have only tested against gcode files that use absolute positioning.
 
 * I must test with code than uses relative positioning.
+
+* Convert "G5 - Bézier Cubic Spline" commands into the equivalent "obj" spline by defining a basis     matrix.  Support is not universal I could fall back to a series of line segments.
