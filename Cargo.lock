@@ -196,7 +196,7 @@ dependencies = [
  "heatshrink",
  "inflate",
  "log",
- "meatpack",
+ "meatpack 0.0.2",
  "nom",
 ]
 
@@ -210,7 +210,7 @@ dependencies = [
  "heatshrink",
  "inflate",
  "log",
- "meatpack",
+ "meatpack 0.0.1",
  "nom",
 ]
 
@@ -308,6 +308,15 @@ name = "meatpack"
 version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf2a77152078de607ebe65648d2bdc328ccace61b1c3e4e0e4ff21644aacd974"
+dependencies = [
+ "clap",
+]
+
+[[package]]
+name = "meatpack"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9abc7aebc572a409cd9c4fc4dfc0996b3e47d80b8bc9c60a91598ebc9f142600"
 dependencies = [
  "clap",
 ]
