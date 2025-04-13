@@ -42,7 +42,7 @@ impl Display for PrintMetadataBlock<'_> {
         match self.checksum {
             Some(checksum) => writeln!(f, "Checksum Ox{checksum:X} ---------")?,
             None => writeln!(f, "No checksum")?,
-        };
+        }
         Ok(())
     }
 }
@@ -74,7 +74,7 @@ impl PrintMetadataBlock<'_> {
         match self.checksum {
             Some(checksum) => writeln!(f, "Checksum Ox{checksum:X}")?,
             None => writeln!(f, "No checksum")?,
-        };
+        }
         Ok(())
     }
 }

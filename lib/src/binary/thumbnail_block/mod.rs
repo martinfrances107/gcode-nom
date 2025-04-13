@@ -43,7 +43,7 @@ impl Display for ThumbnailBlock<'_> {
         match self.checksum {
             Some(checksum) => writeln!(f, "Checksum Ox{checksum:X} ---------")?,
             None => writeln!(f, "No checksum")?,
-        };
+        }
         Ok(())
     }
 }
@@ -82,7 +82,7 @@ impl ThumbnailBlock<'_> {
         match self.checksum {
             Some(checksum) => writeln!(f, "Checksum Ox{checksum:X}")?,
             None => writeln!(f, "No checksum")?,
-        };
+        }
         Ok(())
     }
 }
