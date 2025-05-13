@@ -46,7 +46,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let buffer_size = usize::try_from(metadata.len()).map_or(usize::MAX, |v| v);
     let mut buffer = Vec::with_capacity(buffer_size);
 
-
     log::info!("Loading filename {} ... ", args.input.display());
     let mut f = File::open(args.input)?;
     log::info!("done");
