@@ -99,103 +99,44 @@ impl Hash for PosVal {
     }
 }
 
-// TODO: can I use a macro here!!
-
-/// Extracts A parameter - "G1 A95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_a(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("A")), double), PosVal::A).parse(i)
+// A macro to make a parse_X() function where X is a parameter in a G0/G1 command
+//
+// BUGFIX: using double_no_exponent from double.rs
+// as parsing a float where an exponent conflicts
+// with the E parameter in GCode.
+// a replacement for nom::number::complete::double;
+macro_rules! parse_val {
+    ($name:ident, $tag:literal, $variant:ident) => {
+        /// Extracts $tag parameter
+        ///
+        /// # Errors
+        ///   When match fails.
+        pub fn $name(i: &str) -> IResult<&str, PosVal> {
+            map(
+                preceded((space0, tag($tag)), crate::double::double_no_exponent),
+                PosVal::$variant,
+            )
+            .parse(i)
+        }
+    };
 }
 
-/// Extracts B parameter - "G1 B95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_b(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("B")), double), PosVal::B).parse(i)
-}
-
-/// Extracts C parameter - "G1 C95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_c(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("C")), double), PosVal::C).parse(i)
-}
-
-/// Extracts E parameter - "G1 E95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_e(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("E")), double), PosVal::E).parse(i)
-}
-
-/// Extracts F parameter - "G1 F95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_f(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("F")), double), PosVal::F).parse(i)
-}
-
-/// Extracts S parameter - "G1 S95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_s(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("S")), double), PosVal::S).parse(i)
-}
-
-/// Extracts U parameter - "G1 U95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_u(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("U")), double), PosVal::U).parse(i)
-}
-
-/// Extracts V parameter - "G1 V95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_v(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("V")), double), PosVal::V).parse(i)
-}
-
-/// Extracts W parameter - "G1 W95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_w(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("W")), double), PosVal::W).parse(i)
-}
-
-/// Extracts X parameter - "G1 X95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_x(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("X")), double), PosVal::X).parse(i)
-}
-
-/// Extracts Y parameter - "G1 Y95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_y(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("Y")), double), PosVal::Y).parse(i)
-}
-
-/// Extracts Z parameter - "G1 Z95.110"
-///
-/// # Errors
-///   When match fails.
-pub fn parse_z(i: &str) -> IResult<&str, PosVal> {
-    map(preceded((space0, tag("Z")), double), PosVal::Z).parse(i)
-}
+parse_val!(parse_a, "A", A);
+parse_val!(parse_b, "B", B);
+parse_val!(parse_c, "C", C);
+// /// Extracts A parameter
+parse_val!(parse_e, "E", E);
+parse_val!(parse_f, "F", F);
+parse_val!(parse_s, "S", S);
+// ///
+parse_val!(parse_u, "U", U);
+parse_val!(parse_v, "V", V);
+parse_val!(parse_w, "W", W);
+// /// # Errorsparse_val!(parse_e, "E", E);
+parse_val!(parse_x, "X", X);
+parse_val!(parse_y, "Y", Y);
+parse_val!(parse_z, "Z", Z);
+// ///   When match fails.parse_val!(parse_s, "S", S);
 
 #[cfg(test)]
 mod test {
