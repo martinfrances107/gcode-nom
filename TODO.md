@@ -1,13 +1,14 @@
 # TASKS
 
 [] - G2, G3 - Clockwise Arcs/ CounterClockwise Arcs.
-    Implement proc marco to reduce duplication - ArcVal is a enum similar to PosVal
-    Implement parse G2, G3 - R form and IJ Form
+
+   In the parsing of G2, G3 - R form and IJ Form
+      // Must added parse checking
       (I,J) and R are mutually exclusive.
 
-    Monitor Must keep track of New global "MM_PER_ARC_SEGMENT"
+   Provide a config PARAM "MM_PER_ARC_SEGMENT"
 
-   OBJ implement renderer
+   OBJ/SVG implement renderer
     Compute theta start, theta end
     break the arc into a series of arc segments
     based on MM_PER_ARC_SEGMENT
@@ -18,9 +19,9 @@
 
   tests reject case where R and I,J are not mutually exclusive.
 
-  There are demons of a complete line with 2/3 arc segments. that can be debug asserted
+  There are demos of a complete line with 2/3 arc segments. that can be asset/snapshot
 
-[] - G6, G7 - Bezier curve paths
+[] - G5 - Bezier curve paths
 
 [] - Make a streaming parser.
 

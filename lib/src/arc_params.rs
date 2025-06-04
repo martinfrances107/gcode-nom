@@ -8,9 +8,12 @@ use nom::sequence::preceded;
 use nom::IResult;
 use nom::Parser;
 
-/// Parameters for `Command::G0` and `Command::G1`
+/// Parameters for `Command::G2` and `Command::G3`
+///
+/// Similar to `PosVal` but with additional parameters
+/// I,J, P, R.
 #[derive(Clone, Debug)]
-pub enum PosVal {
+pub enum ArcVal {
     /// Axis A
     A(f64),
     /// Axis B
@@ -25,6 +28,16 @@ pub enum PosVal {
 
     /// Sets the laser power for the move
     S(f64),
+
+    /// Arc center offset in the I direction
+    I(f64),
+    /// Arc center offset in the J direction
+    J(f64),
+
+    /// P<Count> number of complete circles.
+    P(f64),
+    /// Radius of the arc
+    R(f64),
 
     /// Axis U
     U(f64),
@@ -41,12 +54,12 @@ pub enum PosVal {
     W(f64),
 }
 
-impl Eq for PosVal {}
+impl Eq for ArcVal {}
 
 /// Bit wise comparison cant' compare directly [NAN and inf]
 ///
 /// N.B. Equality is not used in production code -  assertion testing only.
-impl PartialEq for PosVal {
+impl PartialEq for ArcVal {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::A(x), Self::A(y))
@@ -54,6 +67,10 @@ impl PartialEq for PosVal {
             | (Self::C(x), Self::C(y))
             | (Self::E(x), Self::E(y))
             | (Self::F(x), Self::F(y))
+            | (Self::I(x), Self::I(y))
+            | (Self::J(x), Self::J(y))
+            | (Self::P(x), Self::P(y))
+            | (Self::R(x), Self::R(y))
             | (Self::S(x), Self::S(y))
             | (Self::U(x), Self::U(y))
             | (Self::V(x), Self::V(y))
@@ -74,7 +91,7 @@ impl PartialEq for PosVal {
 ///
 /// By ignoring the f64 in hashing the parsed Command will only have one
 /// X value.
-impl Hash for PosVal {
+impl Hash for ArcVal {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
             Self::A(_) => "A".hash(state),
@@ -82,6 +99,10 @@ impl Hash for PosVal {
             Self::C(_) => "C".hash(state),
             Self::E(_) => "E".hash(state),
             Self::F(_) => "F".hash(state),
+            Self::I(_) => "I".hash(state),
+            Self::J(_) => "J".hash(state),
+            Self::P(_) => "P".hash(state),
+            Self::R(_) => "R".hash(state),
             Self::S(_) => "S".hash(state),
             Self::U(_) => "U".hash(state),
             Self::V(_) => "V".hash(state),
@@ -93,58 +114,67 @@ impl Hash for PosVal {
     }
 }
 
-// A macro to make a parse_X() function where X is a parameter in a G0/G1 command
+// A macro to make parse_a generic
 //
 // BUGFIX: using double_no_exponent from double.rs
-// as parsing a float where an exponent conflicts
+// as parsing a float with an exponent conflicts
 // with the E parameter in GCode.
-// a replacement for nom::number::complete::double;
-macro_rules! parse_val {
+// use nom::number::complete::double;
+macro_rules! parse_arc_val {
     ($name:ident, $tag:literal, $variant:ident) => {
         /// Extracts $tag parameter
         ///
         /// # Errors
         ///   When match fails.
-        pub fn $name(i: &str) -> IResult<&str, PosVal> {
+        pub fn $name(i: &str) -> IResult<&str, ArcVal> {
             map(
                 preceded((space0, tag($tag)), crate::double::double_no_exponent),
-                PosVal::$variant,
+                ArcVal::$variant,
             )
             .parse(i)
         }
     };
 }
 
-parse_val!(parse_a, "A", A);
-parse_val!(parse_b, "B", B);
-parse_val!(parse_c, "C", C);
-// /// Extracts A parameter
-parse_val!(parse_e, "E", E);
-parse_val!(parse_f, "F", F);
-parse_val!(parse_s, "S", S);
-// ///
-parse_val!(parse_u, "U", U);
-parse_val!(parse_v, "V", V);
-parse_val!(parse_w, "W", W);
-// /// # Errorsparse_val!(parse_e, "E", E);
-parse_val!(parse_x, "X", X);
-parse_val!(parse_y, "Y", Y);
-parse_val!(parse_z, "Z", Z);
-// ///   When match fails.parse_val!(parse_s, "S", S);
+parse_arc_val!(parse_arc_a, "A", A);
+parse_arc_val!(parse_arc_b, "B", B);
+parse_arc_val!(parse_arc_c, "C", C);
+parse_arc_val!(parse_arc_e, "E", E);
+
+parse_arc_val!(parse_arc_i, "I", I);
+parse_arc_val!(parse_arc_j, "J", J);
+parse_arc_val!(parse_arc_p, "P", P);
+parse_arc_val!(parse_arc_r, "R", R);
+
+parse_arc_val!(parse_arc_f, "F", F);
+parse_arc_val!(parse_arc_s, "S", S);
+parse_arc_val!(parse_arc_u, "U", U);
+parse_arc_val!(parse_arc_v, "V", V);
+
+parse_arc_val!(parse_arc_w, "W", W);
+parse_arc_val!(parse_arc_x, "X", X);
+parse_arc_val!(parse_arc_y, "Y", Y);
+parse_arc_val!(parse_arc_z, "Z", Z);
 
 #[cfg(test)]
 mod test {
     use super::*;
 
+    // Test the macro
+    #[test]
+    fn parse_a_macro() {
+        assert_eq!(parse_arc_a("A95.110"), Ok(("", ArcVal::A(95.110))));
+    }
+
     #[test]
     fn pos_value_equality() {
         // Pass: - parameter wrapper and inner value match.
-        assert!(PosVal::A(95.0) == PosVal::A(95.0));
+        assert!(ArcVal::A(95.0) == ArcVal::A(95.0));
 
         // Fail: -  A = A but inner value is different.
-        assert!(PosVal::A(95.0) != PosVal::B(9.0));
+        assert!(ArcVal::A(95.0) != ArcVal::B(9.0));
 
         // FAIL: - A != B but with identical inner value.
-        assert!(PosVal::A(95.0) != PosVal::B(95.0));
+        assert!(ArcVal::A(95.0) != ArcVal::B(95.0));
     }
 }

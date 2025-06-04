@@ -15,8 +15,12 @@ pub mod binary;
 /// Parsing rules for gcode commands
 pub mod command;
 mod double;
-/// Parsing rules for gcode parameters `Pos<number>`
+/// Parsing rules for G0/G1 commands
 pub mod params;
+
+/// Parsing rules for G2/G3 arc commands
+pub mod arc_params;
+
 /// Absolute or Relative positioning
 #[derive(Default, Debug)]
 pub enum PositionMode {

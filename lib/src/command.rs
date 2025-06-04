@@ -14,6 +14,21 @@ use nom::sequence::terminated;
 use nom::IResult;
 use nom::Parser;
 
+use crate::arc_params::parse_arc_a;
+use crate::arc_params::parse_arc_b;
+use crate::arc_params::parse_arc_c;
+use crate::arc_params::parse_arc_e;
+use crate::arc_params::parse_arc_f;
+use crate::arc_params::parse_arc_i;
+use crate::arc_params::parse_arc_j;
+use crate::arc_params::parse_arc_s;
+use crate::arc_params::parse_arc_u;
+use crate::arc_params::parse_arc_v;
+use crate::arc_params::parse_arc_w;
+use crate::arc_params::parse_arc_x;
+use crate::arc_params::parse_arc_y;
+use crate::arc_params::parse_arc_z;
+use crate::arc_params::ArcVal;
 use crate::params::parse_a;
 use crate::params::parse_b;
 use crate::params::parse_c;
@@ -42,6 +57,13 @@ pub enum Command {
     G0(HashSet<PosVal>),
     /// Printable move
     G1(HashSet<PosVal>),
+    /// G2 – Clockwise Arc
+    G2(HashSet<ArcVal>),
+    /// G3 – Counter-clockwise Arc
+    G3(HashSet<ArcVal>),
+
+    // G5 - Bézier Cubic Spline
+    // TODO must implement
     /// Home all axes
     G21,
     ///G90 – Set Positioning Mode Absolute
@@ -76,6 +98,9 @@ impl Command {
         alt((
             parse_g1,
             parse_g0,
+            parse_g2,
+            parse_g3,
+            // TODO add G5 - Bézier Cubic Spline
             map(tag("G21"), |_| Self::G21),
             map(tag("G90"), |_| Self::G90),
             map(tag("G91"), |_| Self::G91),
@@ -150,6 +175,58 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
     .parse(i)
 }
 
+/// G2 Clockwise arc
+///
+/// May or may not include whitespace separators.
+///
+/// G2X94.838Y81.705F9000
+/// G2 X94.838Y81.705 F9000 ; comment text
+///
+/// NB - The command is dropped and cannot be recovered.
+///
+/// # Errors
+///   When match fails.
+fn parse_g2(i: &str) -> IResult<&str, Command> {
+    preceded(
+        (tag("G2"), space0),
+        map(arc_many, |vals: Vec<ArcVal>| {
+            // Paranoid: deduplication.
+            // eg. There can be only one E<f64>.
+            let hs = HashSet::from_iter(vals);
+
+            // todo::Additional checks (I,J) and R are mutually exclusive.
+            // If both are present then the command is invalid.
+            // If neither is present then the command is invalid.
+            Command::G2(hs)
+        }),
+    )
+    .parse(i)
+}
+
+/// G2 Clockwise arc
+///
+/// May or may not include whitespace separators.
+///
+/// G2X94.838Y81.705F9000
+/// G2 X94.838Y81.705 F9000 ; comment text
+///
+/// NB - The command is dropped and cannot be recovered.
+///
+/// # Errors
+///   When match fails.
+fn parse_g3(i: &str) -> IResult<&str, Command> {
+    preceded(
+        (tag("G3"), space0),
+        map(arc_many, |vals: Vec<ArcVal>| {
+            // Paranoid: deduplication.
+            // eg. There can be only one E<f64>.
+            let hs = HashSet::from_iter(vals);
+            Command::G3(hs)
+        }),
+    )
+    .parse(i)
+}
+
 /// G92 Set current position.
 ///
 /// # Errors
@@ -177,6 +254,16 @@ fn pos_many(i: &str) -> IResult<&str, Vec<PosVal>> {
     many(1..12, pos_val).parse(i)
 }
 
+/// Extracts from 1 to 12 values from the set of `PosVal`s.
+///
+/// ( A, B, C, E, F, S, U, V, W, X, Y, Z )
+///
+/// # Errors
+///   When match fails.
+fn arc_many(i: &str) -> IResult<&str, Vec<ArcVal>> {
+    many(1..16, arc_val).parse(i)
+}
+
 ///
 /// # Errors
 ///   When match fails.
@@ -184,6 +271,29 @@ fn pos_val(i: &str) -> IResult<&str, PosVal> {
     alt((
         parse_a, parse_b, parse_c, parse_e, parse_f, parse_s, parse_u, parse_v, parse_w, parse_x,
         parse_y, parse_z,
+    ))
+    .parse(i)
+}
+
+///
+/// # Errors
+///   When match fails.
+fn arc_val(i: &str) -> IResult<&str, ArcVal> {
+    alt((
+        parse_arc_a,
+        parse_arc_b,
+        parse_arc_c,
+        parse_arc_e,
+        parse_arc_f,
+        parse_arc_i,
+        parse_arc_j,
+        parse_arc_s,
+        parse_arc_u,
+        parse_arc_v,
+        parse_arc_w,
+        parse_arc_x,
+        parse_arc_y,
+        parse_arc_z,
     ))
     .parse(i)
 }
@@ -349,6 +459,78 @@ mod test {
             assert_eq!(actual, expected, "line: {}", line);
         }
     }
+
+    // G2 Clockwise arc
+    //
+    // ARC command come in two forms:
+    //
+    // "IJ" Form
+    // "R" Form
+    //
+    // TODO: must add "R" form examples.
+    #[test]
+    fn g2() {
+        // let default = PosPayload::<f64>::default();
+
+        let text_commands = [
+            (
+                "G2 X125 Y32 I10.5 J10.5; arc",
+                Ok((
+                    "; arc",
+                    Command::G2(
+                        [
+                            ArcVal::X(125_f64),
+                            ArcVal::Y(32_f64),
+                            ArcVal::I(10.5),
+                            ArcVal::J(10.5),
+                        ]
+                        .into(),
+                    ),
+                )),
+            ),
+            (
+                "G2 I20 J20; X and Y can be omitted to do a complete circle.",
+                Ok((
+                    "; X and Y can be omitted to do a complete circle.",
+                    Command::G2([ArcVal::I(20_f64), ArcVal::J(20_f64)].into()),
+                )),
+            ),
+        ];
+
+        for (line, expected) in text_commands {
+            let actual = Command::parse_line(line);
+            assert_eq!(actual, expected, "line: {}", line);
+        }
+    }
+    // // G3 X2 Y7 R5
+    #[test]
+    fn g3() {
+        // let default = PosPayload::<f64>::default();
+
+        let text_commands = [
+            ("G3 Z5", Ok(("", Command::G3([ArcVal::Z(5_f64)].into())))),
+            (
+                "G3 X125 Y32 I10.5 J10.5; arc",
+                Ok((
+                    "; arc",
+                    Command::G3(
+                        [
+                            ArcVal::X(125_f64),
+                            ArcVal::Y(32_f64),
+                            ArcVal::I(10.5),
+                            ArcVal::J(10.5),
+                        ]
+                        .into(),
+                    ),
+                )),
+            ),
+        ];
+        for (line, expected) in text_commands {
+            let actual = Command::parse_line(line);
+            assert_eq!(actual, expected, "line: {}", line);
+        }
+    }
+
     #[test]
     const fn parse_g_drop() {}
 }

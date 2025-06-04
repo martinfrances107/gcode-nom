@@ -147,6 +147,13 @@ impl FromIterator<String> for Svg {
                         }
                     }
                 }
+                Command::G2(_payload) => {
+                    // todo!();
+                }
+                Command::G3(_payload) => {
+                    // G2 - AntiClockwise Arc
+                    // todo!();
+                }
                 Command::G21 => svg.parts.push("M0 0".to_string()),
                 Command::G90 => position_mode = PositionMode::Absolute,
                 Command::G91 => position_mode = PositionMode::Relative,
