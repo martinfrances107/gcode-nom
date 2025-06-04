@@ -105,11 +105,11 @@ impl FromIterator<String> for Svg {
                 //
                 // A G0 is a non-printing move but E is present in files seen in the wild.
                 // (In the assets directory see the gears and benchy2 files.)
-                Command::G0(mut payload) | Command::G1(mut payload)=> {
-                // Treat G0 and G1 command identically.
-                //
-                // A G0 is a non-printing move but E is present in files seen in the wild.
-                // (In the assets directory see the gears and benchy2 files.)
+                Command::G0(mut payload) | Command::G1(mut payload) => {
+                    // Treat G0 and G1 command identically.
+                    //
+                    // A G0 is a non-printing move but E is present in files seen in the wild.
+                    // (In the assets directory see the gears and benchy2 files.)
                     for param in payload.drain() {
                         match param {
                             PosVal::X(val) => x = val,
