@@ -16,7 +16,7 @@ use super::{
     Markdown,
 };
 
-/// Parser extracts Vec<GCodeBlock> from file.
+/// Parser extracts `Vec<GCodeBlock>` from file.
 pub mod extractor;
 /// Converts a gcode block into a SVG file.
 pub mod svg;

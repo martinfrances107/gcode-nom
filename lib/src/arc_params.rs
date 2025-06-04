@@ -34,7 +34,7 @@ pub enum ArcVal {
     /// Arc center offset in the J direction
     J(f64),
 
-    /// P<Count> number of complete circles.
+    /// `P<Count>` number of complete circles.
     P(f64),
     /// Radius of the arc
     R(f64),
@@ -122,10 +122,12 @@ impl Hash for ArcVal {
 // use nom::number::complete::double;
 macro_rules! parse_arc_val {
     ($name:ident, $tag:literal, $variant:ident) => {
-        /// Extracts $tag parameter
-        ///
-        /// # Errors
-        ///   When match fails.
+        #[doc = "Extracts"]
+        #[doc = stringify!($tag)]
+        #[doc = " parameter"]
+        #[doc =""]
+        #[doc ="# Errors"]
+        #[doc = "  When match fails."]
         pub fn $name(i: &str) -> IResult<&str, ArcVal> {
             map(
                 preceded((space0, tag($tag)), crate::double::double_no_exponent),

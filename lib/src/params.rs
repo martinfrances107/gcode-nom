@@ -101,10 +101,12 @@ impl Hash for PosVal {
 // a replacement for nom::number::complete::double;
 macro_rules! parse_val {
     ($name:ident, $tag:literal, $variant:ident) => {
-        /// Extracts $tag parameter
-        ///
-        /// # Errors
-        ///   When match fails.
+        #[doc = "Extracts"]
+        #[doc = stringify!($tag)]
+        #[doc = " parameter"]
+        #[doc =""]
+        #[doc ="# Errors"]
+        #[doc = "  When match fails."]
         pub fn $name(i: &str) -> IResult<&str, PosVal> {
             map(
                 preceded((space0, tag($tag)), crate::double::double_no_exponent),
