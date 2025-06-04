@@ -101,42 +101,16 @@ impl FromIterator<String> for Svg {
             let mut y = f64::NAN;
 
             match command {
-                // A non printable move.
-                Command::G0(mut payload) => {
-                    let params = payload.drain();
-                    for param in params {
-                        match param {
-                            PosVal::X(val) => x = val,
-                            PosVal::Y(val) => y = val,
-                            PosVal::Z(val) => z = val,
-                            PosVal::E(val) => {
-                                // Negative values the extruder is "wiping"
-                                // or sucking filament back into the extruder.
-                                is_extruding = val > 0_f64;
-                            }
-                            _ => {}
-                        }
-                    }
-
-                    // Valid `Command::G0` -  Where X and Y and undefined
-                    if !x.is_nan() && !y.is_nan() {
-                        // Convert x,y,z, into projected x,y.
-                        let proj_x = y / 2. + x / 2.;
-                        let proj_y = -z - y / 2. + x / 2.;
-                        svg.update_view_box(proj_x, proj_y);
-                        match position_mode {
-                            PositionMode::Absolute => {
-                                svg.parts.push(format!("M{proj_x} {proj_y}"));
-                            }
-                            PositionMode::Relative => {
-                                svg.parts.push(format!("m{proj_x} {proj_y}"));
-                            }
-                        }
-                    }
-                }
-                // A printable move.
-                Command::G1(mut params) => {
-                    for param in params.drain() {
+                // Treat G0 and G1 command identically.
+                //
+                // A G0 is a non-printing move but E is present in files seen in the wild.
+                // (In the assets directory see the gears and benchy2 files.)
+                Command::G0(mut payload) | Command::G1(mut payload)=> {
+                // Treat G0 and G1 command identically.
+                //
+                // A G0 is a non-printing move but E is present in files seen in the wild.
+                // (In the assets directory see the gears and benchy2 files.)
+                    for param in payload.drain() {
                         match param {
                             PosVal::X(val) => x = val,
                             PosVal::Y(val) => y = val,

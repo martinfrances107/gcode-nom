@@ -10,12 +10,13 @@ use core::hash::Hash;
 use core::hash::Hasher;
 use core::mem;
 
+use hashbrown::HashMap;
+
 use gcode_nom::binary::gcode_block::GCodeBlock;
 use gcode_nom::binary::inflate::decompress_data_block;
 use gcode_nom::command::Command;
 use gcode_nom::params::PosVal;
 use gcode_nom::PositionMode;
-use hashbrown::HashMap;
 
 #[derive(Debug, Clone)]
 struct Vertex(f64, f64, f64);
@@ -136,16 +137,11 @@ impl FromIterator<String> for Obj {
             let mut x = f64::NAN;
             let mut y = f64::NAN;
             match command {
-                // A non printing move.
-                Command::G0(_payload) => {
-                    //FIXME: When I start implementing relative positioning.
-                    //
-                    // I must update th position state
-                    // At the moment only "benchy2-mk4s.bgcode" gets here.
-                    // in Absolute positioning mode.
-                }
-                // A printing move.
-                Command::G1(mut payload) => {
+                // Treat G0 and G1 command identically.
+                //
+                // A G0 is a non-printing move but E is present in files seen in the wild.
+                // (In the assets directory see the gears and benchy2 files.)
+                Command::G1(mut payload) | Command::G0(mut payload) => {
                     for param in payload.drain() {
                         match param {
                             PosVal::X(val) => x = val,

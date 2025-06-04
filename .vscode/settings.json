@@ -1,10 +1,20 @@
 {
   "cSpell.words": [
+    "anstream",
+    "anstyle",
     "bezier",
     "Bgcode",
+    "bufwriter",
+    "cstr",
+    "dhat",
+    "futex",
     "gcode",
+    "getenv",
     "hashbrown",
     "Heatshrink",
-    "meatpack"
+    "impls",
+    "linewriter",
+    "meatpack",
+    "mkeymap"
   ]
 }
