@@ -1,6 +1,26 @@
 # TASKS
 
-[] - Bezier curve paths
+[] - G2, G3 - Clockwise Arcs/ CounterClockwise Arcs.
+    Implement proc marco to reduce duplication - ArcVal is a enum similar to PosVal
+    Implement parse G2, G3 - R form and IJ Form
+      (I,J) and R are mutually exclusive.
+
+    Monitor Must keep track of New global "MM_PER_ARC_SEGMENT"
+
+   OBJ implement renderer
+    Compute theta start, theta end
+    break the arc into a series of arc segments
+    based on MM_PER_ARC_SEGMENT
+    if arc length is 100mm and MM_PER_ARC_SEGMENT is 10mm per arc_segment
+    then 10 steps!!.
+    for loop add line segments.
+    update current x,y
+
+  tests reject case where R and I,J are not mutually exclusive.
+
+  There are demons of a complete line with 2/3 arc segments. that can be debug asserted
+
+[] - G6, G7 - Bezier curve paths
 
 [] - Make a streaming parser.
 
