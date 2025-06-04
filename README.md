@@ -107,4 +107,8 @@ Pass the gcode file into StdIn - A summary file is written to StdOut
 
 see [TODO](TODO.md)
 
-A Bevy app?
+Missing implementations
+
+G2/G3 Clockwise/AntiClockwise ARC command.
+
+G5 - Bézier Cubic Spline Command
