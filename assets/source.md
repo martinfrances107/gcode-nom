@@ -8,3 +8,7 @@ Under
 "( Creative Commands 4.0 ) Creative Commons (4.0 International License)"
 
 <https://creativecommons.org/licenses/by-nc-sa/4.0/>
+
+arc_demo.gcode is taken from this tutorial
+
+<https://www.instructables.com/How-to-program-arcs-and-linear-movement-in-G-Code-/>

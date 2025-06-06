@@ -1,5 +1,5 @@
-; Round Box demonstrates G2 ARC anti-clockwise commands
-; a square from 0,0 to 100
+; Round Box demonstrates G2 ARC clockwise rotations
+; a square from 0,0 to 100,100
 ; but with 4 bites take out.
 
 ; Bottom flat edge going from left to right
