@@ -14,21 +14,23 @@ use nom::sequence::terminated;
 use nom::IResult;
 use nom::Parser;
 
-use crate::arc_params::parse_arc_a;
-use crate::arc_params::parse_arc_b;
-use crate::arc_params::parse_arc_c;
-use crate::arc_params::parse_arc_e;
-use crate::arc_params::parse_arc_f;
-use crate::arc_params::parse_arc_i;
-use crate::arc_params::parse_arc_j;
-use crate::arc_params::parse_arc_s;
-use crate::arc_params::parse_arc_u;
-use crate::arc_params::parse_arc_v;
-use crate::arc_params::parse_arc_w;
-use crate::arc_params::parse_arc_x;
-use crate::arc_params::parse_arc_y;
-use crate::arc_params::parse_arc_z;
-use crate::arc_params::ArcVal;
+use crate::arc::parse_arc_a;
+use crate::arc::parse_arc_b;
+use crate::arc::parse_arc_c;
+use crate::arc::parse_arc_e;
+use crate::arc::parse_arc_f;
+use crate::arc::parse_arc_i;
+use crate::arc::parse_arc_j;
+use crate::arc::parse_arc_s;
+use crate::arc::parse_arc_u;
+use crate::arc::parse_arc_v;
+use crate::arc::parse_arc_w;
+use crate::arc::parse_arc_x;
+use crate::arc::parse_arc_y;
+use crate::arc::parse_arc_z;
+use crate::arc::ArcVal;
+use crate::arc::Form as ArcForm;
+
 use crate::params::parse_a;
 use crate::params::parse_b;
 use crate::params::parse_c;
@@ -58,9 +60,9 @@ pub enum Command {
     /// Printable move
     G1(HashSet<PosVal>),
     /// G2 – Clockwise Arc
-    G2(HashSet<ArcVal>),
+    G2(ArcForm),
     /// G3 – Counter-clockwise Arc
-    G3(HashSet<ArcVal>),
+    G3(ArcForm),
 
     // G5 - Bézier Cubic Spline
     // TODO must implement
@@ -189,15 +191,36 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
 fn parse_g2(i: &str) -> IResult<&str, Command> {
     preceded(
         (tag("G2"), space0),
-        map(arc_many, |vals: Vec<ArcVal>| {
+        map_res(arc_many, |vals: Vec<ArcVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
             let hs = HashSet::from_iter(vals);
-
-            // todo::Additional checks (I,J) and R are mutually exclusive.
+            let mut has_ij = false;
+            let mut has_r = false;
+            for val in &hs {
+                match val {
+                    ArcVal::I(_) | ArcVal::J(_) => {
+                        // If I or J is present, then we have a "IJ" form.
+                        has_ij = true;
+                    }
+                    ArcVal::R(_) => {
+                        // If R is present, then we have a "R" form.
+                        has_r = true;
+                    }
+                    _ => {}
+                }
+            }
+            // Checks (I,J) and R are mutually exclusive.
             // If both are present then the command is invalid.
             // If neither is present then the command is invalid.
-            Command::G2(hs)
+            match (has_ij, has_r) {
+                (true, false) => Ok(Command::G2(ArcForm::IJ(hs))),
+                (false, true) => Ok(Command::G2(ArcForm::R(hs))),
+                _ => {
+                    // Invalid G2 command: must have either I,J or R but not both,
+                    Err("Invalid G2 command: must have either I,J or R but not both")
+                }
+            }
         }),
     )
     .parse(i)
@@ -217,11 +240,36 @@ fn parse_g2(i: &str) -> IResult<&str, Command> {
 fn parse_g3(i: &str) -> IResult<&str, Command> {
     preceded(
         (tag("G3"), space0),
-        map(arc_many, |vals: Vec<ArcVal>| {
+        map_res(arc_many, |vals: Vec<ArcVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
             let hs = HashSet::from_iter(vals);
-            Command::G3(hs)
+            let mut has_ij = false;
+            let mut has_r = false;
+            for val in &hs {
+                match val {
+                    ArcVal::I(_) | ArcVal::J(_) => {
+                        // If I or J is present, then we have a "IJ" form.
+                        has_ij = true;
+                    }
+                    ArcVal::R(_) => {
+                        // If R is present, then we have a "R" form.
+                        has_r = true;
+                    }
+                    _ => {}
+                }
+            }
+            // Checks (I,J) and R are mutually exclusive.
+            // If both are present then the command is invalid.
+            // If neither is present then the command is invalid.
+            match (has_ij, has_r) {
+                (true, false) => Ok(Command::G3(ArcForm::IJ(hs))),
+                (false, true) => Ok(Command::G3(ArcForm::R(hs))),
+                _ => {
+                    // Invalid G2 command: must have either I,J or R but not both,
+                    Err("Invalid G2 command: must have either I,J or R but not both")
+                }
+            }
         }),
     )
     .parse(i)
@@ -467,7 +515,19 @@ mod test {
     // "IJ" Form
     // "R" Form
     //
-    // TODO: must add "R" form examples.
+    // TODO add this test
+    //
+    // IJ Form
+    // At least one of the I J parameters is required.
+    // X and Y can be omitted to do a complete circle.
+    // Mixing I or J with R will throw an error.
+    //
+    // R Form
+    // R specifies the radius. X or Y is required.
+    // Omitting both X and Y will throw an error.
+    // Mixing R with I or J will throw an error.
+    //
+    // source https://marlinfw.org/docs/gcode/G002-G003.html
     #[test]
     fn g2() {
         // let default = PosPayload::<f64>::default();
@@ -477,7 +537,7 @@ mod test {
                 "G2 X125 Y32 I10.5 J10.5; arc",
                 Ok((
                     "; arc",
-                    Command::G2(
+                    Command::G2(ArcForm::IJ(
                         [
                             ArcVal::X(125_f64),
                             ArcVal::Y(32_f64),
@@ -485,14 +545,14 @@ mod test {
                             ArcVal::J(10.5),
                         ]
                         .into(),
-                    ),
+                    )),
                 )),
             ),
             (
                 "G2 I20 J20; X and Y can be omitted to do a complete circle.",
                 Ok((
                     "; X and Y can be omitted to do a complete circle.",
-                    Command::G2([ArcVal::I(20_f64), ArcVal::J(20_f64)].into()),
+                    Command::G2(ArcForm::IJ([ArcVal::I(20_f64), ArcVal::J(20_f64)].into())),
                 )),
             ),
         ];
@@ -505,15 +565,12 @@ mod test {
     // // G3 X2 Y7 R5
     #[test]
     fn g3() {
-        // let default = PosPayload::<f64>::default();
-
         let text_commands = [
-            ("G3 Z5", Ok(("", Command::G3([ArcVal::Z(5_f64)].into())))),
             (
-                "G3 X125 Y32 I10.5 J10.5; arc",
+                "G2 X125 Y32 I10.5 J10.5; arc",
                 Ok((
                     "; arc",
-                    Command::G3(
+                    Command::G2(ArcForm::IJ(
                         [
                             ArcVal::X(125_f64),
                             ArcVal::Y(32_f64),
@@ -521,7 +578,14 @@ mod test {
                             ArcVal::J(10.5),
                         ]
                         .into(),
-                    ),
+                    )),
+                )),
+            ),
+            (
+                "G2 I20 J20; X and Y can be omitted to do a complete circle.",
+                Ok((
+                    "; X and Y can be omitted to do a complete circle.",
+                    Command::G2(ArcForm::IJ([ArcVal::I(20_f64), ArcVal::J(20_f64)].into())),
                 )),
             ),
         ];

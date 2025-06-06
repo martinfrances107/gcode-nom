@@ -12,5 +12,8 @@ time cargo run --release -- ../assets/both\ parts.bgcode > both.svg
 time cargo run --release -- ../assets/mini_cube_b.bgcode > mini_cube_b.svg
 time cargo run --release -- ../assets/benchy2-mk4s.bgcode > benchy2-mk4s.svg
 time cargo run --release -- ../assets/gear-holder-print-in-place_04n_022mm_pla_mk4_6h49m.bgcode > gear-holder.svg
+# Round box has a bug in the final upper left corner (SVG)
+time cargo run --release -- ../assets/round_box.gcode > round_box.svg
+# time cargo run -- ../assets/arc_demo.gcode > arc_demo.svg
 
 brave *.svg

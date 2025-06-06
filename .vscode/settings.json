@@ -12,9 +12,11 @@
     "getenv",
     "hashbrown",
     "Heatshrink",
+    "hypot",
     "impls",
     "linewriter",
     "meatpack",
-    "mkeymap"
+    "mkeymap",
+    "Positionmode"
   ]
 }

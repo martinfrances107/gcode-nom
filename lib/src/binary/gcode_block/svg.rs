@@ -2,12 +2,12 @@ use core::fmt::Display;
 
 use crate::command::Command;
 use crate::params::PosVal;
-use crate::PositionMode;
+use crate::{compute_arc, ArcParams, PositionMode};
 
 /// SVG representation of a G-Code file.
 ///
 /// wraps the min and max x, y values of the SVG.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Svg {
     min_x: f64,
     min_y: f64,
@@ -91,10 +91,12 @@ impl FromIterator<String> for Svg {
         // Invalid if the <path>'s d string does not start with a move.
         svg.parts.push("M0 0".to_string());
 
-        let mut is_extruding = true;
+        let mut is_extruding = false;
         // Positioning mode for all axes (A, B, C), (U, V, W),  (X, Y, Z).
         let mut position_mode = PositionMode::default();
         let mut z = 0_f64;
+        let mut current_x = 0_f64;
+        let mut current_y = 0_f64;
         for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command is not parsable");
             let mut x = f64::NAN;
@@ -136,6 +138,8 @@ impl FromIterator<String> for Svg {
                                 } else {
                                     svg.parts.push(format!("M{proj_x:.3} {proj_y:.3}"));
                                 }
+                                current_x = x;
+                                current_y = y;
                             }
                             PositionMode::Relative => {
                                 if is_extruding {
@@ -143,16 +147,89 @@ impl FromIterator<String> for Svg {
                                 } else {
                                     svg.parts.push(format!("m{proj_x:.3} {proj_y:.3}"));
                                 }
+                                current_x += x;
+                                current_y += y;
                             }
                         }
                     }
                 }
-                Command::G2(_payload) => {
-                    // todo!();
+                Command::G2(arc_form) => {
+                    // Clockwise arc
+                    let ArcParams {
+                        origin,
+                        radius,
+                        theta_start,
+                        theta_end,
+                    } = compute_arc(current_x, current_y, &arc_form);
+
+                    // TODO: FIXME
+                    // initially move in 4 steps
+                    // This is be replaced by a more sophisticated approach
+                    // use the config constant MM_PER_ARC_SEGMENT
+                    // to determine the number of steps.
+                    let delta_theta = (theta_end - theta_start) / 4.0;
+
+                    // For loop with f64 have a problem with numerical accuracy
+                    // specifically the comparing limit.
+                    // rust idiomatically insists on indexed here
+                    for i in 0..=4 {
+                        // Subtraction here is the only point in this function
+                        // that implies clockwise rotation.
+                        let theta = theta_start - (i as f64 * delta_theta);
+                        let x = origin.0 + radius * theta.cos();
+                        let y = origin.1 + radius * theta.sin();
+
+                        let proj_x = y / 2. + x / 2.;
+                        let proj_y = -z - y / 2. + x / 2.;
+                        svg.update_view_box(proj_x, proj_y);
+                        match position_mode {
+                            PositionMode::Absolute => {
+                                svg.parts.push(format!("L{proj_x:.3} {proj_y:.3}"));
+                            }
+                            PositionMode::Relative => {
+                                svg.parts.push(format!("l{proj_x:.3} {proj_y:.3}"));
+                            }
+                        }
+                    }
                 }
-                Command::G3(_payload) => {
-                    // G2 - AntiClockwise Arc
-                    // todo!();
+                Command::G3(arc_form) => {
+                    // Anti-Clockwise arc
+                    let ArcParams {
+                        origin,
+                        radius,
+                        theta_start,
+                        theta_end,
+                    } = compute_arc(current_x, current_y, &arc_form);
+
+                    // TODO: FIXME
+                    // initially move in 4 steps
+                    // This is be replaced by a more sophisticated approach
+                    // use the config constant MM_PER_ARC_SEGMENT
+                    // to determine the number of steps.
+                    let delta_theta = (theta_end - theta_start) / 4.0;
+
+                    // For loop with f64 have a problem with numerical accuracy
+                    // specifically the comparing limit.
+                    // rust idiomatically insists on indexed here
+                    for i in 0..=4 {
+                        // Addition here is the only point in this function
+                        // that implies anticlockwise rotation.
+                        let theta = theta_start + (i as f64 * delta_theta);
+                        let x = origin.0 + radius * theta.cos();
+                        let y = origin.1 + radius * theta.sin();
+
+                        let proj_x = y / 2. + x / 2.;
+                        let proj_y = -z - y / 2. + x / 2.;
+                        svg.update_view_box(proj_x, proj_y);
+                        match position_mode {
+                            PositionMode::Absolute => {
+                                svg.parts.push(format!("L{proj_x:.3} {proj_y:.3}"));
+                            }
+                            PositionMode::Relative => {
+                                svg.parts.push(format!("l{proj_x:.3} {proj_y:.3}"));
+                            }
+                        }
+                    }
                 }
                 Command::G21 => svg.parts.push("M0 0".to_string()),
                 Command::G90 => position_mode = PositionMode::Absolute,
@@ -196,4 +273,31 @@ impl FromIterator<String> for Svg {
 
         svg
     }
+}
+
+// This illustrates a counter clockwise arc, starting at [9, 6]. It can be generated by G3 X2 Y7 I-4 J-3
+//
+// As show in this (image)[<../images/G3fog.png>]
+//
+// source <https://marlinfw.org/docs/gcode/G002-G003.html>
+#[test]
+fn svg_anti_clockwise_arc() {
+    // SNAPSHOT values
+    // projection was removed the values compared to the diagram, projection was restored and the
+    // values copied over.
+    let expected_parts: Vec<String> = vec![
+        "M0 0".into(),
+        "M7.500 1.500".into(),
+        "L7.500 1.500".into(),
+        "L7.425 0.123".into(),
+        "L6.828 -1.121".into(),
+        "L5.801 -2.042".into(),
+        "L4.500 -2.500".into(),
+    ];
+
+    let actual = Svg::from_iter(vec![
+        String::from("G0 X9 Y6; set start point"),
+        String::from("G3 X2 Y7 I-4 J-3"),
+    ]);
+    assert_eq!(actual.parts, expected_parts);
 }

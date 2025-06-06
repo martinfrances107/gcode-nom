@@ -104,8 +104,8 @@ macro_rules! parse_val {
         #[doc = "Extracts"]
         #[doc = stringify!($tag)]
         #[doc = " parameter"]
-        #[doc =""]
-        #[doc ="# Errors"]
+        #[doc = ""]
+        #[doc = "# Errors"]
         #[doc = "  When match fails."]
         pub fn $name(i: &str) -> IResult<&str, PosVal> {
             map(

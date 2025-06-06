@@ -1,5 +1,6 @@
 use core::hash::Hash;
 use core::hash::Hasher;
+use std::collections::HashSet;
 
 use nom::bytes::complete::tag;
 use nom::character::complete::space0;
@@ -7,6 +8,17 @@ use nom::combinator::map;
 use nom::sequence::preceded;
 use nom::IResult;
 use nom::Parser;
+
+/// G2/G3 Arc Command
+///
+/// Payload has two forms,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Form {
+    /// Arc with center offset in I and J
+    IJ(HashSet<ArcVal>),
+    /// Arc with radius R
+    R(HashSet<ArcVal>),
+}
 
 /// Parameters for `Command::G2` and `Command::G3`
 ///
@@ -125,8 +137,8 @@ macro_rules! parse_arc_val {
         #[doc = "Extracts"]
         #[doc = stringify!($tag)]
         #[doc = " parameter"]
-        #[doc =""]
-        #[doc ="# Errors"]
+        #[doc = ""]
+        #[doc = "# Errors"]
         #[doc = "  When match fails."]
         pub fn $name(i: &str) -> IResult<&str, ArcVal> {
             map(
@@ -166,6 +178,14 @@ mod test {
     #[test]
     fn parse_a_macro() {
         assert_eq!(parse_arc_a("A95.110"), Ok(("", ArcVal::A(95.110))));
+    }
+
+    // Offsets and extrusions can be negative
+    #[test]
+    fn parse_negative_value() {
+        assert_eq!(parse_arc_e("E-1.1"), Ok(("", ArcVal::E(-1.1))));
+        assert_eq!(parse_arc_i("I-10.10"), Ok(("", ArcVal::I(-10.10))));
+        assert_eq!(parse_arc_j("J-100.100"), Ok(("", ArcVal::J(-100.100))));
     }
 
     #[test]

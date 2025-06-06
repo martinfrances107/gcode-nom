@@ -21,6 +21,11 @@
 
   There are demos of a complete line with 2/3 arc segments. that can be asset/snapshot
 
+[] - Unwind a misconception
+  If X is specified and Y is omitted.
+  The Y values becomes the current Y etc.
+  This is not currently the case.
+
 [] - G5 - Bezier curve paths
 
 [] - Make a streaming parser.
