@@ -23,13 +23,13 @@ static CONFIG_W12_L4: LazyLock<Config> =
 pub enum DecompressError {
     /// Unexpected length while taking data.
     None,
-    /// Error decompressing, with the "Deflate" algorithm.
+    /// Error decompressing, with the "`Deflate`" algorithm.
     Deflate,
-    /// Error decompressing, with the "HeatShrink11" algorithm.
+    /// Error decompressing, with the "`HeatShrink11`" algorithm.
     HeatShrink11,
-    /// Error decompressing, with the "HeatShrink12" algorithm.
+    /// Error decompressing, with the "`HeatShrink12`" algorithm.
     HeatShrink12,
-    /// Error decompressing, with the "MeatPackAlgorithm" algorithm.
+    /// Error decompressing, with the  "`MeatPackAlgorithm`" algorithm.
     MeatPackAlgorithm,
 }
 
