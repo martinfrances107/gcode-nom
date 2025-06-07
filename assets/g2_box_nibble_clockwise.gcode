@@ -25,4 +25,4 @@ G2 I-5 J0 X0 Y95 E1
 G1 X0 Y5 E1
 
 ; (4) Convert to counter clockwise arc
-G2 J-5 J0 X5 Y0 E1
+G2 I0 J-5 X5 Y0 E1

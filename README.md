@@ -94,7 +94,7 @@ cargo run --release -- ../assets/X\ 6x6_0.15mm_PLA_MK3S_1h55m.gcode > X.svg
 
 ### bgcodeViewer
 
- Strict checking of binaries. validates blocks checksums, ensures 'block' parameters values are within valid ranges.
+ Strict checking of **binaries**. validates blocks checksums, ensures 'block' parameters values are within valid ranges.
 
 Pass the gcode file into StdIn - A summary file is written to StdOut
 
@@ -108,7 +108,5 @@ Pass the gcode file into StdIn - A summary file is written to StdOut
 see [TODO](TODO.md)
 
 Missing implementations
-
-G2/G3 Clockwise/AntiClockwise ARC command.
 
 G5 - Bézier Cubic Spline Command

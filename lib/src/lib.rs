@@ -57,7 +57,7 @@ pub struct ArcParams {
 #[must_use] // // pub fn compute_arc(&payload) ->  ( origin, radius, theta_start, theta_end)
 /// Computes the parameters of an arc given the current position and the arc form.
 ///
-/// ArcParams contains the values in a form which can be rendered to a OBJ/SVG file.
+/// `ArcParams` contains the values in a form which can be rendered to a OBJ/SVG file.
 pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams {
     let mut i: f64 = f64::NAN;
     let mut j: f64 = f64::NAN;
@@ -67,8 +67,8 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
 
     let radius: f64;
     let origin: (f64, f64);
-    let theta_start: f64;
-    let theta_end: f64;
+    let mut theta_start: f64;
+    let mut theta_end: f64;
 
     match form {
         ArcForm::IJ(arc_values) => {
@@ -90,21 +90,22 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
 
             let delta_start_x = current_x - origin.0;
             let delta_start_y = current_y - origin.1;
-            // if delta_start_x == 0.0 {
-            //     panic!("Ambiguity straight up or start down - can't tell")
-            // } else {
-            //     theta_start = (delta_start_y).atan2(delta_start_x);
-            // }
+
             theta_start = (delta_start_y).atan2(delta_start_x);
+            // atan2 returns a value in the range [ -PI, PI].
+            // Want a range to be [0,2PI]
+            if theta_start < 0_f64 {
+                theta_start += 2_f64 * f64::consts::PI;
+            }
 
             let delta_end_x = x - origin.0;
             let delta_end_y = y - origin.1;
-            // if delta_end_x == 0.0 {
-            //     panic!("Ambiguity straight up or start down - can't tell")
-            // } else {
-            //     theta_end = (delta_end_y).atan2(delta_end_x);
-            // }
             theta_end = (delta_end_y).atan2(delta_end_x);
+            // atan2 returns a value in the range [ -PI, PI].
+            // Want a range to be [0,2PI]
+            if theta_end < 0_f64 {
+                theta_end += 2_f64 * f64::consts::PI;
+            }
         }
         ArcForm::R(arc_values) => {
             // R form
@@ -173,6 +174,27 @@ mod tests {
             round_to_two_decimals(arc.theta_end.to_degrees()),
             126.87_f64
         );
+    }
+
+    #[test]
+    fn troublesome_arc_ij() {
+        let arc = compute_arc(
+            0.0,
+            5.0,
+            &ArcForm::IJ(
+                [
+                    ArcVal::X(5.0),
+                    ArcVal::Y(0.0),
+                    ArcVal::I(5.0),
+                    ArcVal::J(0.0),
+                ]
+                .into(),
+            ),
+        );
+        assert_eq!(arc.origin, (5.0, 5.0));
+        assert_eq!(arc.radius, 5.0);
+        assert_eq!(round_to_two_decimals(arc.theta_start.to_degrees()), 180_f64);
+        assert_eq!(round_to_two_decimals(arc.theta_end.to_degrees()), 270_f64);
     }
 
     #[ignore]

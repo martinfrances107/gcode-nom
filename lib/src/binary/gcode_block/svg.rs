@@ -95,10 +95,12 @@ impl FromIterator<String> for Svg {
         // Positioning mode for all axes (A, B, C), (U, V, W),  (X, Y, Z).
         let mut position_mode = PositionMode::default();
         let mut z = 0_f64;
+        // X and Y position of tool head (before projection).
         let mut current_x = 0_f64;
         let mut current_y = 0_f64;
         for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command is not parsable");
+            // Candidate value of params X<number> Y<number>
             let mut x = f64::NAN;
             let mut y = f64::NAN;
 
@@ -124,10 +126,44 @@ impl FromIterator<String> for Svg {
                         }
                     }
 
-                    // Valid `Command::G1` -  Where X and Y and undefined
+                    // Regarding X and Y at least one must be specified.
                     //
-                    // "G1 E2.72551 F1800.00000"
-                    if !x.is_nan() && !y.is_nan() {
+                    // If any value is unspecified the current value is used.
+                    let xy_valid = match (x.is_nan(), y.is_nan()) {
+                        (false, false) => {
+                            // X and Y passed as parameters.
+                            true
+                        }
+
+                        (false, true) => {
+                            // X is passed as a parameter
+                            // Y is unspecified
+                            y = match position_mode {
+                                PositionMode::Absolute => current_y,
+                                PositionMode::Relative => 0_f64,
+                            };
+                            true
+                        }
+                        (true, false) => {
+                            // X is unspecified
+                            // Y is passed as a parameter
+                            x = match position_mode {
+                                PositionMode::Absolute => current_x,
+                                PositionMode::Relative => 0_f64,
+                            };
+                            true
+                        }
+
+                        (true, true) => {
+                            // Cannot proceed: both X and Y are unspecified
+                            // Silently handle error by dropping further action.
+                            // TODO: Leave a log in the debug output
+                            // once debug strategy is worked developed.
+                            false
+                        }
+                    };
+
+                    if xy_valid {
                         let proj_x = y / 2. + x / 2.;
                         let proj_y = -z - y / 2. + x / 2.;
                         svg.update_view_box(proj_x, proj_y);
@@ -158,24 +194,30 @@ impl FromIterator<String> for Svg {
                     let ArcParams {
                         origin,
                         radius,
-                        theta_start,
+                        mut theta_start,
                         theta_end,
                     } = compute_arc(current_x, current_y, &arc_form);
 
-                    // TODO: FIXME
+                    // Regarding the Ambiguity/Equivalence  of the angles 0 and 2PI
+                    // All values here are in the range 0<=theta<2PI
+                    // We are rotating clockwise
+                    // in this cased the start angle of 0 should be read as 2PI
+                    if theta_start == 0_f64 {
+                        theta_start = 2_f64 * std::f64::consts::PI;
+                    }
+
+                    // FIXME:
                     // initially move in 4 steps
                     // This is be replaced by a more sophisticated approach
                     // use the config constant MM_PER_ARC_SEGMENT
                     // to determine the number of steps.
                     let delta_theta = (theta_end - theta_start) / 4.0;
 
-                    // For loop with f64 have a problem with numerical accuracy
+                    // For loop: f64 has a problem with numerical accuracy
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
                     for i in 0..=4 {
-                        // Subtraction here is the only point in this function
-                        // that implies clockwise rotation.
-                        let theta = theta_start - (i as f64 * delta_theta);
+                        let theta = theta_start + (i as f64 * delta_theta);
                         let x = origin.0 + radius * theta.cos();
                         let y = origin.1 + radius * theta.sin();
 
@@ -198,9 +240,16 @@ impl FromIterator<String> for Svg {
                         origin,
                         radius,
                         theta_start,
-                        theta_end,
+                        mut theta_end,
                     } = compute_arc(current_x, current_y, &arc_form);
 
+                    // Regarding the Ambiguity/Equivalence  of the angles 0 and 2PI
+                    // All values here are in the range 0<=theta<2PI
+                    // We are rotating anticlockwise
+                    // in this cased the final angle of 0 should be read as 2PI
+                    if theta_end == 0_f64 {
+                        theta_end = 2_f64 * std::f64::consts::PI;
+                    }
                     // TODO: FIXME
                     // initially move in 4 steps
                     // This is be replaced by a more sophisticated approach
@@ -273,31 +322,4 @@ impl FromIterator<String> for Svg {
 
         svg
     }
-}
-
-// This illustrates a counter clockwise arc, starting at [9, 6]. It can be generated by G3 X2 Y7 I-4 J-3
-//
-// As show in this (image)[<../images/G3fog.png>]
-//
-// source <https://marlinfw.org/docs/gcode/G002-G003.html>
-#[test]
-fn svg_anti_clockwise_arc() {
-    // SNAPSHOT values
-    // projection was removed the values compared to the diagram, projection was restored and the
-    // values copied over.
-    let expected_parts: Vec<String> = vec![
-        "M0 0".into(),
-        "M7.500 1.500".into(),
-        "L7.500 1.500".into(),
-        "L7.425 0.123".into(),
-        "L6.828 -1.121".into(),
-        "L5.801 -2.042".into(),
-        "L4.500 -2.500".into(),
-    ];
-
-    let actual = Svg::from_iter(vec![
-        String::from("G0 X9 Y6; set start point"),
-        String::from("G3 X2 Y7 I-4 J-3"),
-    ]);
-    assert_eq!(actual.parts, expected_parts);
 }

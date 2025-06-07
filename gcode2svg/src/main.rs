@@ -102,7 +102,9 @@ fn main() -> std::io::Result<()> {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use gcode_nom::command::Command;
+    use insta::assert_debug_snapshot;
 
     // The first few lines of assets/3dBench.gcode
     static INPUT: &str = r"
@@ -135,5 +137,35 @@ G1 Z0.350 F7800.000
         for line in INPUT.lines() {
             assert!(Command::parse_line(line).is_ok());
         }
+    }
+
+    #[test]
+    fn svg_clockwise_arc() {
+        // SNAPSHOT tests
+        // Simple pattern essential for code coverage
+        //
+        // Ensures calculated theta values are in the range 0..360
+        // as measured in anticlockwise from the positive x-axis.
+        //
+        // 0 and 360 are the same point
+        // This test asserts that the cases where 360 must be used are correct.
+        let buffer = include_str!("../../assets/g3_box_rounded_anticlockwise.gcode");
+        let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
+        assert_debug_snapshot!(svg);
+    }
+
+    #[test]
+    fn svg_anti_clockwise_arc() {
+        // SNAPSHOT tests
+        // Simple pattern essential for code coverage
+        //
+        // Ensures calculated theta values are in the range 0..360
+        // as measured in anticlockwise from the positive x-axis.
+        //
+        // 0 and 360 are the same point
+        // This test asserts that the cases where 360 must be used are correct.
+        let buffer = include_str!("../../assets/g2_box_nibble_clockwise.gcode");
+        let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
+        assert_debug_snapshot!(svg);
     }
 }

@@ -137,7 +137,7 @@ impl FromIterator<String> for Obj {
         let mut current_x = 0_f64;
         let mut current_y = 0_f64;
 
-        for line in iter {
+        'line_loop: for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command not parsable");
             let mut x = f64::NAN;
             let mut y = f64::NAN;
@@ -169,43 +169,65 @@ impl FromIterator<String> for Obj {
                     // TODO Must handle abs and relative position state.
                     // "abs_coords"
 
-                    // Valid `Command::G1` -  Where X and Y and undefined
+                    // `Command::G1` -  regarding X and Y at least one must be specified.
                     //
-                    // "G1 E2.72551 F1800.00000"
-                    if !x.is_nan() && !y.is_nan() {
-                        let vertex = Vertex(x, y, z);
+                    // If any value is unspecified the current value is used.
+                    let vertex = match (x.is_nan(), y.is_nan()) {
+                        (false, false) => {
+                            // X and Y passed as parameters.
+                            Vertex(x, y, z)
+                        }
 
-                        if is_extruding {
-                            if let Some(index) = obj.index_store.get(&vertex) {
-                                // Push record of exiting vertex to index_buffer.
-                                line_buffer.push(*index);
-                            } else {
-                                // New entry in vertex_buffer and index_buffer.
-                                obj.index_store.insert(vertex.clone(), next_vertex_pos);
-                                line_buffer.push(next_vertex_pos);
-                                obj.vertex_buffer.push(vertex);
-                                next_vertex_pos += 1;
-                            }
+                        (false, true) => {
+                            // X is passed as a parameter
+                            // Y is unspecified
+                            Vertex(x, current_y, z)
+                        }
+                        (true, false) => {
+                            // X is unspecified
+                            // Y is passed as a parameter
+                            Vertex(current_x, y, z)
+                        }
+
+                        (true, true) => {
+                            // Cannot proceed: X and Y are unspecified
+                            // Silently handle error by dropping the command.
+                            // TODO: Leave a log in the debug output
+                            // once debug strategy is worked developed.
+                            continue 'line_loop;
+                        }
+                    };
+
+                    if is_extruding {
+                        if let Some(index) = obj.index_store.get(&vertex) {
+                            // Push record of exiting vertex to index_buffer.
+                            line_buffer.push(*index);
                         } else {
-                            // Not extruding
-                            //
-                            // TODO: set the capacity of the complete_line
-                            // to the last good capacity.
-                            let mut complete_line = vec![];
-                            mem::swap(&mut line_buffer, &mut complete_line);
-                            obj.lines.push(complete_line);
+                            // New entry in vertex_buffer and index_buffer.
+                            obj.index_store.insert(vertex.clone(), next_vertex_pos);
+                            line_buffer.push(next_vertex_pos);
+                            obj.vertex_buffer.push(vertex);
+                            next_vertex_pos += 1;
+                        }
+                    } else {
+                        // Not extruding
+                        //
+                        // TODO: set the capacity of the complete_line
+                        // to the last good capacity.
+                        let mut complete_line = vec![];
+                        mem::swap(&mut line_buffer, &mut complete_line);
+                        obj.lines.push(complete_line);
 
-                            // The first entry in the new line buffer is current position.
-                            if let Some(index) = obj.index_store.get(&vertex) {
-                                // Push record of exiting vertex to index_buffer.
-                                line_buffer.push(*index);
-                            } else {
-                                // New entry in vertex_buffer and index_buffer.
-                                obj.index_store.insert(vertex.clone(), next_vertex_pos);
-                                line_buffer.push(next_vertex_pos);
-                                obj.vertex_buffer.push(vertex);
-                                next_vertex_pos += 1;
-                            }
+                        // The first entry in the new line buffer is current position.
+                        if let Some(index) = obj.index_store.get(&vertex) {
+                            // Push record of exiting vertex to index_buffer.
+                            line_buffer.push(*index);
+                        } else {
+                            // New entry in vertex_buffer and index_buffer.
+                            obj.index_store.insert(vertex.clone(), next_vertex_pos);
+                            line_buffer.push(next_vertex_pos);
+                            obj.vertex_buffer.push(vertex);
+                            next_vertex_pos += 1;
                         }
                     }
                 }
@@ -302,40 +324,4 @@ impl FromIterator<String> for Obj {
         }
         obj
     }
-}
-
-// This illustrates a counter clockwise arc, starting at [9, 6]. It can be generated by G3 X2 Y7 I-4 J-3
-//
-// As show in this (image)[<../images/G3fog.png>]
-//
-// source <https://marlinfw.org/docs/gcode/G002-G003.html>
-//
-// Why ignored .. Get algorithm working on SVG first.
-#[ignore]
-#[test]
-fn g3_simple_arc() {
-    use gcode_nom::arc::ArcVal;
-    use gcode_nom::arc::Form as ArcForm;
-
-    // This is a G3 arc with I and J values.
-    // let arc = ArcForm::IJ(
-    //     [
-    //         ArcVal::X(2.0),
-    //         ArcVal::Y(7.0),
-    //         ArcVal::I(-4.0),
-    //         ArcVal::J(-3.0),
-    //     ]
-    //     .into(),
-    // );
-
-    let expected = Obj {
-        index_store: HashMap::new(),
-        vertex_buffer: vec![Vertex(5.0, 3.0, 0.0), Vertex(9.0, 6.0, 0.0)],
-        lines: vec![vec![0, 1]],
-        apply_blender_transform: false,
-    };
-
-    // let actual: Obj = String::from(vec!["G3 X2 Y7 I-4 J-3"].iter()).into();
-    let actual = Obj::from_iter(vec![String::from("G3 X2 Y7 I-4 J-3")]);
-    assert_eq!(actual, expected);
 }

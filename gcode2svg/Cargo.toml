@@ -21,3 +21,6 @@ gcode-nom = { path = "../lib" }
 clap = { workspace = true }
 log = { workspace = true }
 env_logger = { workspace = true }
+
+[dev-dependencies]
+insta = "1.43.1"
