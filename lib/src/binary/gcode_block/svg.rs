@@ -4,6 +4,9 @@ use crate::command::Command;
 use crate::params::PosVal;
 use crate::{compute_arc, ArcParams, PositionMode};
 
+// Used in G2/G3 Arc commands.
+static MM_PER_ARC_SEGMENT: f64 = 1_f64;
+
 /// SVG representation of a G-Code file.
 ///
 /// wraps the min and max x, y values of the SVG.
@@ -206,18 +209,17 @@ impl FromIterator<String> for Svg {
                         theta_start = 2_f64 * std::f64::consts::PI;
                     }
 
-                    // FIXME:
-                    // initially move in 4 steps
-                    // This is be replaced by a more sophisticated approach
-                    // use the config constant MM_PER_ARC_SEGMENT
-                    // to determine the number of steps.
-                    let delta_theta = (theta_end - theta_start) / 4.0;
+                    let delta_theta = theta_end - theta_start;
+                    let total_arc_length = delta_theta.abs() * radius;
+                    // n_steps must be a number > 0
+                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
+                    let theta_step = delta_theta / n_steps;
 
                     // For loop: f64 has a problem with numerical accuracy
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
-                    for i in 0..=4 {
-                        let theta = theta_start + (i as f64 * delta_theta);
+                    for i in 0..=n_steps as u64 {
+                        let theta = theta_start + (i as f64 * theta_step);
                         let x = origin.0 + radius * theta.cos();
                         let y = origin.1 + radius * theta.sin();
 
@@ -250,20 +252,19 @@ impl FromIterator<String> for Svg {
                     if theta_end == 0_f64 {
                         theta_end = 2_f64 * std::f64::consts::PI;
                     }
-                    // TODO: FIXME
-                    // initially move in 4 steps
-                    // This is be replaced by a more sophisticated approach
-                    // use the config constant MM_PER_ARC_SEGMENT
-                    // to determine the number of steps.
-                    let delta_theta = (theta_end - theta_start) / 4.0;
 
+                    let delta_theta = theta_end - theta_start;
+                    let total_arc_length = delta_theta.abs() * radius;
+                    // n_steps must be a number > 0
+                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
+                    let theta_step = delta_theta / n_steps;
                     // For loop with f64 have a problem with numerical accuracy
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
-                    for i in 0..=4 {
+                    for i in 0..=n_steps as u64 {
                         // Addition here is the only point in this function
                         // that implies anticlockwise rotation.
-                        let theta = theta_start + (i as f64 * delta_theta);
+                        let theta = theta_start + (i as f64 * theta_step);
                         let x = origin.0 + radius * theta.cos();
                         let y = origin.1 + radius * theta.sin();
 
