@@ -258,8 +258,6 @@ impl FromIterator<String> for Svg {
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
-                        // Addition here is the only point in this function
-                        // that implies anticlockwise rotation.
                         let theta = theta_start + (i as f64 * theta_step);
                         let x = origin.0 + radius * theta.cos();
                         let y = origin.1 + radius * theta.sin();
