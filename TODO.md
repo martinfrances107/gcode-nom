@@ -8,7 +8,7 @@
 
    Provide a config PARAM "MM_PER_ARC_SEGMENT"
 
-   OBJ/SVG implement renderer
+   OBJ implement renderer
     Compute theta start, theta end
     break the arc into a series of arc segments
     based on MM_PER_ARC_SEGMENT
@@ -25,6 +25,8 @@
   If X is specified and Y is omitted.
   The Y values becomes the current Y etc.
   This is not currently the case.
+
+[] - both is broken in the arc branch.
 
 [] - G5 - Bezier curve paths
 

@@ -5,7 +5,7 @@ use crate::params::PosVal;
 use crate::{compute_arc, ArcParams, PositionMode};
 
 // Used in G2/G3 Arc commands.
-static MM_PER_ARC_SEGMENT: f64 = 1_f64;
+pub static MM_PER_ARC_SEGMENT: f64 = 1_f64;
 
 /// SVG representation of a G-Code file.
 ///
