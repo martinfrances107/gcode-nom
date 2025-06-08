@@ -59,10 +59,21 @@ impl Display for Svg {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let width = self.max_x - self.min_x;
         let height = self.max_y - self.min_y;
-        let vb = format!("{} {} {} {}", self.min_x, self.min_y, width, height);
+        // An empty gcode file will not change min_x/y or max_x/y from
+        // its default of +/-INF respectively.
+        //
+        let parameters = if width.is_finite() && height.is_finite() {
+            format!(
+                "width=\"{width}\" height=\"{height}\" viewBox=\"{} {} {} {}\"",
+                self.min_x, self.min_y, width, height
+            )
+        } else {
+            // In this case silently fail by returning a empty SVG element, without a viewBox parameter.
+            String::new()
+        };
         write!(
             f,
-            "<svg height=\"{height}\" width=\"{width}\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"{vb}\"> <path d=\""
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" {parameters}> <path d=\""
         )?;
         for part in &self.parts {
             write!(f, "{part}")?;

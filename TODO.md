@@ -7,7 +7,10 @@
       (I,J) and R are mutually exclusive.
 
 [] - Broken assets
-  "both.gcode" is broken in the arc branch.
+  "arc_demo"
+    has viewBox issued (INF).
+  "both.gcode"
+    is broken in the arc branch.
     It looks like rendering becomes terminated prematurely.
   "gears"
     OBJ rendering of ARC is broken .. or at least diverges from SVG rendering.
