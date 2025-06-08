@@ -1,5 +1,7 @@
 ; Mix of G2 and G3 Arc commands.
-
+;
+; Leading zero test
+; Parsing check G00/G01 must be correctly decoded.G00 X.5 Y3.5 Z.5 E1
 G00 X.5 Y3.5 Z.5 E1
 G01 Z-.125 E1
 G01 X2.25 E1

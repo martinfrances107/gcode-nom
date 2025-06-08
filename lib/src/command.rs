@@ -125,21 +125,6 @@ pub fn g_drop(i: &str) -> IResult<&str, u16> {
     map_res(preceded(tag("G"), digit1), str::parse).parse(i)
 }
 
-/// # Errors
-///   When match fails.
-fn parse_g0(i: &str) -> IResult<&str, Command> {
-    preceded(
-        (tag("G0"), space0),
-        map(pos_many, |vals: Vec<PosVal>| {
-            // Paranoid: deduplication.
-            // eg. There can be only one E<f64>.
-            let hs = HashSet::from_iter(vals);
-            Command::G0(hs)
-        }),
-    )
-    .parse(i)
-}
-
 // Collect everything after the semicolon until the end of the line.
 // as a comment string
 fn parse_comment(i: &str) -> IResult<&str, Command> {
@@ -149,6 +134,21 @@ fn parse_comment(i: &str) -> IResult<&str, Command> {
             map(not_line_ending, |v: &str| Command::Comment(v.to_string())),
             line_ending,
         ),
+    )
+    .parse(i)
+}
+
+/// # Errors
+///   When match fails.
+fn parse_g0(i: &str) -> IResult<&str, Command> {
+    preceded(
+        (alt((tag("G0"), tag("G00"))), space0),
+        map(pos_many, |vals: Vec<PosVal>| {
+            // Paranoid: deduplication.
+            // eg. There can be only one E<f64>.
+            let hs = HashSet::from_iter(vals);
+            Command::G0(hs)
+        }),
     )
     .parse(i)
 }
@@ -166,7 +166,7 @@ fn parse_comment(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g1(i: &str) -> IResult<&str, Command> {
     preceded(
-        (tag("G1"), space0),
+        (alt((tag("G1"), tag("G01"))), space0),
         map(pos_many, |vals: Vec<PosVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
@@ -190,7 +190,7 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g2(i: &str) -> IResult<&str, Command> {
     preceded(
-        (tag("G2"), space0),
+        (alt((tag("G2"), tag("G02"))), space0),
         map_res(arc_many, |vals: Vec<ArcVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
@@ -239,7 +239,7 @@ fn parse_g2(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g3(i: &str) -> IResult<&str, Command> {
     preceded(
-        (tag("G3"), space0),
+        (alt((tag("G3"), tag("G03"))), space0),
         map_res(arc_many, |vals: Vec<ArcVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
@@ -402,14 +402,24 @@ mod test {
 
     #[test]
     fn g0() {
-        let text_commands = [(
-            // Troublesome pattern found in "both \parts.gcode".
-            "G0E-2.7F4200",
-            Ok((
-                "",
-                Command::G0([PosVal::E(-2.7), PosVal::F(4200_f64)].into()),
-            )),
-        )];
+        let text_commands = [
+            (
+                // Troublesome pattern found in "both \parts.gcode".
+                "G0E-2.7F4200",
+                Ok((
+                    "",
+                    Command::G0([PosVal::E(-2.7), PosVal::F(4200_f64)].into()),
+                )),
+            ),
+            (
+                // Leading zero check
+                "G00E20",
+                Ok((
+                    "",
+                    Command::G0([PosVal::X(100_f64), PosVal::E(20_f64)].into()),
+                )),
+            ),
+        ];
 
         for (line, expected) in text_commands {
             let actual = Command::parse_line(line);
@@ -466,6 +476,14 @@ mod test {
                 Ok((
                     "",
                     Command::G1([PosVal::X(888_f64), PosVal::F(1000_f64)].into()),
+                )),
+            ),
+            (
+                // Leading zero check
+                "G01X100E20",
+                Ok((
+                    "",
+                    Command::G1([PosVal::X(100_f64), PosVal::E(20_f64)].into()),
                 )),
             ),
             // Fails : -
@@ -555,6 +573,14 @@ mod test {
                     Command::G2(ArcForm::IJ([ArcVal::I(20_f64), ArcVal::J(20_f64)].into())),
                 )),
             ),
+            (
+                // Leading zero check
+                "G02X100E20",
+                Ok((
+                    "",
+                    Command::G2(ArcForm::IJ([ArcVal::X(100_f64), ArcVal::E(20_f64)].into())),
+                )),
+            ),
         ];
 
         for (line, expected) in text_commands {
@@ -586,6 +612,14 @@ mod test {
                 Ok((
                     "; X and Y can be omitted to do a complete circle.",
                     Command::G2(ArcForm::IJ([ArcVal::I(20_f64), ArcVal::J(20_f64)].into())),
+                )),
+            ),
+            (
+                // Leading zero check
+                "G03X100E20",
+                Ok((
+                    "",
+                    Command::G3(ArcForm::IJ([ArcVal::X(100_f64), ArcVal::E(20_f64)].into())),
                 )),
             ),
         ];
