@@ -213,6 +213,7 @@ dependencies = [
  "crc32fast",
  "heatshrink",
  "inflate",
+ "insta",
  "log",
  "meatpack",
  "nom",
@@ -236,7 +237,6 @@ dependencies = [
  "clap",
  "env_logger",
  "gcode-nom",
- "insta",
  "log",
 ]
 

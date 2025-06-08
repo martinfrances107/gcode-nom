@@ -22,3 +22,6 @@ inflate = "0.4.5"
 heatshrink = "0.2.0"
 log = { workspace = true }
 meatpack = "0.0.3"
+
+[dev-dependencies]
+insta = "1.43.1"

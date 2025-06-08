@@ -1,5 +1,5 @@
 ---
-source: gcode2svg/src/main.rs
+source: lib/src/binary/gcode_block/svg.rs
 expression: svg
 ---
 Svg {
