@@ -78,7 +78,7 @@ name = "bgcodeValidator"
 version = "0.5.1"
 dependencies = [
  "env_logger",
- "gcode-nom 0.5.1",
+ "gcode-nom",
  "log",
 ]
 
@@ -135,6 +135,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
 
 [[package]]
+name = "console"
+version = "0.15.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "054ccb5b10f9f2cbf51eb355ca1d05c2d279ce1804688d0db74b4733a5aeafd8"
+dependencies = [
+ "encode_unicode",
+ "libc",
+ "once_cell",
+ "windows-sys",
+]
+
+[[package]]
 name = "crc32fast"
 version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -142,6 +154,12 @@ checksum = "a97769d94ddab943e4510d138150169a2758b5ef3eb191a9ee688de3e23ef7b3"
 dependencies = [
  "cfg-if",
 ]
+
+[[package]]
+name = "encode_unicode"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
 name = "env_filter"
@@ -178,7 +196,7 @@ version = "0.5.1"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.5.1",
+ "gcode-nom",
  "log",
 ]
 
@@ -196,21 +214,7 @@ dependencies = [
  "heatshrink",
  "inflate",
  "log",
- "meatpack 0.0.3",
- "nom",
-]
-
-[[package]]
-name = "gcode-nom"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d21bf5af9216103f03dd9f8efe41ebcce559dce0f86eea1307321f2c7c8dba9"
-dependencies = [
- "crc32fast",
- "heatshrink",
- "inflate",
- "log",
- "meatpack 0.0.2",
+ "meatpack",
  "nom",
 ]
 
@@ -220,7 +224,7 @@ version = "0.5.1"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gcode-nom",
  "hashbrown",
  "log",
 ]
@@ -231,7 +235,8 @@ version = "0.5.1"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.5.1",
+ "gcode-nom",
+ "insta",
  "log",
 ]
 
@@ -268,6 +273,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "insta"
+version = "1.43.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "154934ea70c58054b556dd430b99a98c2a7ff5309ac9891597e339b5c28f4371"
+dependencies = [
+ "console",
+ "once_cell",
+ "similar",
+]
+
+[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -298,19 +314,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "libc"
+version = "0.2.172"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d750af042f7ef4f724306de029d18836c26c1765a54a6a3f094cbd23a7267ffa"
+
+[[package]]
 name = "log"
 version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
-
-[[package]]
-name = "meatpack"
-version = "0.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9abc7aebc572a409cd9c4fc4dfc0996b3e47d80b8bc9c60a91598ebc9f142600"
-dependencies = [
- "clap",
-]
 
 [[package]]
 name = "meatpack"
@@ -336,6 +349,12 @@ checksum = "df9761775871bdef83bee530e60050f7e54b1105350d6884eb0fb4f46c2f9405"
 dependencies = [
  "memchr",
 ]
+
+[[package]]
+name = "once_cell"
+version = "1.21.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "once_cell_polyfill"
@@ -424,6 +443,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "similar"
+version = "2.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbbb5d9659141646ae647b42fe094daf6c6192d1620870b449d9557f748b2daa"
 
 [[package]]
 name = "strsim"

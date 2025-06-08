@@ -101,7 +101,7 @@ fn main() -> std::io::Result<()> {
 }
 
 #[cfg(test)]
-mod test {
+mod svg {
     use super::*;
     use gcode_nom::command::Command;
     use insta::assert_debug_snapshot;
@@ -140,7 +140,7 @@ G1 Z0.350 F7800.000
     }
 
     #[test]
-    fn svg_clockwise_arc() {
+    fn arc_clockwise() {
         // SNAPSHOT tests
         // Simple pattern essential for code coverage
         //
@@ -155,7 +155,7 @@ G1 Z0.350 F7800.000
     }
 
     #[test]
-    fn svg_anti_clockwise_arc() {
+    fn arc_anti_clockwise() {
         // SNAPSHOT tests
         // Simple pattern essential for code coverage
         //
