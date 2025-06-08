@@ -6,27 +6,19 @@
       // Must added parse checking
       (I,J) and R are mutually exclusive.
 
-   Provide a config PARAM "MM_PER_ARC_SEGMENT"
+[] - Broken assets
+  "both.gcode" is broken in the arc branch.
+    It looks like rendering becomes terminated prematurely.
+  "gears"
+    OBJ rendering of ARC is broken .. or at least diverges from SVG rendering.
+    SVG rendering is improved but looks broken.
 
-   OBJ implement renderer
-    Compute theta start, theta end
-    break the arc into a series of arc segments
-    based on MM_PER_ARC_SEGMENT
-    if arc length is 100mm and MM_PER_ARC_SEGMENT is 10mm per arc_segment
-    then 10 steps!!.
-    for loop add line segments.
-    update current x,y
+[] - Must reject case where R and I,J are not mutually exclusive.
 
-  tests reject case where R and I,J are not mutually exclusive.
-
-  There are demos of a complete line with 2/3 arc segments. that can be asset/snapshot
-
-[] - Unwind a misconception
+[] - Uniformly unwind a misconception
   If X is specified and Y is omitted.
   The Y values becomes the current Y etc.
   This is not currently the case.
-
-[] - both is broken in the arc branch.
 
 [] - G5 - Bezier curve paths
 

@@ -2,7 +2,7 @@ use core::fmt::Display;
 
 use crate::command::Command;
 use crate::params::PosVal;
-use crate::{compute_arc, ArcParams, PositionMode};
+use crate::{compute_arc, compute_step_params, ArcParams, PositionMode, StepParams};
 
 // Used in G2/G3 Arc commands.
 pub static MM_PER_ARC_SEGMENT: f64 = 1_f64;
@@ -209,11 +209,10 @@ impl FromIterator<String> for Svg {
                         theta_start = 2_f64 * std::f64::consts::PI;
                     }
 
-                    let delta_theta = theta_end - theta_start;
-                    let total_arc_length = delta_theta.abs() * radius;
-                    // n_steps must be a number > 0
-                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
-                    let theta_step = delta_theta / n_steps;
+                    let StepParams {
+                        n_steps,
+                        theta_step,
+                    } = compute_step_params(theta_start, theta_end, radius);
 
                     // For loop: f64 has a problem with numerical accuracy
                     // specifically the comparing limit.
@@ -253,11 +252,11 @@ impl FromIterator<String> for Svg {
                         theta_end = 2_f64 * std::f64::consts::PI;
                     }
 
-                    let delta_theta = theta_end - theta_start;
-                    let total_arc_length = delta_theta.abs() * radius;
-                    // n_steps must be a number > 0
-                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
-                    let theta_step = delta_theta / n_steps;
+                    let StepParams {
+                        n_steps,
+                        theta_step,
+                    } = compute_step_params(theta_start, theta_end, radius);
+
                     // For loop with f64 have a problem with numerical accuracy
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here

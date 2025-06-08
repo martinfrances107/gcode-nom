@@ -15,6 +15,10 @@ use core::f64;
 use crate::arc::ArcVal;
 use crate::arc::Form as ArcForm;
 
+// G2/G3 Arc commands.
+// Used in step_size calculations
+static MM_PER_ARC_SEGMENT: f64 = 1_f64;
+
 /// Streaming for binary gcode files
 pub mod binary;
 /// Parsing rules for gcode commands
@@ -52,6 +56,32 @@ pub struct ArcParams {
     pub theta_start: f64,
     /// The end angle of the arc in radians
     pub theta_end: f64,
+}
+
+/// Returns step size based on arc length.
+#[derive(Debug)]
+pub struct StepParams {
+    /// Number of straight lines segments representing the arc.
+    pub n_steps: f64,
+    /// Length of arc that can be represented by a straight line.
+    pub theta_step: f64,
+}
+
+/// This function is re-used in 4 places.
+///
+/// Common OBJ to SVG rendering and common to both G2 and G3 Arc rendering.
+#[must_use]
+pub fn compute_step_params(theta_start: f64, theta_end: f64, radius: f64) -> StepParams {
+    let delta_theta = theta_end - theta_start;
+    let total_arc_length = delta_theta.abs() * radius;
+    // n_steps must be a number > 0
+    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
+    let theta_step = delta_theta / n_steps;
+
+    StepParams {
+        n_steps,
+        theta_step,
+    }
 }
 
 #[must_use] // // pub fn compute_arc(&payload) ->  ( origin, radius, theta_start, theta_end)

@@ -11,8 +11,9 @@ use core::hash::Hasher;
 use core::mem;
 
 use gcode_nom::compute_arc;
+use gcode_nom::compute_step_params;
 use gcode_nom::ArcParams;
-use gcode_nom::binary::gcode_block::svg::MM_PER_ARC_SEGMENT;
+use gcode_nom::StepParams;
 use hashbrown::HashMap;
 
 use gcode_nom::binary::gcode_block::GCodeBlock;
@@ -246,14 +247,13 @@ impl FromIterator<String> for Obj {
                     // We are rotating clockwise
                     // in this cased the start angle of 0 should be read as 2PI
                     if theta_start == 0_f64 {
-                      theta_start = 2_f64 * std::f64::consts::PI;
-                  }
+                        theta_start = 2_f64 * std::f64::consts::PI;
+                    }
 
-                  let delta_theta = theta_end - theta_start;
-                  let total_arc_length = delta_theta.abs() * radius;
-                  // n_steps must be a number > 0
-                  let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
-                  let theta_step = delta_theta / n_steps;
+                    let StepParams {
+                        n_steps,
+                        theta_step,
+                    } = compute_step_params(theta_start, theta_end, radius);
 
                     // For loop: f64 has a problem with numerical accuracy
                     // specifically the comparing limit.
@@ -280,47 +280,46 @@ impl FromIterator<String> for Obj {
                 Command::G3(arc_form) => {
                     // Counter-clockwise arc
                     let ArcParams {
-                      origin,
-                      radius,
-                      theta_start,
-                      mut theta_end,
-                  } = compute_arc(current_x, current_y, &arc_form);
+                        origin,
+                        radius,
+                        theta_start,
+                        mut theta_end,
+                    } = compute_arc(current_x, current_y, &arc_form);
 
-                  // Regarding the Ambiguity/Equivalence  of the angles 0 and 2PI
-                  // All values here are in the range 0<=theta<2PI
-                  // We are rotating clockwise
-                  // in this cased the start angle of 0 should be read as 2PI
-                  if theta_end == 0_f64 {
-                    theta_end = 2_f64 * std::f64::consts::PI;
-                }
+                    // Regarding the Ambiguity/Equivalence  of the angles 0 and 2PI
+                    // All values here are in the range 0<=theta<2PI
+                    // We are rotating clockwise
+                    // in this cased the start angle of 0 should be read as 2PI
+                    if theta_end == 0_f64 {
+                        theta_end = 2_f64 * std::f64::consts::PI;
+                    }
 
-                let delta_theta = theta_end - theta_start;
-                let total_arc_length = delta_theta.abs() * radius;
-                // n_steps must be a number > 0
-                let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
-                let theta_step = delta_theta / n_steps;
+                    let StepParams {
+                        n_steps,
+                        theta_step,
+                    } = compute_step_params(theta_start, theta_end, radius);
 
-                  // For loop: f64 has a problem with numerical accuracy
-                  // specifically the comparing limit.
-                  // rust idiomatically insists on indexed here
-                  for i in 0..=n_steps as u64 {
-                      let theta = theta_start + (i as f64 * theta_step);
-                      let x = origin.0 + radius * theta.cos();
-                      let y = origin.1 + radius * theta.sin();
-                      let vertex = Vertex(x, y, z);
+                    // For loop: f64 has a problem with numerical accuracy
+                    // specifically the comparing limit.
+                    // rust idiomatically insists on indexed here
+                    for i in 0..=n_steps as u64 {
+                        let theta = theta_start + (i as f64 * theta_step);
+                        let x = origin.0 + radius * theta.cos();
+                        let y = origin.1 + radius * theta.sin();
+                        let vertex = Vertex(x, y, z);
 
-                      // This command is always extruding.
-                      if let Some(index) = obj.index_store.get(&vertex) {
-                          // Push record of exiting vertex to index_buffer.
-                          line_buffer.push(*index);
-                      } else {
-                          // New entry in vertex_buffer and index_buffer.
-                          obj.index_store.insert(vertex.clone(), next_vertex_pos);
-                          line_buffer.push(next_vertex_pos);
-                          obj.vertex_buffer.push(vertex);
-                          next_vertex_pos += 1;
-                      }
-                  }
+                        // This command is always extruding.
+                        if let Some(index) = obj.index_store.get(&vertex) {
+                            // Push record of exiting vertex to index_buffer.
+                            line_buffer.push(*index);
+                        } else {
+                            // New entry in vertex_buffer and index_buffer.
+                            obj.index_store.insert(vertex.clone(), next_vertex_pos);
+                            line_buffer.push(next_vertex_pos);
+                            obj.vertex_buffer.push(vertex);
+                            next_vertex_pos += 1;
+                        }
+                    }
                 }
                 // G90 and G91 set the position mode.
                 Command::G90 => {
