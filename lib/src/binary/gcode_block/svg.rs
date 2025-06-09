@@ -154,14 +154,14 @@ impl FromIterator<String> for Svg {
                             PositionMode::Absolute => y_param,
                             PositionMode::Relative => current_y + y_param,
                         }
-                    };
+                    }
 
                     if !z_param.is_nan() {
                         current_z = match position_mode {
                             PositionMode::Absolute => z_param,
                             PositionMode::Relative => current_z + z_param,
                         };
-                    };
+                    }
 
                     let proj_x = current_y / 2. + current_x / 2.;
                     let proj_y = -current_z - current_y / 2. + current_x / 2.;
