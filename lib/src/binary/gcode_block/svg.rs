@@ -400,4 +400,12 @@ G1 Z0.350 F7800.000
         let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
         assert_debug_snapshot!(svg);
     }
+
+    #[test]
+    fn arc_demo() {
+        // SNAPSHOT tests
+        let buffer = include_str!("../../../../assets/arc_demo.gcode");
+        let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
+        assert_debug_snapshot!(svg);
+    }
 }

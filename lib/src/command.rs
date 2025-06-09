@@ -142,7 +142,7 @@ fn parse_comment(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g0(i: &str) -> IResult<&str, Command> {
     preceded(
-        (alt((tag("G0"), tag("G00"))), space0),
+        (alt((tag("G00"), tag("G0"))), space0),
         map(pos_many, |vals: Vec<PosVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
@@ -166,7 +166,7 @@ fn parse_g0(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g1(i: &str) -> IResult<&str, Command> {
     preceded(
-        (alt((tag("G1"), tag("G01"))), space0),
+        (alt((tag("G01"), tag("G1"))), space0),
         map(pos_many, |vals: Vec<PosVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
@@ -190,7 +190,7 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g2(i: &str) -> IResult<&str, Command> {
     preceded(
-        (alt((tag("G2"), tag("G02"))), space0),
+        (alt((tag("G02"), tag("G2"), )), space0),
         map_res(arc_many, |vals: Vec<ArcVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
@@ -412,12 +412,14 @@ mod test {
                 )),
             ),
             (
-                // Leading zero check
+                // Leading zero check.
+                "G00 E20",
+                Ok(("", Command::G0([PosVal::E(20_f64)].into()))),
+            ),
+            (
+                // Compact form ( Missing trailing space ).
                 "G00E20",
-                Ok((
-                    "",
-                    Command::G0([PosVal::X(100_f64), PosVal::E(20_f64)].into()),
-                )),
+                Ok(("", Command::G0([PosVal::E(20_f64)].into()))),
             ),
         ];
 
@@ -548,8 +550,6 @@ mod test {
     // source https://marlinfw.org/docs/gcode/G002-G003.html
     #[test]
     fn g2() {
-        // let default = PosPayload::<f64>::default();
-
         let text_commands = [
             (
                 "G2 X125 Y32 I10.5 J10.5; arc",
@@ -575,12 +575,12 @@ mod test {
             ),
             (
                 // Leading zero check
-                "G02X100E20",
+                "G02X100J20",
                 Ok((
                     "",
-                    Command::G2(ArcForm::IJ([ArcVal::X(100_f64), ArcVal::E(20_f64)].into())),
+                    Command::G2(ArcForm::IJ([ArcVal::X(100_f64), ArcVal::J(20_f64)].into())),
                 )),
-            ),
+            )
         ];
 
         for (line, expected) in text_commands {
@@ -589,14 +589,35 @@ mod test {
         }
     }
     // // G3 X2 Y7 R5
+
+    // G3 Clockwise arc
+    //
+    // ARC command come in two forms:
+    //
+    // "IJ" Form
+    // "R" Form
+    //
+    // TODO add this test
+    //
+    // IJ Form
+    // At least one of the I J parameters is required.
+    // X and Y can be omitted to do a complete circle.
+    // Mixing I or J with R will throw an error.
+    //
+    // R Form
+    // R specifies the radius. X or Y is required.
+    // Omitting both X and Y will throw an error.
+    // Mixing R with I or J will throw an error.
+    //
+    // source https://marlinfw.org/docs/gcode/G002-G003.html
     #[test]
     fn g3() {
         let text_commands = [
             (
-                "G2 X125 Y32 I10.5 J10.5; arc",
+                "G3 X125 Y32 I10.5 J10.5; arc",
                 Ok((
                     "; arc",
-                    Command::G2(ArcForm::IJ(
+                    Command::G3(ArcForm::IJ(
                         [
                             ArcVal::X(125_f64),
                             ArcVal::Y(32_f64),
@@ -608,18 +629,18 @@ mod test {
                 )),
             ),
             (
-                "G2 I20 J20; X and Y can be omitted to do a complete circle.",
+                "G3 I20 J20; X and Y can be omitted to do a complete circle.",
                 Ok((
                     "; X and Y can be omitted to do a complete circle.",
-                    Command::G2(ArcForm::IJ([ArcVal::I(20_f64), ArcVal::J(20_f64)].into())),
+                    Command::G3(ArcForm::IJ([ArcVal::I(20_f64), ArcVal::J(20_f64)].into())),
                 )),
             ),
             (
                 // Leading zero check
-                "G03X100E20",
+                "G03X100J20",
                 Ok((
                     "",
-                    Command::G3(ArcForm::IJ([ArcVal::X(100_f64), ArcVal::E(20_f64)].into())),
+                    Command::G3(ArcForm::IJ([ArcVal::X(100_f64), ArcVal::J(20_f64)].into())),
                 )),
             ),
         ];
