@@ -1,8 +1,6 @@
 # TASKS
 
 [] - Broken assets
-  "arc_demo"
-    has viewBox issued (INF).
   "both.gcode"
     is broken in the arc branch.
     It looks like rendering becomes terminated prematurely.
