@@ -133,27 +133,29 @@ impl FromIterator<String> for Obj {
 
         let mut is_extruding = true;
         let mut position_mode = PositionMode::default();
-        let mut z = 0_f64;
         let mut next_vertex_pos = 0;
         let mut line_buffer = vec![];
         let mut current_x = 0_f64;
         let mut current_y = 0_f64;
+        let mut current_z = 0_f64;
 
-        'line_loop: for line in iter {
+        for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command not parsable");
-            let mut x = f64::NAN;
-            let mut y = f64::NAN;
             match command {
                 // Treat G0 and G1 command identically.
                 //
                 // A G0 is a non-printing move but E is present in files seen in the wild.
                 // (In the assets directory see the gears and benchy2 files.)
                 Command::G1(mut payload) | Command::G0(mut payload) => {
+                    let mut x_param = f64::NAN;
+                    let mut y_param = f64::NAN;
+                    let mut z_param = f64::NAN;
+
                     for param in payload.drain() {
                         match param {
-                            PosVal::X(val) => x = val,
-                            PosVal::Y(val) => y = val,
-                            PosVal::Z(val) => z = val,
+                            PosVal::X(val) => x_param = val,
+                            PosVal::Y(val) => y_param = val,
+                            PosVal::Z(val) => z_param = val,
                             // Negative values the extruder is "wiping"
                             // or sucking filament back into the extruder.
                             PosVal::E(val) => is_extruding = val > 0_f64,
@@ -168,38 +170,34 @@ impl FromIterator<String> for Obj {
                         }
                     }
 
-                    // TODO Must handle abs and relative position state.
-                    // "abs_coords"
-
-                    // `Command::G1` -  regarding X and Y at least one must be specified.
-                    //
-                    // If any value is unspecified the current value is used.
-                    let vertex = match (x.is_nan(), y.is_nan()) {
-                        (false, false) => {
-                            // X and Y passed as parameters.
-                            Vertex(x, y, z)
-                        }
-
-                        (false, true) => {
-                            // X is passed as a parameter
-                            // Y is unspecified
-                            Vertex(x, current_y, z)
-                        }
-                        (true, false) => {
-                            // X is unspecified
-                            // Y is passed as a parameter
-                            Vertex(current_x, y, z)
-                        }
-
-                        (true, true) => {
-                            // Cannot proceed: X and Y are unspecified
-                            // Silently handle error by dropping the command.
-                            // TODO: Leave a log in the debug output
-                            // once debug strategy is worked developed.
-                            continue 'line_loop;
+                    let x = if x_param.is_nan() {
+                        current_x
+                    } else {
+                        match position_mode {
+                            PositionMode::Absolute => x_param,
+                            PositionMode::Relative => current_x + x_param,
                         }
                     };
 
+                    let y = if y_param.is_nan() {
+                        current_y
+                    } else {
+                        match position_mode {
+                            PositionMode::Absolute => y_param,
+                            PositionMode::Relative => current_y + y_param,
+                        }
+                    };
+
+                    let z = if z_param.is_nan() {
+                        current_z
+                    } else {
+                        match position_mode {
+                            PositionMode::Absolute => z_param,
+                            PositionMode::Relative => current_z + z_param,
+                        }
+                    };
+
+                    let vertex = Vertex(x, y, z);
                     if is_extruding {
                         if let Some(index) = obj.index_store.get(&vertex) {
                             // Push record of exiting vertex to index_buffer.
@@ -234,6 +232,7 @@ impl FromIterator<String> for Obj {
                     }
                     current_x = x;
                     current_y = y;
+                    current_z = z;
                 }
                 Command::G2(arc_form) => {
                     // Clockwise arc
@@ -268,7 +267,7 @@ impl FromIterator<String> for Obj {
                         let theta = theta_start + (i as f64 * theta_step);
                         x = origin.0 + radius * theta.cos();
                         y = origin.1 + radius * theta.sin();
-                        let vertex = Vertex(x, y, z);
+                        let vertex = Vertex(x, y, current_z);
 
                         // This command is always extruding.
                         if let Some(index) = obj.index_store.get(&vertex) {
@@ -319,7 +318,7 @@ impl FromIterator<String> for Obj {
                         let theta = theta_start + (i as f64 * theta_step);
                         x = origin.0 + radius * theta.cos();
                         y = origin.1 + radius * theta.sin();
-                        let vertex = Vertex(x, y, z);
+                        let vertex = Vertex(x, y, current_z);
 
                         // This command is always extruding.
                         if let Some(index) = obj.index_store.get(&vertex) {
@@ -336,8 +335,6 @@ impl FromIterator<String> for Obj {
 
                     current_x = x;
                     current_y = y;
-
-
                 }
                 // G90 and G91 set the position mode.
                 Command::G90 => {
@@ -380,6 +377,14 @@ impl FromIterator<String> for Obj {
                                     current_y = y;
                                 } else {
                                     current_y += y;
+                                }
+                            }
+                            PosVal::Z(z) => {
+                                // Set the current Z position.
+                                if position_mode == PositionMode::Absolute {
+                                    current_z = z;
+                                } else {
+                                    current_z += z;
                                 }
                             }
                             bad => {

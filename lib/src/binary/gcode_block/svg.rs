@@ -108,15 +108,12 @@ impl FromIterator<String> for Svg {
         let mut is_extruding = false;
         // Positioning mode for all axes (A, B, C), (U, V, W),  (X, Y, Z).
         let mut position_mode = PositionMode::default();
-        let mut z = 0_f64;
         // X and Y position of tool head (before projection).
         let mut current_x = 0_f64;
         let mut current_y = 0_f64;
-        'command_loop: for line in iter {
+        let mut current_z = 0_f64;
+        for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command is not parsable");
-            // Candidate value of params X<number> Y<number>
-            let mut x = f64::NAN;
-            let mut y = f64::NAN;
 
             match command {
                 // Treat G0 and G1 command identically.
@@ -124,15 +121,20 @@ impl FromIterator<String> for Svg {
                 // A G0 is a non-printing move but E is present in files seen in the wild.
                 // (In the assets directory see the gears and benchy2 files.)
                 Command::G0(mut payload) | Command::G1(mut payload) => {
+                    // Candidate value of params X<number> Y<number>
+                    let mut x_param = f64::NAN;
+                    let mut y_param = f64::NAN;
+                    let mut z_param = f64::NAN;
+
                     // Treat G0 and G1 command identically.
                     //
                     // A G0 is a non-printing move but E is present in files seen in the wild.
                     // (In the assets directory see the gears and benchy2 files.)
                     for param in payload.drain() {
                         match param {
-                            PosVal::X(val) => x = val,
-                            PosVal::Y(val) => y = val,
-                            PosVal::Z(val) => z = val,
+                            PosVal::X(val) => x_param = val,
+                            PosVal::Y(val) => y_param = val,
+                            PosVal::Z(val) => z_param = val,
                             PosVal::E(val) => {
                                 is_extruding = val > 0_f64;
                             }
@@ -140,62 +142,35 @@ impl FromIterator<String> for Svg {
                         }
                     }
 
-                    // Regarding X and Y at least one must be specified.
-                    //
-                    // If any value is unspecified the current value is used.
-                    match (x.is_nan(), y.is_nan()) {
-                        (false, false) => {
-                            // X and Y passed as parameters.
-                        }
-
-                        (false, true) => {
-                            // X is passed as a parameter
-                            // Y is unspecified
-                            y = match position_mode {
-                                PositionMode::Absolute => current_y,
-                                PositionMode::Relative => 0_f64,
-                            };
-                        }
-                        (true, false) => {
-                            // X is unspecified
-                            // Y is passed as a parameter
-                            x = match position_mode {
-                                PositionMode::Absolute => current_x,
-                                PositionMode::Relative => 0_f64,
-                            };
-                        }
-
-                        (true, true) => {
-                            // Cannot proceed: both X and Y are unspecified
-                            // Silently handle error by dropping further action.
-                            // TODO: Leave a log in the debug output
-                            // once debug strategy is worked developed.
-                            continue 'command_loop;
+                    if !x_param.is_nan() {
+                        current_x = match position_mode {
+                            PositionMode::Absolute => x_param,
+                            PositionMode::Relative => current_x + x_param,
                         }
                     };
 
-                    let proj_x = y / 2. + x / 2.;
-                    let proj_y = -z - y / 2. + x / 2.;
+                    if !y_param.is_nan() {
+                        current_y = match position_mode {
+                            PositionMode::Absolute => y_param,
+                            PositionMode::Relative => current_y + y_param,
+                        }
+                    };
+
+                    if !z_param.is_nan() {
+                        current_z = match position_mode {
+                            PositionMode::Absolute => z_param,
+                            PositionMode::Relative => current_z + z_param,
+                        };
+                    };
+
+                    let proj_x = current_y / 2. + current_x / 2.;
+                    let proj_y = -current_z - current_y / 2. + current_x / 2.;
                     svg.update_view_box(proj_x, proj_y);
-                    match position_mode {
-                        PositionMode::Absolute => {
-                            if is_extruding {
-                                svg.parts.push(format!("L{proj_x:.3} {proj_y:.3}"));
-                            } else {
-                                svg.parts.push(format!("M{proj_x:.3} {proj_y:.3}"));
-                            }
-                            current_x = x;
-                            current_y = y;
-                        }
-                        PositionMode::Relative => {
-                            if is_extruding {
-                                svg.parts.push(format!("l{proj_x:.3} {proj_y:.3}"));
-                            } else {
-                                svg.parts.push(format!("m{proj_x:.3} {proj_y:.3}"));
-                            }
-                            current_x += x;
-                            current_y += y;
-                        }
+
+                    if is_extruding {
+                        svg.parts.push(format!("L{proj_x:.3} {proj_y:.3}"));
+                    } else {
+                        svg.parts.push(format!("M{proj_x:.3} {proj_y:.3}"));
                     }
                 }
                 Command::G2(arc_form) => {
@@ -232,7 +207,7 @@ impl FromIterator<String> for Svg {
                         y = origin.1 + radius * theta.sin();
 
                         let proj_x = y / 2. + x / 2.;
-                        let proj_y = -z - y / 2. + x / 2.;
+                        let proj_y = -current_z - y / 2. + x / 2.;
                         svg.update_view_box(proj_x, proj_y);
                         match position_mode {
                             PositionMode::Absolute => {
@@ -280,7 +255,7 @@ impl FromIterator<String> for Svg {
                         y = origin.1 + radius * theta.sin();
 
                         let proj_x = y / 2. + x / 2.;
-                        let proj_y = -z - y / 2. + x / 2.;
+                        let proj_y = -current_z - y / 2. + x / 2.;
                         svg.update_view_box(proj_x, proj_y);
                         match position_mode {
                             PositionMode::Absolute => {
@@ -303,9 +278,24 @@ impl FromIterator<String> for Svg {
                     // enter MoveMode ..ie not laying down filament.
                     for param in params.drain() {
                         match param {
-                            PosVal::X(val) => x = val,
-                            PosVal::Y(val) => y = val,
-                            PosVal::Z(val) => z = val,
+                            PosVal::X(val) => {
+                                current_x = match position_mode {
+                                    PositionMode::Absolute => val,
+                                    PositionMode::Relative => current_x + val,
+                                }
+                            }
+                            PosVal::Y(val) => {
+                                current_y = match position_mode {
+                                    PositionMode::Absolute => val,
+                                    PositionMode::Relative => current_y + val,
+                                }
+                            }
+                            PosVal::Z(val) => {
+                                current_z = match position_mode {
+                                    PositionMode::Absolute => val,
+                                    PositionMode::Relative => current_z + val,
+                                }
+                            }
                             PosVal::E(val) => {
                                 // Negative values the extruder is "wiping"
                                 // or sucking filament back into the extruder.
@@ -316,20 +306,11 @@ impl FromIterator<String> for Svg {
                     }
 
                     // Set Position is by definition a move only.
-                    // FIXME: handle case where X valid and Y is unspecified ... etc
-                    if !x.is_nan() && !y.is_nan() {
-                        let proj_x = y / 2. + x / 2.;
-                        let proj_y = -z - y / 2. + x / 2.;
-                        svg.update_view_box(proj_x, proj_y);
-                        match position_mode {
-                            PositionMode::Absolute => {
-                                svg.parts.push(format!("M{proj_x} {proj_y}"));
-                            }
-                            PositionMode::Relative => {
-                                svg.parts.push(format!("m{proj_x} {proj_y}"));
-                            }
-                        }
-                    }
+                    let proj_x = current_y / 2. + current_x / 2.;
+                    let proj_y = -current_z - current_y / 2. + current_x / 2.;
+                    svg.update_view_box(proj_x, proj_y);
+
+                    svg.parts.push(format!("M{proj_x} {proj_y}"));
                 }
                 _ => {}
             }
