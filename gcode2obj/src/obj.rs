@@ -232,6 +232,8 @@ impl FromIterator<String> for Obj {
                             next_vertex_pos += 1;
                         }
                     }
+                    current_x = x;
+                    current_y = y;
                 }
                 Command::G2(arc_form) => {
                     // Clockwise arc
@@ -276,6 +278,9 @@ impl FromIterator<String> for Obj {
                             next_vertex_pos += 1;
                         }
                     }
+
+                    current_x = x;
+                    current_y = y;
                 }
                 Command::G3(arc_form) => {
                     // Counter-clockwise arc
