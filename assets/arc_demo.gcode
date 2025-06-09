@@ -4,7 +4,7 @@
 ; Parsing check G00/G01 must be correctly decoded.G00 X.5 Y3.5 Z.5 E1
 
 ; horizontal and square corner
-G00X5 Y35
+G00X5 Y35 E0
 G01X22.5 E2
 G02X27.5 Y30 I0 J-5 E1
 G01Y7.5 E1

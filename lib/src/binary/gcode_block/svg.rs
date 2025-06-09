@@ -1,3 +1,4 @@
+use core::f64;
 use core::fmt::Display;
 
 use crate::command::Command;
@@ -111,7 +112,7 @@ impl FromIterator<String> for Svg {
         // X and Y position of tool head (before projection).
         let mut current_x = 0_f64;
         let mut current_y = 0_f64;
-        for line in iter {
+        'command_loop: for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command is not parsable");
             // Candidate value of params X<number> Y<number>
             let mut x = f64::NAN;
@@ -142,10 +143,9 @@ impl FromIterator<String> for Svg {
                     // Regarding X and Y at least one must be specified.
                     //
                     // If any value is unspecified the current value is used.
-                    let xy_valid = match (x.is_nan(), y.is_nan()) {
+                    match (x.is_nan(), y.is_nan()) {
                         (false, false) => {
                             // X and Y passed as parameters.
-                            true
                         }
 
                         (false, true) => {
@@ -155,7 +155,6 @@ impl FromIterator<String> for Svg {
                                 PositionMode::Absolute => current_y,
                                 PositionMode::Relative => 0_f64,
                             };
-                            true
                         }
                         (true, false) => {
                             // X is unspecified
@@ -164,7 +163,6 @@ impl FromIterator<String> for Svg {
                                 PositionMode::Absolute => current_x,
                                 PositionMode::Relative => 0_f64,
                             };
-                            true
                         }
 
                         (true, true) => {
@@ -172,33 +170,31 @@ impl FromIterator<String> for Svg {
                             // Silently handle error by dropping further action.
                             // TODO: Leave a log in the debug output
                             // once debug strategy is worked developed.
-                            false
+                            continue 'command_loop;
                         }
                     };
 
-                    if xy_valid {
-                        let proj_x = y / 2. + x / 2.;
-                        let proj_y = -z - y / 2. + x / 2.;
-                        svg.update_view_box(proj_x, proj_y);
-                        match position_mode {
-                            PositionMode::Absolute => {
-                                if is_extruding {
-                                    svg.parts.push(format!("L{proj_x:.3} {proj_y:.3}"));
-                                } else {
-                                    svg.parts.push(format!("M{proj_x:.3} {proj_y:.3}"));
-                                }
-                                current_x = x;
-                                current_y = y;
+                    let proj_x = y / 2. + x / 2.;
+                    let proj_y = -z - y / 2. + x / 2.;
+                    svg.update_view_box(proj_x, proj_y);
+                    match position_mode {
+                        PositionMode::Absolute => {
+                            if is_extruding {
+                                svg.parts.push(format!("L{proj_x:.3} {proj_y:.3}"));
+                            } else {
+                                svg.parts.push(format!("M{proj_x:.3} {proj_y:.3}"));
                             }
-                            PositionMode::Relative => {
-                                if is_extruding {
-                                    svg.parts.push(format!("l{proj_x:.3} {proj_y:.3}"));
-                                } else {
-                                    svg.parts.push(format!("m{proj_x:.3} {proj_y:.3}"));
-                                }
-                                current_x += x;
-                                current_y += y;
+                            current_x = x;
+                            current_y = y;
+                        }
+                        PositionMode::Relative => {
+                            if is_extruding {
+                                svg.parts.push(format!("l{proj_x:.3} {proj_y:.3}"));
+                            } else {
+                                svg.parts.push(format!("m{proj_x:.3} {proj_y:.3}"));
                             }
+                            current_x += x;
+                            current_y += y;
                         }
                     }
                 }
@@ -224,13 +220,16 @@ impl FromIterator<String> for Svg {
                         theta_step,
                     } = compute_step_params(theta_start, theta_end, radius);
 
+                    // x,y are the position of the head in absolute units.
+                    let mut x = f64::NAN;
+                    let mut y = f64::NAN;
                     // For loop: f64 has a problem with numerical accuracy
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
                         let theta = theta_start + (i as f64 * theta_step);
-                        let x = origin.0 + radius * theta.cos();
-                        let y = origin.1 + radius * theta.sin();
+                        x = origin.0 + radius * theta.cos();
+                        y = origin.1 + radius * theta.sin();
 
                         let proj_x = y / 2. + x / 2.;
                         let proj_y = -z - y / 2. + x / 2.;
@@ -244,6 +243,9 @@ impl FromIterator<String> for Svg {
                             }
                         }
                     }
+
+                    current_x = x;
+                    current_y = y;
                 }
                 Command::G3(arc_form) => {
                     // Anti-Clockwise arc
@@ -270,10 +272,12 @@ impl FromIterator<String> for Svg {
                     // For loop with f64 have a problem with numerical accuracy
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
+                    let mut x = f64::NAN;
+                    let mut y = f64::NAN;
                     for i in 0..=n_steps as u64 {
                         let theta = theta_start + (i as f64 * theta_step);
-                        let x = origin.0 + radius * theta.cos();
-                        let y = origin.1 + radius * theta.sin();
+                        x = origin.0 + radius * theta.cos();
+                        y = origin.1 + radius * theta.sin();
 
                         let proj_x = y / 2. + x / 2.;
                         let proj_y = -z - y / 2. + x / 2.;
@@ -287,8 +291,10 @@ impl FromIterator<String> for Svg {
                             }
                         }
                     }
+
+                    current_x = x;
+                    current_y = y;
                 }
-                Command::G21 => svg.parts.push("M0 0".to_string()),
                 Command::G90 => position_mode = PositionMode::Absolute,
                 Command::G91 => position_mode = PositionMode::Relative,
                 // G92- Set Current Position
@@ -310,6 +316,7 @@ impl FromIterator<String> for Svg {
                     }
 
                     // Set Position is by definition a move only.
+                    // FIXME: handle case where X valid and Y is unspecified ... etc
                     if !x.is_nan() && !y.is_nan() {
                         let proj_x = y / 2. + x / 2.;
                         let proj_y = -z - y / 2. + x / 2.;
@@ -324,7 +331,7 @@ impl FromIterator<String> for Svg {
                         }
                     }
                 }
-                Command::Comment(_) | Command::GDrop(_) | Command::MDrop(_) | Command::Nop => {}
+                _ => {}
             }
         }
 
