@@ -4,6 +4,9 @@
   "both.gcode"
     is broken in the arc branch.
     It looks like rendering becomes terminated prematurely.
+
+    OBJ rendering looks ok.
+
   "gears"
     OBJ rendering of ARC is broken .. or at least diverges from SVG rendering.
     SVG rendering is improved but looks broken.

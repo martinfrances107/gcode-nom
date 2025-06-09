@@ -257,13 +257,17 @@ impl FromIterator<String> for Obj {
                         theta_step,
                     } = compute_step_params(theta_start, theta_end, radius);
 
+                    // x,y are the position of the head in absolute units.
+                    let mut x = f64::NAN;
+                    let mut y = f64::NAN;
+
                     // For loop: f64 has a problem with numerical accuracy
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
                         let theta = theta_start + (i as f64 * theta_step);
-                        let x = origin.0 + radius * theta.cos();
-                        let y = origin.1 + radius * theta.sin();
+                        x = origin.0 + radius * theta.cos();
+                        y = origin.1 + radius * theta.sin();
                         let vertex = Vertex(x, y, z);
 
                         // This command is always extruding.
@@ -304,13 +308,17 @@ impl FromIterator<String> for Obj {
                         theta_step,
                     } = compute_step_params(theta_start, theta_end, radius);
 
+                    // x,y are the position of the head in absolute units.
+                    let mut x = f64::NAN;
+                    let mut y = f64::NAN;
+
                     // For loop: f64 has a problem with numerical accuracy
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
                         let theta = theta_start + (i as f64 * theta_step);
-                        let x = origin.0 + radius * theta.cos();
-                        let y = origin.1 + radius * theta.sin();
+                        x = origin.0 + radius * theta.cos();
+                        y = origin.1 + radius * theta.sin();
                         let vertex = Vertex(x, y, z);
 
                         // This command is always extruding.
@@ -325,6 +333,11 @@ impl FromIterator<String> for Obj {
                             next_vertex_pos += 1;
                         }
                     }
+
+                    current_x = x;
+                    current_y = y;
+
+
                 }
                 // G90 and G91 set the position mode.
                 Command::G90 => {
