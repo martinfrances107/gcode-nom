@@ -386,6 +386,12 @@ impl FromIterator<String> for Obj {
                 _ => {}
             }
         }
+
+        if !line_buffer.is_empty() {
+          // Print head is still extruding at end.
+          obj.lines.push(line_buffer);
+        }
+
         obj
     }
 }
