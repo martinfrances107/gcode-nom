@@ -159,9 +159,6 @@ impl FromIterator<String> for Obj {
                             // Negative values the extruder is "wiping"
                             // or sucking filament back into the extruder.
                             PosVal::E(val) => is_extruding = val > 0_f64,
-                            PosVal::F(_) => {
-                                // Silently drop feed-rate adjustment.
-                            }
                             pos_bad => {
                                 log::debug!(
                                     "Obj: Unexpected param seen in Command::G1 {pos_bad:?}"
@@ -170,34 +167,28 @@ impl FromIterator<String> for Obj {
                         }
                     }
 
-                    let x = if x_param.is_nan() {
-                        current_x
-                    } else {
-                        match position_mode {
+                    if !x_param.is_nan() {
+                        current_x = match position_mode {
                             PositionMode::Absolute => x_param,
                             PositionMode::Relative => current_x + x_param,
-                        }
-                    };
+                        };
+                    }
 
-                    let y = if y_param.is_nan() {
-                        current_y
-                    } else {
-                        match position_mode {
+                    if !y_param.is_nan() {
+                        current_y = match position_mode {
                             PositionMode::Absolute => y_param,
                             PositionMode::Relative => current_y + y_param,
                         }
-                    };
+                    }
 
-                    let z = if z_param.is_nan() {
-                        current_z
-                    } else {
-                        match position_mode {
+                    if !z_param.is_nan() {
+                        current_z = match position_mode {
                             PositionMode::Absolute => z_param,
                             PositionMode::Relative => current_z + z_param,
                         }
-                    };
+                    }
 
-                    let vertex = Vertex(x, y, z);
+                    let vertex = Vertex(current_x, current_y, current_z);
                     if is_extruding {
                         if let Some(index) = obj.index_store.get(&vertex) {
                             // Push record of exiting vertex to index_buffer.
@@ -230,9 +221,7 @@ impl FromIterator<String> for Obj {
                             next_vertex_pos += 1;
                         }
                     }
-                    current_x = x;
-                    current_y = y;
-                    current_z = z;
+
                 }
                 Command::G2(arc_form) => {
                     // Clockwise arc
