@@ -59,15 +59,20 @@ pub enum Command {
     G0(HashSet<PosVal>),
     /// Printable move
     G1(HashSet<PosVal>),
+
     /// G2 – Clockwise Arc
     G2(ArcForm),
     /// G3 – Counter-clockwise Arc
     G3(ArcForm),
 
+    /// TODO Must implement.
     // G5 - Bézier Cubic Spline
-    // TODO must implement
-    /// Home all axes
+
+    /// Change unit to imperial
+    G20,
+    /// Change units to metric
     G21,
+
     ///G90 – Set Positioning Mode Absolute
     ///
     /// "G90 ; Set all axes to absolute"
@@ -103,6 +108,7 @@ impl Command {
             parse_g2,
             parse_g3,
             // TODO add G5 - Bézier Cubic Spline
+            map(tag("G20"), |_| Self::G20),
             map(tag("G21"), |_| Self::G21),
             map(tag("G90"), |_| Self::G90),
             map(tag("G91"), |_| Self::G91),
