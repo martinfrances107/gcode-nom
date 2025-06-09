@@ -190,7 +190,7 @@ fn parse_g1(i: &str) -> IResult<&str, Command> {
 ///   When match fails.
 fn parse_g2(i: &str) -> IResult<&str, Command> {
     preceded(
-        (alt((tag("G02"), tag("G2"), )), space0),
+        (alt((tag("G02"), tag("G2"))), space0),
         map_res(arc_many, |vals: Vec<ArcVal>| {
             // Paranoid: deduplication.
             // eg. There can be only one E<f64>.
@@ -580,7 +580,7 @@ mod test {
                     "",
                     Command::G2(ArcForm::IJ([ArcVal::X(100_f64), ArcVal::J(20_f64)].into())),
                 )),
-            )
+            ),
         ];
 
         for (line, expected) in text_commands {
