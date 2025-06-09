@@ -1,11 +1,5 @@
 # TASKS
 
-[] - G2, G3 - Clockwise Arcs/ CounterClockwise Arcs.
-
-   In the parsing of G2, G3 - R form and IJ Form
-      // Must added parse checking
-      (I,J) and R are mutually exclusive.
-
 [] - Broken assets
   "arc_demo"
     has viewBox issued (INF).
@@ -16,9 +10,13 @@
     OBJ rendering of ARC is broken .. or at least diverges from SVG rendering.
     SVG rendering is improved but looks broken.
 
-[] - Must reject case where R and I,J are not mutually exclusive.
+[] - parse g2/g3 Tests are not complete.
 
-[] - Uniformly unwind a misconception
+[] - G2, G3 - Clockwise Arcs/ CounterClockwise Arcs.
+
+  (I,J) and R are mutually exclusive.
+  Must reject case where R and I,J are not mutually exclusive.
+  Uniformly unwind a misconception
   If X is specified and Y is omitted.
   The Y values becomes the current Y etc.
   This is not currently the case.

@@ -71,10 +71,12 @@ impl Display for Svg {
             // In this case silently fail by returning a empty SVG element, without a viewBox parameter.
             String::new()
         };
-        write!(
+        writeln!(
             f,
-            "<svg xmlns=\"http://www.w3.org/2000/svg\" {parameters}> <path d=\""
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" {parameters} >"
         )?;
+        write!(f, "  <path d=\"")?;
+
         for part in &self.parts {
             write!(f, "{part}")?;
         }
