@@ -27,11 +27,9 @@ use std::io::{stdin, BufReader, Read};
 
 fn main() -> std::io::Result<()> {
     env_logger::init();
-    let stdin = stdin();
-    let mut reader = BufReader::new(stdin.lock());
 
     let mut buffer = vec![];
-    if reader.read_to_end(&mut buffer)? != 0usize {
+    if BufReader::new(stdin().lock()).read_to_end(&mut buffer)? != 0usize {
         match bgcode_parser_with_checksum(&buffer) {
             Ok((_remain, bgcode)) => {
                 log::info!("parser succeeded: Valid input");
