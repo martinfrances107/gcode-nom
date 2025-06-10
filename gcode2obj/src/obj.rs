@@ -394,7 +394,9 @@ impl FromIterator<String> for Obj {
                         }
                     }
                 }
-                _ => {}
+                _ => {
+                    // println!("Dropping command {command:#?}");
+                }
             }
         }
 

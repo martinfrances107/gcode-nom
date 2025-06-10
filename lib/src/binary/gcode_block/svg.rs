@@ -165,8 +165,8 @@ impl FromIterator<String> for Svg {
                     }
 
                     let proj_x = (origin_y + current_y) / 2. + (origin_x + current_x) / 2.;
-                    let proj_y =
-                        -(origin_z + current_z) - (origin_y + current_y) / 2. + (origin_x + current_x) / 2.;
+                    let proj_y = -(origin_z + current_z) - (origin_y + current_y) / 2.
+                        + (origin_x + current_x) / 2.;
                     svg.update_view_box(proj_x, proj_y);
 
                     if is_extruding {
@@ -208,7 +208,7 @@ impl FromIterator<String> for Svg {
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
 
-                        let proj_x = ( origin_x + x + origin_y + y ) / 2_f64;
+                        let proj_x = (origin_x + x + origin_y + y) / 2_f64;
                         let proj_y =
                             -(origin_z + current_z) - (origin_y + y) / 2. + (origin_x + x) / 2.;
                         svg.update_view_box(proj_x, proj_y);
@@ -257,7 +257,7 @@ impl FromIterator<String> for Svg {
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
 
-                        let proj_x = ( origin_x + x  + origin_y + y )  / 2.;
+                        let proj_x = (origin_x + x + origin_y + y) / 2.;
                         let proj_y =
                             -(origin_z + current_z) - (origin_y + y) / 2. + (origin_x + x) / 2.;
                         svg.update_view_box(proj_x, proj_y);
@@ -322,8 +322,9 @@ impl FromIterator<String> for Svg {
                     }
 
                     // Set Position is by definition a move only.
-                    let proj_x = ( origin_x + current_x  + origin_y + current_y )  / 2.;
-                    let proj_y = -(origin_z + current_z) - (origin_y + current_y) / 2. + (origin_x + current_x) / 2.;
+                    let proj_x = (origin_x + current_x + origin_y + current_y) / 2.;
+                    let proj_y = -(origin_z + current_z) - (origin_y + current_y) / 2.
+                        + (origin_x + current_x) / 2.;
                     svg.update_view_box(proj_x, proj_y);
 
                     svg.parts.push(format!("M{proj_x} {proj_y}"));

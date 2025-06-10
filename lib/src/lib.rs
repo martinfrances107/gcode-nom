@@ -89,8 +89,10 @@ pub fn compute_step_params(theta_start: f64, theta_end: f64, radius: f64) -> Ste
 ///
 /// `ArcParams` contains the values in a form which can be rendered to a OBJ/SVG file.
 pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams {
-    let mut i: f64 = f64::NAN;
-    let mut j: f64 = f64::NAN;
+    // Unspecified relative offsets default to zero.
+    let mut i: f64 = 0_f64;
+    let mut j: f64 = 0_f64;
+
     let mut r: f64 = f64::NAN;
     let mut x: f64 = f64::NAN;
     let mut y: f64 = f64::NAN;
@@ -109,11 +111,13 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
                     ArcVal::Y(val) => y = *val,
                     ArcVal::I(val) => i = *val,
                     ArcVal::J(val) => j = *val,
-                    _ => {
-                        // Ignored params
-                    }
+                    _ => {}
                 }
             }
+
+            // x and y MUST be extracted from command
+            debug_assert!(x.is_finite());
+            debug_assert!(y.is_finite());
 
             radius = i.hypot(j);
             center = (current_x + i, current_y + j);
