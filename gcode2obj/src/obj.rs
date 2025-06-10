@@ -314,7 +314,7 @@ impl FromIterator<String> for Obj {
                         let theta = theta_start + (i as f64 * theta_step);
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
-                        let vertex = Vertex(origin_z + x, origin_y + y, origin_z + current_z);
+                        let vertex = Vertex(origin_x + x, origin_y + y, origin_z + current_z);
 
                         // This command is always extruding.
                         if let Some(index) = obj.index_store.get(&vertex) {
