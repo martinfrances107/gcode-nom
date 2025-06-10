@@ -139,6 +139,10 @@ impl FromIterator<String> for Obj {
         let mut current_y = 0_f64;
         let mut current_z = 0_f64;
 
+        let mut origin_x = 0_f64;
+        let mut origin_y = 0_f64;
+        let mut origin_z = 0_f64;
+
         for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command not parsable");
             match command {
@@ -188,7 +192,11 @@ impl FromIterator<String> for Obj {
                         }
                     }
 
-                    let vertex = Vertex(current_x, current_y, current_z);
+                    let vertex = Vertex(
+                        origin_x + current_x,
+                        origin_y + current_y,
+                        origin_z + current_z,
+                    );
                     if is_extruding {
                         if let Some(index) = obj.index_store.get(&vertex) {
                             // Push record of exiting vertex to index_buffer.
@@ -255,7 +263,7 @@ impl FromIterator<String> for Obj {
                         let theta = theta_start + (i as f64 * theta_step);
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
-                        let vertex = Vertex(x, y, current_z);
+                        let vertex = Vertex(origin_x + x, origin_y + y, origin_z + current_z);
 
                         // This command is always extruding.
                         if let Some(index) = obj.index_store.get(&vertex) {
@@ -306,7 +314,7 @@ impl FromIterator<String> for Obj {
                         let theta = theta_start + (i as f64 * theta_step);
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
-                        let vertex = Vertex(x, y, current_z);
+                        let vertex = Vertex(origin_z + x, origin_y + y, origin_z + current_z);
 
                         // This command is always extruding.
                         if let Some(index) = obj.index_store.get(&vertex) {
@@ -345,32 +353,40 @@ impl FromIterator<String> for Obj {
                                     let mut complete_line = vec![];
                                     mem::swap(&mut line_buffer, &mut complete_line);
                                     obj.lines.push(complete_line);
-                                }
-                            }
-                            PosVal::X(x) => {
-                                // Set the current X position.
-                                if position_mode == PositionMode::Absolute {
-                                    current_x = x;
                                 } else {
-                                    current_x += x;
+                                    // Starting to extrude
+                                    debug_assert!(line_buffer.is_empty());
+                                    is_extruding = true;
                                 }
                             }
-                            PosVal::Y(y) => {
-                                // Set the current Y position.
-                                if position_mode == PositionMode::Absolute {
-                                    current_y = y;
-                                } else {
-                                    current_y += y;
+                            PosVal::X(val) => match position_mode {
+                                PositionMode::Absolute => {
+                                    origin_x = current_x - val;
+                                    current_x = val;
                                 }
-                            }
-                            PosVal::Z(z) => {
-                                // Set the current Z position.
-                                if position_mode == PositionMode::Absolute {
-                                    current_z = z;
-                                } else {
-                                    current_z += z;
+
+                                PositionMode::Relative => {
+                                    unimplemented!("Relative position mode origin adjust ");
                                 }
-                            }
+                            },
+                            PosVal::Y(val) => match position_mode {
+                                PositionMode::Absolute => {
+                                    origin_y = current_x - val;
+                                    current_y = val;
+                                }
+                                PositionMode::Relative => {
+                                    unimplemented!("Relative position mode origin adjust ");
+                                }
+                            },
+                            PosVal::Z(val) => match position_mode {
+                                PositionMode::Absolute => {
+                                    origin_z = current_z - val;
+                                    current_z = val;
+                                }
+                                PositionMode::Relative => {
+                                    unimplemented!("Relative position mode origin adjust ");
+                                }
+                            },
                             bad => {
                                 // Dropping unexpected params
                                 log::debug!("G92 unhandled set position code. P{bad:#?}");

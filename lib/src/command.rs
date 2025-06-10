@@ -82,7 +82,20 @@ pub enum Command {
     /// "G91 ; Set all axes to relative"
     G91,
     /// Set the current position
+    ///
     /// eg. "G92 E0"
+    ///
+    /// "The G92 command is used to set the current position of the
+    /// machine to specified coordinates without any physical movement.
+    /// This command is particularly useful for adjusting offsets and
+    /// setting the origin of the coordinate system.
+    ///
+    /// For example,
+    ///
+    /// If the current position is at X=4 and G92 X7 is programmed,
+    ///  the current position is redefined as X=7, effectively
+    /// moving the origin of the coordinate system -3 units in X.""
+    ///
     /// TODO:  F and S are not permitted here.
     G92(HashSet<PosVal>),
     /// Drop G - no further action.

@@ -112,6 +112,11 @@ impl FromIterator<String> for Svg {
         let mut current_x = 0_f64;
         let mut current_y = 0_f64;
         let mut current_z = 0_f64;
+
+        let mut origin_x = 0_f64;
+        let mut origin_y = 0_f64;
+        let mut origin_z = 0_f64;
+
         for line in iter {
             let (_, command) = Command::parse_line(&line).expect("Command is not parsable");
 
@@ -202,8 +207,9 @@ impl FromIterator<String> for Svg {
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
 
-                        let proj_x = y / 2. + x / 2.;
-                        let proj_y = -current_z - y / 2. + x / 2.;
+                        let proj_x = (origin_y + y) / 2. + (origin_x + x) / 2.;
+                        let proj_y =
+                            -(origin_z + current_z) - (origin_y + y) / 2. + (origin_x + x) / 2.;
                         svg.update_view_box(proj_x, proj_y);
                         match position_mode {
                             PositionMode::Absolute => {
@@ -268,35 +274,47 @@ impl FromIterator<String> for Svg {
                 }
                 Command::G90 => position_mode = PositionMode::Absolute,
                 Command::G91 => position_mode = PositionMode::Relative,
-                // G92- Set Current Position
+
+                // If the current position is at X=4 and G92 X7 is programmed,
+                //  the current position is redefined as X=7, effectively
+                // moving the origin of the coordinate system -3 units in X.""
                 Command::G92(mut params) => {
                     // The extrude rate is going to zero
                     // enter MoveMode ..ie not laying down filament.
                     for param in params.drain() {
                         match param {
-                            PosVal::X(val) => {
-                                current_x = match position_mode {
-                                    PositionMode::Absolute => val,
-                                    PositionMode::Relative => current_x + val,
-                                }
-                            }
-                            PosVal::Y(val) => {
-                                current_y = match position_mode {
-                                    PositionMode::Absolute => val,
-                                    PositionMode::Relative => current_y + val,
-                                }
-                            }
-                            PosVal::Z(val) => {
-                                current_z = match position_mode {
-                                    PositionMode::Absolute => val,
-                                    PositionMode::Relative => current_z + val,
-                                }
-                            }
                             PosVal::E(val) => {
                                 // Negative values the extruder is "wiping"
                                 // or sucking filament back into the extruder.
                                 is_extruding = val > 0_f64;
                             }
+                            PosVal::X(val) => match position_mode {
+                                PositionMode::Absolute => {
+                                    origin_x = current_x - val;
+                                    current_x = val;
+                                }
+                                PositionMode::Relative => {
+                                    unimplemented!("Relative position mode origin adjust ");
+                                }
+                            },
+                            PosVal::Y(val) => match position_mode {
+                                PositionMode::Absolute => {
+                                    origin_y = current_x - val;
+                                    current_y = val;
+                                }
+                                PositionMode::Relative => {
+                                    unimplemented!("Relative position mode origin adjust ");
+                                }
+                            },
+                            PosVal::Z(val) => match position_mode {
+                                PositionMode::Absolute => {
+                                    origin_z = current_z - val;
+                                    current_z = val;
+                                }
+                                PositionMode::Relative => {
+                                    unimplemented!("Relative position mode origin adjust ");
+                                }
+                            },
                             _ => { /* Silently drop. */ }
                         }
                     }
