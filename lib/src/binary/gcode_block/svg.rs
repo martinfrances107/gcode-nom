@@ -126,18 +126,14 @@ impl FromIterator<String> for Svg {
                     let mut y_param = f64::NAN;
                     let mut z_param = f64::NAN;
 
-                    // Treat G0 and G1 command identically.
-                    //
-                    // A G0 is a non-printing move but E is present in files seen in the wild.
-                    // (In the assets directory see the gears and benchy2 files.)
                     for param in payload.drain() {
                         match param {
                             PosVal::X(val) => x_param = val,
                             PosVal::Y(val) => y_param = val,
                             PosVal::Z(val) => z_param = val,
-                            PosVal::E(val) => {
-                                is_extruding = val > 0_f64;
-                            }
+                            // Negative values the extruder is "wiping"
+                            // or sucking filament back into the extruder.
+                            PosVal::E(val) => is_extruding = val > 0_f64,
                             _ => {}
                         }
                     }
