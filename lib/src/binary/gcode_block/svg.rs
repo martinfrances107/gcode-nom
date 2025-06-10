@@ -172,7 +172,7 @@ impl FromIterator<String> for Svg {
                 Command::G2(arc_form) => {
                     // Clockwise arc
                     let ArcParams {
-                        origin,
+                        center,
                         radius,
                         mut theta_start,
                         theta_end,
@@ -199,8 +199,8 @@ impl FromIterator<String> for Svg {
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
                         let theta = theta_start + (i as f64 * theta_step);
-                        x = origin.0 + radius * theta.cos();
-                        y = origin.1 + radius * theta.sin();
+                        x = center.0 + radius * theta.cos();
+                        y = center.1 + radius * theta.sin();
 
                         let proj_x = y / 2. + x / 2.;
                         let proj_y = -current_z - y / 2. + x / 2.;
@@ -221,7 +221,7 @@ impl FromIterator<String> for Svg {
                 Command::G3(arc_form) => {
                     // Anti-Clockwise arc
                     let ArcParams {
-                        origin,
+                        center,
                         radius,
                         theta_start,
                         mut theta_end,
@@ -247,8 +247,8 @@ impl FromIterator<String> for Svg {
                     let mut y = f64::NAN;
                     for i in 0..=n_steps as u64 {
                         let theta = theta_start + (i as f64 * theta_step);
-                        x = origin.0 + radius * theta.cos();
-                        y = origin.1 + radius * theta.sin();
+                        x = center.0 + radius * theta.cos();
+                        y = center.1 + radius * theta.sin();
 
                         let proj_x = y / 2. + x / 2.;
                         let proj_y = -current_z - y / 2. + x / 2.;

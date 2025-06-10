@@ -49,7 +49,7 @@ pub enum PositionMode {
 #[derive(Debug)]
 pub struct ArcParams {
     /// The center of the arc
-    pub origin: (f64, f64),
+    pub center: (f64, f64),
     /// The radius of the arc
     pub radius: f64,
     /// The start angle of the arc in radians
@@ -96,7 +96,7 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
     let mut y: f64 = f64::NAN;
 
     let radius: f64;
-    let origin: (f64, f64);
+    let center: (f64, f64);
     let mut theta_start: f64;
     let mut theta_end: f64;
 
@@ -116,10 +116,10 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
             }
 
             radius = i.hypot(j);
-            origin = (current_x + i, current_y + j);
+            center = (current_x + i, current_y + j);
 
-            let delta_start_x = current_x - origin.0;
-            let delta_start_y = current_y - origin.1;
+            let delta_start_x = current_x - center.0;
+            let delta_start_y = current_y - center.1;
 
             theta_start = (delta_start_y).atan2(delta_start_x);
             // atan2 returns a value in the range [ -PI, PI].
@@ -128,8 +128,8 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
                 theta_start += 2_f64 * f64::consts::PI;
             }
 
-            let delta_end_x = x - origin.0;
-            let delta_end_y = y - origin.1;
+            let delta_end_x = x - center.0;
+            let delta_end_y = y - center.1;
             theta_end = (delta_end_y).atan2(delta_end_x);
             // atan2 returns a value in the range [ -PI, PI].
             // Want a range to be [0,2PI]
@@ -151,15 +151,15 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
             }
             radius = r;
             // Must solve this  par of simultaneous equations
-            // radius * radius = ( origin.0 - current_x ) * ( origin.0 - current_x ) + ( origin.1 - current_y ) * ( origin.1 - current_y )
-            // radians * radius = (current_x - origin.0) * (current_x - origin.0) + (current_y - origin.1) * (current_y - origin.1)
+            // radius * radius = ( center.0 - current_x ) * ( center.0 - current_x ) + ( center.1 - current_y ) * ( center.1 - current_y )
+            // radians * radius = (current_x - center.0) * (current_x - center.0) + (current_y - center.1) * (current_y - center.1)
             //
             // which of the two solutions is correct can be determined by realizing that we are moving clockwise or counter clockwise
             todo!();
         }
     }
     ArcParams {
-        origin,
+        center,
         radius,
         theta_start,
         theta_end,
@@ -194,7 +194,7 @@ mod tests {
                 .into(),
             ),
         );
-        assert_eq!(arc.origin, (5.0, 3.0));
+        assert_eq!(arc.center, (5.0, 3.0));
         assert_eq!(arc.radius, 5.0);
         assert_eq!(
             round_to_two_decimals(arc.theta_start.to_degrees()),
@@ -221,7 +221,7 @@ mod tests {
                 .into(),
             ),
         );
-        assert_eq!(arc.origin, (5.0, 5.0));
+        assert_eq!(arc.center, (5.0, 5.0));
         assert_eq!(arc.radius, 5.0);
         assert_eq!(round_to_two_decimals(arc.theta_start.to_degrees()), 180_f64);
         assert_eq!(round_to_two_decimals(arc.theta_end.to_degrees()), 270_f64);
@@ -236,7 +236,7 @@ mod tests {
             6.0,
             &ArcForm::R([ArcVal::X(2.0), ArcVal::Y(7.0), ArcVal::R(5.0)].into()),
         );
-        assert_eq!(arc.origin, (5.0, 3.0));
+        assert_eq!(arc.center, (5.0, 3.0));
         assert_eq!(arc.radius, 5.0);
     }
 }

@@ -225,7 +225,7 @@ impl FromIterator<String> for Obj {
                 Command::G2(arc_form) => {
                     // Clockwise arc
                     let ArcParams {
-                        origin,
+                        center,
                         radius,
                         mut theta_start,
                         theta_end,
@@ -253,8 +253,8 @@ impl FromIterator<String> for Obj {
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
                         let theta = theta_start + (i as f64 * theta_step);
-                        x = origin.0 + radius * theta.cos();
-                        y = origin.1 + radius * theta.sin();
+                        x = center.0 + radius * theta.cos();
+                        y = center.1 + radius * theta.sin();
                         let vertex = Vertex(x, y, current_z);
 
                         // This command is always extruding.
@@ -276,7 +276,7 @@ impl FromIterator<String> for Obj {
                 Command::G3(arc_form) => {
                     // Counter-clockwise arc
                     let ArcParams {
-                        origin,
+                        center,
                         radius,
                         theta_start,
                         mut theta_end,
@@ -304,8 +304,8 @@ impl FromIterator<String> for Obj {
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
                         let theta = theta_start + (i as f64 * theta_step);
-                        x = origin.0 + radius * theta.cos();
-                        y = origin.1 + radius * theta.sin();
+                        x = center.0 + radius * theta.cos();
+                        y = center.1 + radius * theta.sin();
                         let vertex = Vertex(x, y, current_z);
 
                         // This command is always extruding.
