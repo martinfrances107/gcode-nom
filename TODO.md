@@ -11,6 +11,10 @@
     OBJ rendering of ARC is broken .. or at least diverges from SVG rendering.
     SVG rendering is improved but looks broken.
 
+[] - Handle M486
+  both.gocde start job 0,1 and uses "-1" to indicate this a the present of a purge tower.'
+
+
 [] - parse g2/g3 Tests are not complete.
 
 [] - G2, G3 - Clockwise Arcs/ CounterClockwise Arcs.
