@@ -221,7 +221,6 @@ impl FromIterator<String> for Obj {
                             next_vertex_pos += 1;
                         }
                     }
-
                 }
                 Command::G2(arc_form) => {
                     // Clockwise arc
@@ -388,8 +387,8 @@ impl FromIterator<String> for Obj {
         }
 
         if !line_buffer.is_empty() {
-          // Print head is still extruding at end.
-          obj.lines.push(line_buffer);
+            // Print head is still extruding at end.
+            obj.lines.push(line_buffer);
         }
 
         obj
