@@ -325,12 +325,8 @@ impl FromIterator<String> for Obj {
                     current_y = y;
                 }
                 // G90 and G91 set the position mode.
-                Command::G90 => {
-                    position_mode = PositionMode::Absolute;
-                }
-                Command::G91 => {
-                    position_mode = PositionMode::Relative;
-                }
+                Command::G90 => position_mode = PositionMode::Absolute,
+                Command::G91 => position_mode = PositionMode::Relative,
                 // G92 Set Current Position
                 Command::G92(mut params) => {
                     for p in params.drain() {
