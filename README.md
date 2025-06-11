@@ -59,6 +59,8 @@ Which for example can be imported into blender for visualization.
 
 ![Benchy in Blender](https://github.com/martinfrances107/gcode-nom/blob/main/images/BlenderBenchy.png?raw=true)
 ![Lego bricks](https://github.com/martinfrances107/gcode-nom/blob/main/images/lego.png?raw=true)
+![gears](https://github.com/martinfrances107/gcode-nom/blob/main/images/gears.png?raw=true)
+
 Within blender :-
 
 1) This obj has been "Imported".
@@ -113,4 +115,5 @@ see [TODO](TODO.md)
 Missing implementations
 
 G2/G3 -- Arc have two form II and R. R the less popular form is unimplemented.
+
 G5 - Bézier Cubic Spline Command

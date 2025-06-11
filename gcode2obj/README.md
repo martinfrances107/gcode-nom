@@ -41,6 +41,7 @@ Here the obj files are imported in to blender and processed.
 
 ![Benchy in Blender](<https://github.com/martinfrances107/gcode-nom/blob/main/images/BlenderBenchy.png?raw=true>)
 ![Lego bricks](https://github.com/martinfrances107/gcode-nom/blob/main/images/lego.png?raw=true)
+![gears](https://github.com/martinfrances107/gcode-nom/blob/main/images/gears.png?raw=true)
 
 Within blender :-
 
