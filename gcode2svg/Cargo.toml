@@ -10,7 +10,6 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/martinfrances107/gcode-nom"
 rust-version = "1.80"
-version = { workspace = true }
 
 [[bin]]
 name = "gcode2svg"
