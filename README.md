@@ -20,11 +20,14 @@ Based on this library the workspace contains a series of visualization tools
 * gcodeExtractThumbs - Extracts the images embedded in a binary-gcode file.
 * bgcodeViewer - Generates a report by turning on all the logging and them attempts to parse the file.
 
-I intend the parsers to be as strictly compliant as possible. This is under-going rapid development. Please create issues here, or send me gcode files which expose unimplemented sections.
+I intend the parsers to be as strictly compliant as possible. This is under-going rapid development. **Please** create issues here, or send me gcode files which expose unimplemented sections.
 
 See [nom](https://crates.io/crates/nom) - "A byte-oriented, zero-copy, parser combinator library"
 
 ## Changelog
+
+ Version 0.6.0 adds supports of G02/G03 "Arc or Circle" commands.
+   Allow a more diverse set of gcode files to be rendered.
 
  Between version 0.4 and 0.5 a major performance misconception was unpicked.
 
@@ -109,4 +112,5 @@ see [TODO](TODO.md)
 
 Missing implementations
 
+G2/G3 -- Arc have two form II and R. R the less popular form is unimplemented.
 G5 - Bézier Cubic Spline Command
