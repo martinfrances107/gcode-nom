@@ -5,15 +5,15 @@
 //! a list of vertices, V
 //! a list of indices into V.
 //!
+use core::f64::consts::TAU;
 use core::fmt::Display;
 use core::hash::Hash;
 use core::hash::Hasher;
 use core::mem;
 
 use gcode_nom::compute_arc;
-use gcode_nom::compute_step_params;
 use gcode_nom::ArcParams;
-use gcode_nom::StepParams;
+use gcode_nom::MM_PER_ARC_SEGMENT;
 use hashbrown::HashMap;
 
 use gcode_nom::binary::gcode_block::GCodeBlock;
@@ -244,13 +244,21 @@ impl FromIterator<String> for Obj {
                     // We are rotating clockwise
                     // in this cased the start angle of 0 should be read as 2PI
                     if theta_start == 0_f64 {
-                        theta_start = 2_f64 * std::f64::consts::PI;
+                        theta_start = TAU;
                     }
 
-                    let StepParams {
-                        n_steps,
-                        theta_step,
-                    } = compute_step_params(theta_start, theta_end, radius);
+                    let delta_theta = if theta_start < theta_end {
+                        // Adjust for zero crossing
+                        // say 115 -> 304 degrees
+                        // delta_theta = 115 + (360 - 304 ) = 170
+                        theta_start + (TAU - theta_end)
+                    } else {
+                        theta_start - theta_end
+                    };
+                    let total_arc_length = delta_theta * radius;
+                    // n_steps must be a number > 0
+                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
+                    let theta_step = delta_theta / n_steps;
 
                     // x,y are the position of the head in absolute units.
                     let mut x = f64::NAN;
@@ -260,7 +268,7 @@ impl FromIterator<String> for Obj {
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
-                        let theta = theta_start + (i as f64 * theta_step);
+                        let theta = (theta_start - (i as f64 * theta_step)) % TAU;
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
                         let vertex = Vertex(origin_x + x, origin_y + y, origin_z + current_z);
@@ -298,10 +306,18 @@ impl FromIterator<String> for Obj {
                         theta_end = 2_f64 * std::f64::consts::PI;
                     }
 
-                    let StepParams {
-                        n_steps,
-                        theta_step,
-                    } = compute_step_params(theta_start, theta_end, radius);
+                    let delta_theta = if theta_start > theta_end {
+                        // Adjust for zero crossing
+                        // say 306 -> 115 degrees
+                        // delta_theta = (360 - 305 ) + 115 = 170
+                        TAU - theta_start + theta_end
+                    } else {
+                        theta_end - theta_start
+                    };
+                    let total_arc_length = delta_theta * radius;
+                    // n_steps must be a number > 0
+                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
+                    let theta_step = delta_theta / n_steps;
 
                     // x,y are the position of the head in absolute units.
                     let mut x = f64::NAN;
@@ -311,7 +327,7 @@ impl FromIterator<String> for Obj {
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
-                        let theta = theta_start + (i as f64 * theta_step);
+                        let theta = (theta_start + (i as f64 * theta_step)) % TAU;
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
                         let vertex = Vertex(origin_x + x, origin_y + y, origin_z + current_z);

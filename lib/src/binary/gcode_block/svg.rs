@@ -1,9 +1,10 @@
 use core::f64;
+use core::f64::consts::TAU;
 use core::fmt::Display;
 
 use crate::command::Command;
 use crate::params::PosVal;
-use crate::{compute_arc, compute_step_params, ArcParams, PositionMode, StepParams};
+use crate::{compute_arc, ArcParams, PositionMode, MM_PER_ARC_SEGMENT};
 
 /// SVG representation of a G-Code file.
 ///
@@ -189,13 +190,21 @@ impl FromIterator<String> for Svg {
                     // We are rotating clockwise
                     // in this cased the start angle of 0 should be read as 2PI
                     if theta_start == 0_f64 {
-                        theta_start = 2_f64 * std::f64::consts::PI;
+                        theta_start = TAU;
                     }
 
-                    let StepParams {
-                        n_steps,
-                        theta_step,
-                    } = compute_step_params(theta_start, theta_end, radius);
+                    let delta_theta = if theta_start < theta_end {
+                        // Adjust for zero crossing
+                        // say 115 -> 304 degrees
+                        // delta_theta = 115 + (360 - 304 ) = 170
+                        theta_start + (TAU - theta_end)
+                    } else {
+                        theta_start - theta_end
+                    };
+                    let total_arc_length = delta_theta * radius;
+                    // n_steps must be a number > 0
+                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
+                    let theta_step = delta_theta / n_steps;
 
                     // x,y are the position of the head in absolute units.
                     let mut x = f64::NAN;
@@ -204,7 +213,7 @@ impl FromIterator<String> for Svg {
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
-                        let theta = theta_start + (i as f64 * theta_step);
+                        let theta = (theta_start - (i as f64 * theta_step)) % TAU;
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
 
@@ -239,13 +248,21 @@ impl FromIterator<String> for Svg {
                     // We are rotating anticlockwise
                     // in this cased the final angle of 0 should be read as 2PI
                     if theta_end == 0_f64 {
-                        theta_end = 2_f64 * std::f64::consts::PI;
+                        theta_end = TAU;
                     }
 
-                    let StepParams {
-                        n_steps,
-                        theta_step,
-                    } = compute_step_params(theta_start, theta_end, radius);
+                    let delta_theta = if theta_start > theta_end {
+                        // Adjust for zero crossing
+                        // say 306 -> 115 degrees
+                        // delta_theta = (360 - 305 ) + 115 = 170
+                        TAU - theta_start + theta_end
+                    } else {
+                        theta_end - theta_start
+                    };
+                    let total_arc_length = delta_theta * radius;
+                    // n_steps must be a number > 0
+                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
+                    let theta_step = delta_theta / n_steps;
 
                     // For loop with f64 have a problem with numerical accuracy
                     // specifically the comparing limit.
@@ -253,7 +270,7 @@ impl FromIterator<String> for Svg {
                     let mut x = f64::NAN;
                     let mut y = f64::NAN;
                     for i in 0..=n_steps as u64 {
-                        let theta = theta_start + (i as f64 * theta_step);
+                        let theta = (theta_start + (i as f64 * theta_step)) % TAU;
                         x = center.0 + radius * theta.cos();
                         y = center.1 + radius * theta.sin();
 
@@ -379,6 +396,7 @@ G1 Z0.350 F7800.000
     #[test]
     fn arc_clockwise() {
         // SNAPSHOT tests
+        //
         // Simple pattern essential for code coverage
         //
         // Ensures calculated theta values are in the range 0..360
@@ -394,6 +412,7 @@ G1 Z0.350 F7800.000
     #[test]
     fn arc_anti_clockwise() {
         // SNAPSHOT tests
+        //
         // Simple pattern essential for code coverage
         //
         // Ensures calculated theta values are in the range 0..360
@@ -410,6 +429,19 @@ G1 Z0.350 F7800.000
     fn arc_demo() {
         // SNAPSHOT tests
         let buffer = include_str!("../../../../assets/arc_demo.gcode");
+        let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
+        assert_debug_snapshot!(svg);
+    }
+
+    #[test]
+    fn zero_crossing() {
+        // SNAPSHOT tests
+        //
+        // Complex model with lots of curves.
+        //
+        // NB This is the only test that covers both clockwise and anticlockwise
+        // zero crossings.
+        let buffer = include_str!("../../../../assets/both.gcode");
         let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
         assert_debug_snapshot!(svg);
     }

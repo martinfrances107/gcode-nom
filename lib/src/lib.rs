@@ -17,7 +17,7 @@ use crate::arc::Form as ArcForm;
 
 // G2/G3 Arc commands.
 // Used in step_size calculations
-static MM_PER_ARC_SEGMENT: f64 = 1_f64;
+pub static MM_PER_ARC_SEGMENT: f64 = 1_f64;
 
 /// Streaming for binary gcode files
 pub mod binary;
@@ -58,32 +58,6 @@ pub struct ArcParams {
     pub theta_end: f64,
 }
 
-/// Returns step size based on arc length.
-#[derive(Debug)]
-pub struct StepParams {
-    /// Number of straight lines segments representing the arc.
-    pub n_steps: f64,
-    /// Length of arc that can be represented by a straight line.
-    pub theta_step: f64,
-}
-
-/// This function is re-used in 4 places.
-///
-/// Common OBJ to SVG rendering and common to both G2 and G3 Arc rendering.
-#[must_use]
-pub fn compute_step_params(theta_start: f64, theta_end: f64, radius: f64) -> StepParams {
-    let delta_theta = theta_end - theta_start;
-    let total_arc_length = delta_theta.abs() * radius;
-    // n_steps must be a number > 0
-    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
-    let theta_step = delta_theta / n_steps;
-
-    StepParams {
-        n_steps,
-        theta_step,
-    }
-}
-
 #[must_use] // // pub fn compute_arc(&payload) ->  ( origin, radius, theta_start, theta_end)
 /// Computes the parameters of an arc given the current position and the arc form.
 ///
@@ -93,7 +67,6 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
     let mut i: f64 = 0_f64;
     let mut j: f64 = 0_f64;
 
-    let mut r: f64 = f64::NAN;
     let mut x: f64 = f64::NAN;
     let mut y: f64 = f64::NAN;
 
@@ -142,6 +115,7 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
             }
         }
         ArcForm::R(arc_values) => {
+            let mut r: f64 = f64::NAN;
             // R form
             for val in arc_values {
                 match val {
@@ -153,6 +127,8 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
                     }
                 }
             }
+            // r Must be specified from command.
+            debug_assert!(r.is_finite());
             radius = r;
             // Must solve this  par of simultaneous equations
             // radius * radius = ( center.0 - current_x ) * ( center.0 - current_x ) + ( center.1 - current_y ) * ( center.1 - current_y )
