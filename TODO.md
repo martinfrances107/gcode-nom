@@ -1,19 +1,7 @@
 # TASKS
 
-[] - Broken assets
-  "both.gcode"
-    is broken in the arc branch.
-    It looks like rendering becomes terminated prematurely.
-
-    OBJ rendering looks ok.
-
-  "gears"
-    OBJ rendering of ARC is broken .. or at least diverges from SVG rendering.
-    SVG rendering is improved but looks broken.
-
-[] - Handle M486
-  both.gocde start job 0,1 and uses "-1" to indicate this a the present of a purge tower.'
-
+[] - BugFix: Handle M486 parsing associated with object naming is broken.
+  /// M486 S3 A"cube copy 3" ; Indicate that the 4th object is starting now and name it
 
 [] - parse g2/g3 Tests are not complete.
 

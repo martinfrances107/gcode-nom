@@ -78,7 +78,7 @@ name = "bgcodeValidator"
 version = "0.0.0"
 dependencies = [
  "env_logger",
- "gcode-nom 0.6.0",
+ "gcode-nom",
  "log",
 ]
 
@@ -196,7 +196,7 @@ version = "0.0.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.6.0",
+ "gcode-nom",
  "log",
 ]
 
@@ -220,26 +220,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "gcode-nom"
-version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8cede77727d649f753ed1e1c6cf888cd1c671efffacb72ae08078a4633d6a3a"
-dependencies = [
- "crc32fast",
- "heatshrink",
- "inflate",
- "log",
- "meatpack",
- "nom",
-]
-
-[[package]]
 name = "gcode2obj"
 version = "0.6.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gcode-nom",
  "hashbrown",
  "log",
 ]
@@ -250,7 +236,7 @@ version = "0.0.0"
 dependencies = [
  "clap",
  "env_logger",
- "gcode-nom 0.6.0",
+ "gcode-nom",
  "log",
 ]
 

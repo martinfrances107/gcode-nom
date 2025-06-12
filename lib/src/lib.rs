@@ -15,8 +15,8 @@ use core::f64;
 use crate::arc::ArcVal;
 use crate::arc::Form as ArcForm;
 
-// G2/G3 Arc commands.
-// Used in step_size calculations
+/// G2/G3 Arc commands.
+/// Used in step size calculations
 pub static MM_PER_ARC_SEGMENT: f64 = 1_f64;
 
 /// Streaming for binary gcode files

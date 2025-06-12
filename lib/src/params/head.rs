@@ -133,7 +133,6 @@ parse_val!(parse_x, "X", X);
 parse_val!(parse_y, "Y", Y);
 parse_val!(parse_z, "Z", Z);
 // ///   When match fails.parse_val!(parse_s, "S", S);
-
 #[cfg(test)]
 mod test {
     use super::*;

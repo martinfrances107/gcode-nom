@@ -31,19 +31,26 @@ use crate::arc::parse_arc_z;
 use crate::arc::ArcVal;
 use crate::arc::Form as ArcForm;
 
-use crate::params::parse_a;
-use crate::params::parse_b;
-use crate::params::parse_c;
-use crate::params::parse_e;
-use crate::params::parse_f;
-use crate::params::parse_s;
-use crate::params::parse_u;
-use crate::params::parse_v;
-use crate::params::parse_w;
-use crate::params::parse_x;
-use crate::params::parse_y;
-use crate::params::parse_z;
-use crate::params::PosVal;
+use crate::params::head::parse_a;
+use crate::params::head::parse_b;
+use crate::params::head::parse_c;
+use crate::params::head::parse_e;
+use crate::params::head::parse_f;
+use crate::params::head::parse_s;
+use crate::params::head::parse_u;
+use crate::params::head::parse_v;
+use crate::params::head::parse_w;
+use crate::params::head::parse_x;
+use crate::params::head::parse_y;
+use crate::params::head::parse_z;
+use crate::params::head::PosVal;
+
+use crate::params::mp::parse_mp_c;
+use crate::params::mp::parse_mp_p;
+use crate::params::mp::parse_mp_s;
+use crate::params::mp::parse_mp_t;
+use crate::params::mp::parse_mp_u;
+use crate::params::mp::MultiPartVal;
 
 /// Commands: -
 ///
@@ -98,6 +105,19 @@ pub enum Command {
     ///
     /// TODO:  F and S are not permitted here.
     G92(HashSet<PosVal>),
+    /// Multipart: Cancel, Un-cancel parts listed by index
+    ///
+    /// M486 T12               ; Total of 12 objects (otherwise the firmware must count)
+    /// M486 S3                ; Indicate that the 4th object is starting now
+    /// M486 S3 A"cube copy 3" ; Indicate that the 4th object is starting now and name it
+    /// M486 S-1               ; Indicate a non-object, purge tower, or other global feature
+    /// M486 P10               ; Cancel object with index 10 (the 11th object)
+    /// M486 U2                ; Un-cancel object with index 2 (the 3rd object)
+    /// M486 C                 ; Cancel the current object (use with care!)
+    /// M486                   ; List the objects on the build plate
+    ///
+    /// source <https://docs.duet3d.com/User_manual/Reference/Gcodes>
+    M486(MultiPartVal),
     /// Drop G - no further action.
     GDrop(u16),
     /// Drop M - no further action.
@@ -127,6 +147,7 @@ impl Command {
             map(tag("G91"), |_| Self::G91),
             parse_g92,
             parse_comment,
+            parse_486,
             // Dropping "bed leveling", "dock sled", "Retract", "Stepper motor", "Mechanical Gantry Calibration"
             map(g_drop, Self::GDrop),
             map(m_drop, Self::MDrop),
@@ -311,6 +332,25 @@ fn parse_g92(i: &str) -> IResult<&str, Command> {
     .parse(i)
 }
 
+/// M486 Start/Cancel objects
+///
+/// This command supports multipart rendering.
+///
+/// M486 T12 ; Total of 12 objects (otherwise the firmware must count)
+/// M486 U2  ; Un-cancel object with index 2 (the 3rd object)
+fn parse_486(i: &str) -> IResult<&str, Command> {
+    preceded(
+        (tag("M486"), space0),
+        map(multipart_val, |val: MultiPartVal| {
+            // Paranoid: deduplication.
+            // eg. There can be only one E<f63> value.
+
+            Command::M486(val)
+        }),
+    )
+    .parse(i)
+}
+
 /// Extracts from 1 to 12 values from the set of `PosVal`s.
 ///
 /// ( A, B, C, E, F, S, U, V, W, X, Y, Z )
@@ -340,6 +380,13 @@ fn pos_val(i: &str) -> IResult<&str, PosVal> {
         parse_y, parse_z,
     ))
     .parse(i)
+}
+
+///
+/// # Errors
+///   When match fails.
+fn multipart_val(i: &str) -> IResult<&str, MultiPartVal> {
+    alt((parse_mp_c, parse_mp_p, parse_mp_s, parse_mp_t, parse_mp_u)).parse(i)
 }
 
 ///
@@ -663,6 +710,73 @@ mod test {
                 )),
             ),
         ];
+        for (line, expected) in text_commands {
+            let actual = Command::parse_line(line);
+            assert_eq!(actual, expected, "line: {}", line);
+        }
+    }
+
+    // G486 Multipart support.
+    //
+    // Start, Un-cancel,
+    #[test]
+    fn m486() {
+        let text_commands = [
+            (
+                "M486 C; cancel the current object (use with care)",
+                Ok((
+                    "; cancel the current object (use with care)",
+                    Command::M486(MultiPartVal::C),
+                )),
+            ),
+            // This is broken...
+            // (
+            //     "M486 S3 A\"cube copy 3\" xx",
+            //     Ok((
+            //         "",
+            //         Command::M486(MultiPartVal::S(3, Some("cube copy 3".to_string()))),
+            //     )),
+            // ),
+            (
+                "M486 S3; Indicate that the 4th object is starting now",
+                Ok((
+                    "; Indicate that the 4th object is starting now",
+                    Command::M486(MultiPartVal::S(3, None)),
+                )),
+            ),
+            (
+                "M486 P10; Cancel object with index 10 (the 11th object)",
+                Ok((
+                    "; Cancel object with index 10 (the 11th object)",
+                    Command::M486(MultiPartVal::P(10)),
+                )),
+            ),
+            (
+                "M486 U2; Un-cancel object with index 2 (the 3rd object)",
+                Ok((
+                    "; Un-cancel object with index 2 (the 3rd object)",
+                    Command::M486(MultiPartVal::U(2)),
+                )),
+            ),
+            (
+                "M486 T12; Total of 12 objects (otherwise the firmware must count)",
+                Ok((
+                    "; Total of 12 objects (otherwise the firmware must count)",
+                    Command::M486(MultiPartVal::T(12)),
+                )),
+            ),
+            (
+                "M486 S-1",
+                Ok(("", Command::M486(MultiPartVal::S(-1, None)))),
+            ),
+            ("M486 T12", Ok(("", Command::M486(MultiPartVal::T(12))))),
+            ("M486 U2", Ok(("", Command::M486(MultiPartVal::U(2))))),
+            ("M486 P1", Ok(("", Command::M486(MultiPartVal::P(1))))),
+            ("M486 S2", Ok(("", Command::M486(MultiPartVal::S(2, None))))),
+            ("M486 T3", Ok(("", Command::M486(MultiPartVal::T(3))))),
+            ("M486 U-1", Ok(("", Command::M486(MultiPartVal::U(-1))))),
+        ];
+
         for (line, expected) in text_commands {
             let actual = Command::parse_line(line);
             assert_eq!(actual, expected, "line: {}", line);

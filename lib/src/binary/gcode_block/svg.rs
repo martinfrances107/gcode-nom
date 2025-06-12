@@ -3,7 +3,7 @@ use core::f64::consts::TAU;
 use core::fmt::Display;
 
 use crate::command::Command;
-use crate::params::PosVal;
+use crate::params::head::PosVal;
 use crate::{compute_arc, ArcParams, PositionMode, MM_PER_ARC_SEGMENT};
 
 /// SVG representation of a G-Code file.
@@ -106,6 +106,7 @@ impl FromIterator<String> for Svg {
         // Invalid if the <path>'s d string does not start with a move.
         svg.parts.push("M0 0".to_string());
 
+        let mut part_id = Some(0);
         let mut is_extruding = false;
         // Positioning mode for all axes (A, B, C), (U, V, W),  (X, Y, Z).
         let mut position_mode = PositionMode::default();
@@ -170,7 +171,7 @@ impl FromIterator<String> for Svg {
                         + (origin_x + current_x) / 2.;
                     svg.update_view_box(proj_x, proj_y);
 
-                    if is_extruding {
+                    if is_extruding && part_id.is_some() {
                         svg.parts.push(format!("L{proj_x:.3} {proj_y:.3}"));
                     } else {
                         svg.parts.push(format!("M{proj_x:.3} {proj_y:.3}"));

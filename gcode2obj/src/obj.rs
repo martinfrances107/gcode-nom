@@ -10,17 +10,19 @@ use core::fmt::Display;
 use core::hash::Hash;
 use core::hash::Hasher;
 use core::mem;
+use core::panic;
 
-use gcode_nom::compute_arc;
-use gcode_nom::ArcParams;
-use gcode_nom::MM_PER_ARC_SEGMENT;
 use hashbrown::HashMap;
 
 use gcode_nom::binary::gcode_block::GCodeBlock;
 use gcode_nom::binary::inflate::decompress_data_block;
 use gcode_nom::command::Command;
-use gcode_nom::params::PosVal;
+use gcode_nom::compute_arc;
+use gcode_nom::params::head::PosVal;
+use gcode_nom::params::mp::MultiPartVal;
+use gcode_nom::ArcParams;
 use gcode_nom::PositionMode;
+use gcode_nom::MM_PER_ARC_SEGMENT;
 
 #[derive(Debug, Clone)]
 struct Vertex(f64, f64, f64);
@@ -47,12 +49,18 @@ impl Hash for Vertex {
 pub struct Obj {
     /// De-duplicating structure.
     //   Given a point return the position in the vertex_buffer
-    index_store: HashMap<Vertex, usize>,
+    vertex_store: HashMap<Vertex, usize>,
     vertex_buffer: Vec<Vertex>,
 
-    // A collection of lines
-    // A collection index_buffers representing line.
-    lines: Vec<Vec<usize>>,
+    // Multipart: One "OBJ" file can contain multiple objects.
+    //
+    // Keyed by the slot id.
+    //
+    // Each slot is a vector of point indexes representing line.
+    lines_store: HashMap<i128, Vec<Vec<usize>>>,
+
+    // Keyed by the slot id.
+    name_store: HashMap<i128, String>,
 
     // Blender axes compatible mode.
     pub apply_blender_transform: bool,
@@ -85,17 +93,35 @@ impl Display for Obj {
             }
         }
 
-        // Write out sequence of index buffers.
-        for line in &self.lines {
-            // line "l 1 2 3"  list of vertex indices.
-            if line.len() > 1 {
-                write!(f, "l")?;
-                for i in line {
-                    // '+1' convert from zero based counting.
-                    // The first index is '1'.
-                    write!(f, " {}", i + 1)?;
+        // If the GCODE file contains only one object omit the 'o' definition.
+        //
+        // Blender 'Import" script will use the filename as the object name.
+        let display_object_name = self.lines_store.keys().len() != 1;
+
+        // Write out a sequence of objects.
+        for (slot_id, lines) in &self.lines_store {
+            if display_object_name {
+                // "o object_name"  - the name of the object.
+                // The slot_id is the object name.
+                if slot_id < &0 {
+                    writeln!(f, "o purge_tower_{slot_id}")?;
+                } else {
+                    writeln!(f, "o object_{slot_id}")?;
                 }
-                writeln!(f)?;
+            }
+
+            // Write out sequence of index buffers.
+            for line in lines {
+                // line "l 1 2 3"  list of vertex indices.
+                if line.len() > 1 {
+                    write!(f, "l")?;
+                    for i in line {
+                        // '+1' convert from zero based counting.
+                        // The first index is '1'.
+                        write!(f, " {}", i + 1)?;
+                    }
+                    writeln!(f)?;
+                }
             }
         }
         Ok(())
@@ -131,10 +157,22 @@ impl FromIterator<String> for Obj {
     {
         let mut obj = Self::default();
 
+        // Multipart objects
+        //
+        // Each object get a unique entry in the line buffer store.
+
+        // For gcode files that do not contain Command::M486 directives
+        // the initial state MUST be slot id 0 is "in store" and active.
+        //
+        // Option as job can be cancelled without specifying the next object.
+        let mut object_id = Some(0);
+        // keyed by object_id
+        let mut line_buffer_store: HashMap<i128, Vec<usize>> = HashMap::from([(0, vec![])]);
+
         let mut is_extruding = true;
         let mut position_mode = PositionMode::default();
         let mut next_vertex_pos = 0;
-        let mut line_buffer = vec![];
+
         let mut current_x = 0_f64;
         let mut current_y = 0_f64;
         let mut current_z = 0_f64;
@@ -198,155 +236,205 @@ impl FromIterator<String> for Obj {
                         origin_z + current_z,
                     );
                     if is_extruding {
-                        if let Some(index) = obj.index_store.get(&vertex) {
+                        if let Some(v_index) = obj.vertex_store.get(&vertex) {
                             // Push record of exiting vertex to index_buffer.
-                            line_buffer.push(*index);
+                            if let Some(id) = object_id {
+                                if let Some(line_buffer) = line_buffer_store.get_mut(&id) {
+                                    line_buffer.push(*v_index);
+                                } else {
+                                    debug_assert!(
+                                        false,
+                                        "failed to get line buffer for object id {id}"
+                                    );
+                                }
+                            }
                         } else {
                             // New entry in vertex_buffer and index_buffer.
-                            obj.index_store.insert(vertex.clone(), next_vertex_pos);
-                            line_buffer.push(next_vertex_pos);
-                            obj.vertex_buffer.push(vertex);
-                            next_vertex_pos += 1;
+                            if let Some(id) = object_id {
+                                if let Some(line_buffer) = line_buffer_store.get_mut(&id) {
+                                    obj.vertex_store.insert(vertex.clone(), next_vertex_pos);
+                                    line_buffer.push(next_vertex_pos);
+                                    obj.vertex_buffer.push(vertex);
+                                    next_vertex_pos += 1;
+                                } else {
+                                    debug_assert!(
+                                        false,
+                                        "failed to get line buffer for object id {id}"
+                                    );
+                                }
+                            }
                         }
                     } else {
                         // Not extruding
                         //
-                        // TODO: set the capacity of the complete_line
-                        // to the last good capacity.
-                        let mut complete_line = vec![];
-                        mem::swap(&mut line_buffer, &mut complete_line);
-                        obj.lines.push(complete_line);
+                        if let Some(id) = object_id {
+                            if let Some(line_buffer) = line_buffer_store.get_mut(&id) {
+                                // TODO: set the capacity of the complete_line
+                                // to the last good capacity.
+                                let mut complete_line = vec![];
+                                mem::swap(line_buffer, &mut complete_line);
+                                if let Some(obj_line_store) = obj.lines_store.get_mut(&id) {
+                                    // If the line store already has a line for this part_id
+                                    // then append to it.
+                                    obj_line_store.push(complete_line);
+                                } else {
+                                    // Otherwise create a new entry in the lines_store.
+                                    // obj.lines_store.insert(id, vec![complete_line]);
+                                    panic!("failed to get line buffer for object id {id}");
+                                }
 
-                        // The first entry in the new line buffer is current position.
-                        if let Some(index) = obj.index_store.get(&vertex) {
-                            // Push record of exiting vertex to index_buffer.
-                            line_buffer.push(*index);
-                        } else {
-                            // New entry in vertex_buffer and index_buffer.
-                            obj.index_store.insert(vertex.clone(), next_vertex_pos);
-                            line_buffer.push(next_vertex_pos);
-                            obj.vertex_buffer.push(vertex);
-                            next_vertex_pos += 1;
+                                // The first entry in the new line buffer is current position.
+                                if let Some(v_index) = obj.vertex_store.get(&vertex) {
+                                    // Push record of exiting vertex to index_buffer.
+                                    line_buffer.push(*v_index);
+                                } else {
+                                    // New entry in vertex_buffer and index_buffer.
+                                    obj.vertex_store.insert(vertex.clone(), next_vertex_pos);
+                                    line_buffer.push(next_vertex_pos);
+                                    obj.vertex_buffer.push(vertex);
+                                    next_vertex_pos += 1;
+                                }
+                            } else {
+                                debug_assert!(
+                                    false,
+                                    "failed to get line buffer for object id {id}"
+                                );
+                                panic!("failed to get line buffer for object id {id}");
+                            }
                         }
                     }
                 }
                 Command::G2(arc_form) => {
-                    // Clockwise arc
-                    let ArcParams {
-                        center,
-                        radius,
-                        mut theta_start,
-                        theta_end,
-                    } = compute_arc(current_x, current_y, &arc_form);
+                    if let Some(id) = object_id {
+                        if let Some(line_buffer) = line_buffer_store.get_mut(&id) {
+                            // Clockwise arc
+                            let ArcParams {
+                                center,
+                                radius,
+                                mut theta_start,
+                                theta_end,
+                            } = compute_arc(current_x, current_y, &arc_form);
 
-                    // Regarding the Ambiguity/Equivalence  of the angles 0 and 2PI
-                    // All values here are in the range 0<=theta<2PI
-                    // We are rotating clockwise
-                    // in this cased the start angle of 0 should be read as 2PI
-                    if theta_start == 0_f64 {
-                        theta_start = TAU;
-                    }
+                            // Regarding the Ambiguity/Equivalence  of the angles 0 and 2PI
+                            // All values here are in the range 0<=theta<2PI
+                            // We are rotating clockwise
+                            // in this cased the start angle of 0 should be read as 2PI
+                            if theta_start == 0_f64 {
+                                theta_start = TAU;
+                            }
 
-                    let delta_theta = if theta_start < theta_end {
-                        // Adjust for zero crossing
-                        // say 115 -> 304 degrees
-                        // delta_theta = 115 + (360 - 304 ) = 170
-                        theta_start + (TAU - theta_end)
-                    } else {
-                        theta_start - theta_end
-                    };
-                    let total_arc_length = delta_theta * radius;
-                    // n_steps must be a number > 0
-                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
-                    let theta_step = delta_theta / n_steps;
+                            let delta_theta = if theta_start < theta_end {
+                                // Adjust for zero crossing
+                                // say 115 -> 304 degrees
+                                // delta_theta = 115 + (360 - 304 ) = 170
+                                theta_start + (TAU - theta_end)
+                            } else {
+                                theta_start - theta_end
+                            };
+                            let total_arc_length = delta_theta * radius;
+                            // n_steps must be a number > 0
+                            let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
+                            let theta_step = delta_theta / n_steps;
 
-                    // x,y are the position of the head in absolute units.
-                    let mut x = f64::NAN;
-                    let mut y = f64::NAN;
+                            // x,y are the position of the head in absolute units.
+                            let mut x = f64::NAN;
+                            let mut y = f64::NAN;
 
-                    // For loop: f64 has a problem with numerical accuracy
-                    // specifically the comparing limit.
-                    // rust idiomatically insists on indexed here
-                    for i in 0..=n_steps as u64 {
-                        let theta = (theta_start - (i as f64 * theta_step)) % TAU;
-                        x = center.0 + radius * theta.cos();
-                        y = center.1 + radius * theta.sin();
-                        let vertex = Vertex(origin_x + x, origin_y + y, origin_z + current_z);
+                            // For loop: f64 has a problem with numerical accuracy
+                            // specifically the comparing limit.
+                            // rust idiomatically insists on indexed here
+                            for i in 0..=n_steps as u64 {
+                                let theta = (theta_start - (i as f64 * theta_step)) % TAU;
+                                x = center.0 + radius * theta.cos();
+                                y = center.1 + radius * theta.sin();
+                                let vertex =
+                                    Vertex(origin_x + x, origin_y + y, origin_z + current_z);
 
-                        // This command is always extruding.
-                        if let Some(index) = obj.index_store.get(&vertex) {
-                            // Push record of exiting vertex to index_buffer.
-                            line_buffer.push(*index);
+                                // This command is always extruding.
+                                if let Some(v_index) = obj.vertex_store.get(&vertex) {
+                                    // Push record of exiting vertex to index_buffer.
+                                    line_buffer.push(*v_index);
+                                } else {
+                                    // New entry in vertex_buffer and index_buffer.
+                                    obj.vertex_store.insert(vertex.clone(), next_vertex_pos);
+                                    line_buffer.push(next_vertex_pos);
+                                    obj.vertex_buffer.push(vertex);
+                                    next_vertex_pos += 1;
+                                }
+                            }
+
+                            current_x = x;
+                            current_y = y;
                         } else {
-                            // New entry in vertex_buffer and index_buffer.
-                            obj.index_store.insert(vertex.clone(), next_vertex_pos);
-                            line_buffer.push(next_vertex_pos);
-                            obj.vertex_buffer.push(vertex);
-                            next_vertex_pos += 1;
+                            panic!("failed to get line buffer for object id {id}");
                         }
                     }
-
-                    current_x = x;
-                    current_y = y;
                 }
                 Command::G3(arc_form) => {
-                    // Counter-clockwise arc
-                    let ArcParams {
-                        center,
-                        radius,
-                        theta_start,
-                        mut theta_end,
-                    } = compute_arc(current_x, current_y, &arc_form);
+                    if let Some(id) = object_id {
+                        if let Some(line_buffer) = line_buffer_store.get_mut(&id) {
+                            // Counter-clockwise arc
+                            let ArcParams {
+                                center,
+                                radius,
+                                theta_start,
+                                mut theta_end,
+                            } = compute_arc(current_x, current_y, &arc_form);
 
-                    // Regarding the Ambiguity/Equivalence  of the angles 0 and 2PI
-                    // All values here are in the range 0<=theta<2PI
-                    // We are rotating clockwise
-                    // in this cased the start angle of 0 should be read as 2PI
-                    if theta_end == 0_f64 {
-                        theta_end = 2_f64 * std::f64::consts::PI;
-                    }
+                            // Regarding the Ambiguity/Equivalence  of the angles 0 and 2PI
+                            // All values here are in the range 0<=theta<2PI
+                            // We are rotating clockwise
+                            // in this cased the start angle of 0 should be read as 2PI
+                            if theta_end == 0_f64 {
+                                theta_end = 2_f64 * std::f64::consts::PI;
+                            }
 
-                    let delta_theta = if theta_start > theta_end {
-                        // Adjust for zero crossing
-                        // say 306 -> 115 degrees
-                        // delta_theta = (360 - 305 ) + 115 = 170
-                        TAU - theta_start + theta_end
-                    } else {
-                        theta_end - theta_start
-                    };
-                    let total_arc_length = delta_theta * radius;
-                    // n_steps must be a number > 0
-                    let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
-                    let theta_step = delta_theta / n_steps;
+                            let delta_theta = if theta_start > theta_end {
+                                // Adjust for zero crossing
+                                // say 306 -> 115 degrees
+                                // delta_theta = (360 - 305 ) + 115 = 170
+                                TAU - theta_start + theta_end
+                            } else {
+                                theta_end - theta_start
+                            };
+                            let total_arc_length = delta_theta * radius;
+                            // n_steps must be a number > 0
+                            let n_steps = (total_arc_length / MM_PER_ARC_SEGMENT).ceil();
+                            let theta_step = delta_theta / n_steps;
 
-                    // x,y are the position of the head in absolute units.
-                    let mut x = f64::NAN;
-                    let mut y = f64::NAN;
+                            // x,y are the position of the head in absolute units.
+                            let mut x = f64::NAN;
+                            let mut y = f64::NAN;
 
-                    // For loop: f64 has a problem with numerical accuracy
-                    // specifically the comparing limit.
-                    // rust idiomatically insists on indexed here
-                    for i in 0..=n_steps as u64 {
-                        let theta = (theta_start + (i as f64 * theta_step)) % TAU;
-                        x = center.0 + radius * theta.cos();
-                        y = center.1 + radius * theta.sin();
-                        let vertex = Vertex(origin_x + x, origin_y + y, origin_z + current_z);
+                            // For loop: f64 has a problem with numerical accuracy
+                            // specifically the comparing limit.
+                            // rust idiomatically insists on indexed here
+                            for i in 0..=n_steps as u64 {
+                                let theta = (theta_start + (i as f64 * theta_step)) % TAU;
+                                x = center.0 + radius * theta.cos();
+                                y = center.1 + radius * theta.sin();
+                                let vertex =
+                                    Vertex(origin_x + x, origin_y + y, origin_z + current_z);
 
-                        // This command is always extruding.
-                        if let Some(index) = obj.index_store.get(&vertex) {
-                            // Push record of exiting vertex to index_buffer.
-                            line_buffer.push(*index);
+                                // This command is always extruding.
+                                if let Some(v_index) = obj.vertex_store.get(&vertex) {
+                                    // Push record of exiting vertex to index_buffer.
+                                    line_buffer.push(*v_index);
+                                } else {
+                                    // New entry in vertex_buffer and index_buffer.
+                                    obj.vertex_store.insert(vertex.clone(), next_vertex_pos);
+                                    line_buffer.push(next_vertex_pos);
+                                    obj.vertex_buffer.push(vertex);
+                                    next_vertex_pos += 1;
+                                }
+                            }
+
+                            current_x = x;
+                            current_y = y;
                         } else {
-                            // New entry in vertex_buffer and index_buffer.
-                            obj.index_store.insert(vertex.clone(), next_vertex_pos);
-                            line_buffer.push(next_vertex_pos);
-                            obj.vertex_buffer.push(vertex);
-                            next_vertex_pos += 1;
+                            panic!("failed to get line buffer for object id {id}");
                         }
                     }
-
-                    current_x = x;
-                    current_y = y;
                 }
                 // G90 and G91 set the position mode.
                 Command::G90 => position_mode = PositionMode::Absolute,
@@ -366,12 +454,26 @@ impl FromIterator<String> for Obj {
                                     //
                                     // TODO: set the capacity of the complete_line
                                     // to the last good capacity.
-                                    let mut complete_line = vec![];
-                                    mem::swap(&mut line_buffer, &mut complete_line);
-                                    obj.lines.push(complete_line);
+                                    if let Some(id) = object_id {
+                                        if let Some(line_buffer) = line_buffer_store.get_mut(&id) {
+                                            let mut complete_line = vec![];
+                                            mem::swap(line_buffer, &mut complete_line);
+                                            // obj.lines.push(complete_line);
+                                            if let Some(obj_line_store) =
+                                                obj.lines_store.get_mut(&id)
+                                            {
+                                                // If the line store already has a line for this part_id
+                                                // then append to it.
+                                                obj_line_store.push(complete_line);
+                                            } else {
+                                                // Otherwise create a new entry in the lines_store.
+                                                obj.lines_store.insert(id, vec![complete_line]);
+                                            }
+                                        }
+                                    }
                                 } else {
                                     // Starting to extrude
-                                    debug_assert!(line_buffer.is_empty());
+                                    // debug_assert!(line_buffer.is_empty());
                                     is_extruding = true;
                                 }
                             }
@@ -410,15 +512,75 @@ impl FromIterator<String> for Obj {
                         }
                     }
                 }
+                Command::M486(val) => {
+                    match val {
+                        MultiPartVal::A(new_name) => {
+                            if let Some(id) = object_id {
+                                if let Some(name) = obj.name_store.get_mut(&id) {
+                                    *name = new_name;
+                                }
+                            }
+                        }
+                        MultiPartVal::C => {
+                            // Cancel job
+                            object_id = None;
+                        }
+                        MultiPartVal::P(_) => {
+                            object_id = None;
+                        }
+                        MultiPartVal::S(val, n) => {
+                            // TODO used name once parsing is implemented.
+                            // Start and un-cancel are the same action.
+                            object_id = Some(val);
+                            // Initialize both the entry in the line_buffer_store and the
+                            // entry in the global lines_store.
+                            line_buffer_store.entry(val).or_insert(vec![]);
+                            obj.lines_store.entry(val).or_insert(vec![]);
+
+                            if let Some(name) = n {
+                                obj.name_store.insert(val, name);
+                            } else {
+                                // If no name is given then use the default.
+                                obj.name_store.insert(val, format!("object_{val}"));
+                            }
+                        }
+                        MultiPartVal::T(_) => {
+                            // Set max job.
+                            //
+                            // The intent is to allow the LCD on the printer to display
+                            // the number of objects in the job.
+                        }
+                        MultiPartVal::U(val) => {
+                            // Start and un-cancel are the same action.
+                            object_id = Some(val);
+                            // Initialize both the entry in the line_buffer_store and the
+                            // entry in the global lines_store.
+                            line_buffer_store.entry(val).or_insert(vec![]);
+                            obj.lines_store.entry(val).or_insert(vec![]);
+                        }
+                    }
+                }
                 _ => {
                     // println!("Dropping command {command:#?}");
                 }
             }
         }
 
-        if !line_buffer.is_empty() {
-            // Print head is still extruding at end.
-            obj.lines.push(line_buffer);
+        if let Some(id) = object_id {
+            if let Some(line_buffer) = line_buffer_store.get_mut(&id) {
+                if !line_buffer.is_empty() {
+                    // Print head is still extruding at end.
+
+                    if let Some(obj_line_store) = obj.lines_store.get_mut(&id) {
+                        // If the line store already has a line for this part_id
+                        // then append to it.
+                        obj_line_store.push(line_buffer.clone());
+                    } else {
+                        // Otherwise create a new entry in the lines_store.
+                        obj.lines_store.insert(id, vec![line_buffer.clone()]);
+                    }
+                }
+            }
         }
 
         obj

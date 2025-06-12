@@ -15,6 +15,8 @@ A nom based parser, outputs a "Wavefront Obj" file which can be imported into bl
 
 Both .gcode files and binary .bgcode files are accepted.
 
+Multipart files are supported, for examples purge towers will be written to the OBJ file as a separate object,
+
 ## Performance
 
 Currently 9.9MByte bgcode file can be processed into a 16MBytes obj file in 1.5secs.
@@ -51,10 +53,8 @@ Within blender :-
 
 ## Future work
 
-* Make this nom-parser a "streaming / zero copy" parser. So only a small fragment of the large files is memory.
+* Make this nom-parser a "streaming / zero copy" parser. So only a small fragment of the large files is in memory.
 
 * I have only tested against gcode files that use absolute positioning.
-
-* I must test with code than uses relative positioning.
 
 * Convert "G5 - Bézier Cubic Spline" commands into the equivalent "obj" spline by defining a basis     matrix.  Support is not universal I could fall back to a series of line segments.
