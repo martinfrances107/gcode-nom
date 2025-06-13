@@ -27,7 +27,7 @@ See [nom](https://crates.io/crates/nom) - "A byte-oriented, zero-copy, parser co
 ## Changelog
 
  Version 0.6.0 adds supports of G02/G03 "Arc or Circle" commands.
-   Allow a more diverse set of gcode files to be rendered.
+   Allowing a more diverse set of gcode files to be rendered.
 
  Between version 0.4 and 0.5 a major performance misconception was unpicked.
 
