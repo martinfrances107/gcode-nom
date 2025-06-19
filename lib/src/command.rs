@@ -462,7 +462,7 @@ mod test {
 
         for (line, expected) in text_commands {
             let actual = Command::parse_line(line);
-            assert_eq!(actual, expected, "line: {}", line);
+            assert_eq!(actual, expected, "line: {line}");
         }
     }
 
@@ -491,7 +491,7 @@ mod test {
 
         for (line, expected) in text_commands {
             let actual = Command::parse_line(line);
-            assert_eq!(actual, expected, "line: {}", line);
+            assert_eq!(actual, expected, "line: {line}");
         }
     }
 
@@ -590,7 +590,7 @@ mod test {
 
         for (line, expected) in text_commands {
             let actual = Command::parse_line(line);
-            assert_eq!(actual, expected, "line: {}", line);
+            assert_eq!(actual, expected, "line: {line}");
         }
     }
 
@@ -651,7 +651,7 @@ mod test {
 
         for (line, expected) in text_commands {
             let actual = Command::parse_line(line);
-            assert_eq!(actual, expected, "line: {}", line);
+            assert_eq!(actual, expected, "line: {line}");
         }
     }
     // // G3 X2 Y7 R5
@@ -712,7 +712,7 @@ mod test {
         ];
         for (line, expected) in text_commands {
             let actual = Command::parse_line(line);
-            assert_eq!(actual, expected, "line: {}", line);
+            assert_eq!(actual, expected, "line: {line}");
         }
     }
 
@@ -779,7 +779,7 @@ mod test {
 
         for (line, expected) in text_commands {
             let actual = Command::parse_line(line);
-            assert_eq!(actual, expected, "line: {}", line);
+            assert_eq!(actual, expected, "line: {line}");
         }
     }
 

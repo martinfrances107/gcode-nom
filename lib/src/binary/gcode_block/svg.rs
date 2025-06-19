@@ -106,7 +106,7 @@ impl FromIterator<String> for Svg {
         // Invalid if the <path>'s d string does not start with a move.
         svg.parts.push("M0 0".to_string());
 
-        let mut part_id = Some(0);
+        let part_id = Some(0);
         let mut is_extruding = false;
         // Positioning mode for all axes (A, B, C), (U, V, W),  (X, Y, Z).
         let mut position_mode = PositionMode::default();
@@ -214,9 +214,9 @@ impl FromIterator<String> for Svg {
                     // specifically the comparing limit.
                     // rust idiomatically insists on indexed here
                     for i in 0..=n_steps as u64 {
-                        let theta = (theta_start - (i as f64 * theta_step)) % TAU;
-                        x = center.0 + radius * theta.cos();
-                        y = center.1 + radius * theta.sin();
+                        let theta = (i as f64).mul_add(-theta_step, theta_start) % TAU;
+                        x = radius.mul_add(theta.cos(), center.0);
+                        y = radius.mul_add(theta.sin(), center.1);
 
                         let proj_x = (origin_x + x + origin_y + y) / 2_f64;
                         let proj_y =
@@ -271,9 +271,9 @@ impl FromIterator<String> for Svg {
                     let mut x = f64::NAN;
                     let mut y = f64::NAN;
                     for i in 0..=n_steps as u64 {
-                        let theta = (theta_start + (i as f64 * theta_step)) % TAU;
-                        x = center.0 + radius * theta.cos();
-                        y = center.1 + radius * theta.sin();
+                        let theta = (i as f64).mul_add(theta_step, theta_start) % TAU;
+                        x = radius.mul_add(theta.cos(), center.0);
+                        y = radius.mul_add(theta.sin(), center.1);
 
                         let proj_x = (origin_x + x + origin_y + y) / 2.;
                         let proj_y =
@@ -406,7 +406,7 @@ G1 Z0.350 F7800.000
         // 0 and 360 are the same point
         // This test asserts that the cases where 360 must be used are correct.
         let buffer = include_str!("../../../../assets/g3_box_rounded_anticlockwise.gcode");
-        let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
+        let svg = buffer.lines().map(std::string::ToString::to_string).collect::<Svg>();
         assert_debug_snapshot!(svg);
     }
 
@@ -422,7 +422,7 @@ G1 Z0.350 F7800.000
         // 0 and 360 are the same point
         // This test asserts that the cases where 360 must be used are correct.
         let buffer = include_str!("../../../../assets/g2_box_nibble_clockwise.gcode");
-        let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
+        let svg = buffer.lines().map(std::string::ToString::to_string).collect::<Svg>();
         assert_debug_snapshot!(svg);
     }
 
@@ -430,7 +430,7 @@ G1 Z0.350 F7800.000
     fn arc_demo() {
         // SNAPSHOT tests
         let buffer = include_str!("../../../../assets/arc_demo.gcode");
-        let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
+        let svg = buffer.lines().map(std::string::ToString::to_string).collect::<Svg>();
         assert_debug_snapshot!(svg);
     }
 
@@ -443,7 +443,7 @@ G1 Z0.350 F7800.000
         // NB This is the only test that covers both clockwise and anticlockwise
         // zero crossings.
         let buffer = include_str!("../../../../assets/both.gcode");
-        let svg = buffer.lines().map(|l| l.to_string()).collect::<Svg>();
+        let svg = buffer.lines().map(std::string::ToString::to_string).collect::<Svg>();
         assert_debug_snapshot!(svg);
     }
 }

@@ -3,7 +3,7 @@ source: lib/src/binary/gcode_block/svg.rs
 expression: svg
 ---
 Svg {
-    min_x: 1.464466094067262,
+    min_x: 1.4644660940672622,
     min_y: -48.53553390593274,
     max_x: 98.53553390593274,
     max_y: 48.53553390593274,
