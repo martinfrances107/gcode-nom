@@ -344,9 +344,9 @@ impl FromIterator<String> for Obj {
                             // specifically the comparing limit.
                             // rust idiomatically insists on indexed here
                             for i in 0..=n_steps as u64 {
-                                let theta = (theta_start - (i as f64 * theta_step)) % TAU;
-                                x = center.0 + radius * theta.cos();
-                                y = center.1 + radius * theta.sin();
+                                let theta = (i as f64).mul_add(-theta_step, theta_start) % TAU;
+                                x = radius.mul_add(theta.cos(), center.0);
+                                y = radius.mul_add(theta.sin(), center.1);
                                 let vertex =
                                     Vertex(origin_x + x, origin_y + y, origin_z + current_z);
 
@@ -410,9 +410,9 @@ impl FromIterator<String> for Obj {
                             // specifically the comparing limit.
                             // rust idiomatically insists on indexed here
                             for i in 0..=n_steps as u64 {
-                                let theta = (theta_start + (i as f64 * theta_step)) % TAU;
-                                x = center.0 + radius * theta.cos();
-                                y = center.1 + radius * theta.sin();
+                                let theta = (i as f64).mul_add(theta_step, theta_start) % TAU;
+                                x = radius.mul_add(theta.cos(), center.0);
+                                y = radius.mul_add(theta.sin(), center.1);
                                 let vertex =
                                     Vertex(origin_x + x, origin_y + y, origin_z + current_z);
 

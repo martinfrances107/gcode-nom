@@ -23,18 +23,6 @@
 [] - cube -- add groups to .obj file
     -- produce render.
 
-[] - BUG gcode2svg and gcode2obj "gears" has stringy parts.
-    Something is not decoding correctly.
-
-    when moving from gcode block to gcode block
-    how does the head move .. Is the position from the last
-    section retained.
-
-    bench2-mk4a Loop at the tips of the ridges
-     They are also stringy.
-
-    "G0 and G1 Must be handled uniformly" maybe the fix.
-
 [] - BUG Missing compression algorithms
      HeadShrink (two modes to support)
      Have a working implementation in gcode block but its no uniformly applied.
