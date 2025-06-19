@@ -221,7 +221,7 @@ dependencies = [
 
 [[package]]
 name = "gcode2obj"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "clap",
  "env_logger",
