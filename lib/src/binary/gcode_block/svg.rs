@@ -150,7 +150,7 @@ impl FromIterator<String> for Svg {
                             PositionMode::Absolute => x_param,
                             PositionMode::Relative => current_x + x_param,
                         }
-                    };
+                    }
 
                     if !y_param.is_nan() {
                         current_y = match position_mode {

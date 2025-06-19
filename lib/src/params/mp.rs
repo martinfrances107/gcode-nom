@@ -73,7 +73,7 @@ pub fn parse_mp_c(i: &str) -> IResult<&str, MultiPartVal> {
 
 /// Extract multipart S parameter
 ///
-/// /// # Errors
+/// #Errors// /// # Errors
 ///   when match fails.
 pub fn parse_mp_s(i: &str) -> IResult<&str, MultiPartVal> {
     map(
