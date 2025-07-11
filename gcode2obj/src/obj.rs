@@ -77,7 +77,7 @@ pub struct Obj {
 // "This is intentional since most OBJ files have a different UP to whats used
 //  in blender, blender switches the axis on import/export intentionally."
 //
-// Campbell Barton
+// Quote: Campbell Barton
 impl Display for Obj {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         // Write out vertex buffer

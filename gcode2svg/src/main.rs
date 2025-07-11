@@ -40,7 +40,7 @@ fn main() -> std::io::Result<()> {
     let args = Args::parse();
 
     if let Some(file) = args.file {
-        info!("File: {file:?}");
+        info!("File: {}", file.display());
         if file.exists() {
             if let Some(ext) = file.extension() {
                 if ext == "gcode" {
