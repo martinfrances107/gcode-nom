@@ -381,7 +381,7 @@ impl FromIterator<String> for Obj {
                                 mut theta_end,
                             } = compute_arc(current_x, current_y, &arc_form);
 
-                            // Regarding the Ambiguity/Equivalence  of the angles 0 and 2PI
+                            // Regarding the Ambiguity/Equivalence of the angles 0 and 2PI
                             // All values here are in the range 0<=theta<2PI
                             // We are rotating clockwise
                             // in this cased the start angle of 0 should be read as 2PI

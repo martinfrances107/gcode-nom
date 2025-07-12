@@ -406,7 +406,10 @@ G1 Z0.350 F7800.000
         // 0 and 360 are the same point
         // This test asserts that the cases where 360 must be used are correct.
         let buffer = include_str!("../../../../assets/g3_box_rounded_anticlockwise.gcode");
-        let svg = buffer.lines().map(std::string::ToString::to_string).collect::<Svg>();
+        let svg = buffer
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Svg>();
         assert_debug_snapshot!(svg);
     }
 
@@ -422,7 +425,10 @@ G1 Z0.350 F7800.000
         // 0 and 360 are the same point
         // This test asserts that the cases where 360 must be used are correct.
         let buffer = include_str!("../../../../assets/g2_box_nibble_clockwise.gcode");
-        let svg = buffer.lines().map(std::string::ToString::to_string).collect::<Svg>();
+        let svg = buffer
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Svg>();
         assert_debug_snapshot!(svg);
     }
 
@@ -430,7 +436,10 @@ G1 Z0.350 F7800.000
     fn arc_demo() {
         // SNAPSHOT tests
         let buffer = include_str!("../../../../assets/arc_demo.gcode");
-        let svg = buffer.lines().map(std::string::ToString::to_string).collect::<Svg>();
+        let svg = buffer
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Svg>();
         assert_debug_snapshot!(svg);
     }
 
@@ -443,7 +452,10 @@ G1 Z0.350 F7800.000
         // NB This is the only test that covers both clockwise and anticlockwise
         // zero crossings.
         let buffer = include_str!("../../../../assets/both.gcode");
-        let svg = buffer.lines().map(std::string::ToString::to_string).collect::<Svg>();
+        let svg = buffer
+            .lines()
+            .map(std::string::ToString::to_string)
+            .collect::<Svg>();
         assert_debug_snapshot!(svg);
     }
 }
