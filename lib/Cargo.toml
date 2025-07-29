@@ -1,15 +1,15 @@
 [package]
-authors = ["martin <martinfrances107@hotmail.com>"]
-edition = "2021"
+authors = { workspace = true }
+edition = { workspace = true }
 name = "gcode-nom"
 categories = []
 description = "Visualization tool for inspecting a g-code file."
 homepage = "https://github.com/martinfrances107/gcode-nom"
 keywords = ["visualization", "parser-combinator"]
-license = "MIT"
+license = { workspace = true }
 readme = "../README.md"
-repository = "https://github.com/martinfrances107/gcode-nom"
-rust-version = "1.80"
+repository = { workspace = true }
+rust-version = { workspace = true }
 version = "0.6.1"
 
 [lib]
