@@ -10,7 +10,7 @@ license = { workspace = true }
 readme = "../README.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
-version = "0.6.1"
+version = "0.6.2"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
