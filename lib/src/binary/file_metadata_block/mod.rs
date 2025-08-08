@@ -82,7 +82,7 @@ impl FileMetadataBlock<'_> {
 }
 
 static FILE_METADATA_BLOCK_ID: u16 = 0u16;
-pub fn file_metadata_parser(input: &[u8]) -> IResult<&[u8], FileMetadataBlock, BlockError> {
+pub fn file_metadata_parser(input: &[u8]) -> IResult<&[u8], FileMetadataBlock<'_>, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -122,7 +122,7 @@ pub fn file_metadata_parser(input: &[u8]) -> IResult<&[u8], FileMetadataBlock, B
 
 pub fn file_metadata_parser_with_checksum(
     input: &[u8],
-) -> IResult<&[u8], FileMetadataBlock, BlockError> {
+) -> IResult<&[u8], FileMetadataBlock<'_>, BlockError> {
     let (remain, fm) = file_metadata_parser(input)?;
     if let Some(checksum) = fm.checksum {
         let param_size = 2;

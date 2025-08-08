@@ -19,7 +19,7 @@ use super::{gcode_parser, GCodeBlock};
 ///
 /// When the parsing fails.
 ///
-pub fn extract_gcode(input: &[u8]) -> IResult<&[u8], Vec<GCodeBlock>, BlockError> {
+pub fn extract_gcode(input: &[u8]) -> IResult<&[u8], Vec<GCodeBlock<'_>>, BlockError> {
     map(
         preceded(
             (

@@ -80,7 +80,7 @@ impl SlicerBlock<'_> {
     }
 }
 
-pub fn slicer_parser(input: &[u8]) -> IResult<&[u8], SlicerBlock, BlockError> {
+pub fn slicer_parser(input: &[u8]) -> IResult<&[u8], SlicerBlock<'_>, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -121,7 +121,7 @@ pub fn slicer_parser(input: &[u8]) -> IResult<&[u8], SlicerBlock, BlockError> {
 
 static SLICER_BLOCK_ID: u16 = 2u16;
 /// Parser that computes and verifies checksum
-pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock, BlockError> {
+pub fn slicer_parser_with_checksum(input: &[u8]) -> IResult<&[u8], SlicerBlock<'_>, BlockError> {
     let (remain, slicer) = slicer_parser(input)?;
     if let Some(checksum) = slicer.checksum {
         let param_size = 2;

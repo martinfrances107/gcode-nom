@@ -209,7 +209,7 @@ impl Markdown for Bgcode<'_> {
 ///
 /// # Errors
 ///   When the bytes stream is not a valid file.
-pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode, BlockError> {
+pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode<'_>, BlockError> {
     map(
         (
             file_header_parser,
@@ -252,7 +252,7 @@ pub fn bgcode_parser(input: &[u8]) -> IResult<&[u8], Bgcode, BlockError> {
 ///
 /// # Errors
 ///   When the bytes stream is not a valid file.
-pub fn bgcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Bgcode, BlockError> {
+pub fn bgcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], Bgcode<'_>, BlockError> {
     map(
         (
             file_header_parser,

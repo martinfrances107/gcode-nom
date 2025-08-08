@@ -78,7 +78,9 @@ impl PrinterMetadataBlock<'_> {
 }
 
 static PRINTER_METADATA_BLOCK_ID: u16 = 3u16;
-pub fn printer_metadata_parser(input: &[u8]) -> IResult<&[u8], PrinterMetadataBlock, BlockError> {
+pub fn printer_metadata_parser(
+    input: &[u8],
+) -> IResult<&[u8], PrinterMetadataBlock<'_>, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -120,7 +122,7 @@ pub fn printer_metadata_parser(input: &[u8]) -> IResult<&[u8], PrinterMetadataBl
 
 pub fn printer_metadata_parser_with_checksum(
     input: &[u8],
-) -> IResult<&[u8], PrinterMetadataBlock, BlockError> {
+) -> IResult<&[u8], PrinterMetadataBlock<'_>, BlockError> {
     let (remain, pm) = printer_metadata_parser(input)?;
     if let Some(checksum) = pm.checksum {
         let param_size = 2;

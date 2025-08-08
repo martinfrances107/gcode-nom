@@ -119,7 +119,7 @@ static CODE_BLOCK_ID: u16 = 1u16;
 /// # Errors
 ///
 /// When no match is found.
-pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
+pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock<'_>, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -176,7 +176,7 @@ pub fn gcode_parser(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
 /// # Errors
 ///
 /// When no match is found.
-pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock, BlockError> {
+pub fn gcode_parser_with_checksum(input: &[u8]) -> IResult<&[u8], GCodeBlock<'_>, BlockError> {
     let (remain, gcode) = gcode_parser(input)?;
     if let Some(checksum) = gcode.checksum {
         let param_size = 2;

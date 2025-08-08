@@ -88,7 +88,7 @@ impl ThumbnailBlock<'_> {
 }
 
 static THUMBNAIL_BLOCK_ID: u16 = 5u16;
-pub fn thumbnail_parser(input: &[u8]) -> IResult<&[u8], ThumbnailBlock, BlockError> {
+pub fn thumbnail_parser(input: &[u8]) -> IResult<&[u8], ThumbnailBlock<'_>, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -127,7 +127,9 @@ pub fn thumbnail_parser(input: &[u8]) -> IResult<&[u8], ThumbnailBlock, BlockErr
     ))
 }
 
-pub fn thumbnail_parser_with_checksum(input: &[u8]) -> IResult<&[u8], ThumbnailBlock, BlockError> {
+pub fn thumbnail_parser_with_checksum(
+    input: &[u8],
+) -> IResult<&[u8], ThumbnailBlock<'_>, BlockError> {
     let (remain, thumbnail) = thumbnail_parser(input)?;
 
     if let Some(checksum) = thumbnail.checksum {

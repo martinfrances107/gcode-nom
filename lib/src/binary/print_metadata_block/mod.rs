@@ -80,7 +80,7 @@ impl PrintMetadataBlock<'_> {
 }
 
 static PRINT_METADATA_BLOCK_ID: u16 = 4u16;
-pub fn print_metadata_parser(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock, BlockError> {
+pub fn print_metadata_parser(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock<'_>, BlockError> {
     let (after_block_header, header) = preceded(
         verify(le_u16, |block_type| {
             log::debug!(
@@ -122,7 +122,7 @@ pub fn print_metadata_parser(input: &[u8]) -> IResult<&[u8], PrintMetadataBlock,
 
 pub fn print_metadata_parser_with_checksum(
     input: &[u8],
-) -> IResult<&[u8], PrintMetadataBlock, BlockError> {
+) -> IResult<&[u8], PrintMetadataBlock<'_>, BlockError> {
     let (remain, pm) = print_metadata_parser(input)?;
 
     if let Some(checksum) = pm.checksum {
