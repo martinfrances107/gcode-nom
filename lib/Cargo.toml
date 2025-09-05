@@ -24,4 +24,4 @@ log = { workspace = true }
 meatpack = "0.0.3"
 
 [dev-dependencies]
-insta = "1.43.1"
+insta = "1.43.2"

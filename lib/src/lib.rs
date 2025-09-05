@@ -115,21 +115,24 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
             }
         }
         ArcForm::R(arc_values) => {
-            let mut r: f64 = f64::NAN;
+            let mut radius: f64 = f64::NAN;
             // R form
+
             for val in arc_values {
                 match val {
                     ArcVal::X(val) => x = *val,
                     ArcVal::Y(val) => y = *val,
-                    ArcVal::R(val) => r = *val,
+                    ArcVal::R(val) => radius = *val,
                     _ => {
                         // Ignored params
                     }
                 }
             }
+            debug_assert!(x.is_finite());
+            debug_assert!(y.is_finite());
             // r Must be specified from command.
-            debug_assert!(r.is_finite());
-            radius = r;
+            debug_assert!(radius.is_finite());
+            // radius = r;
             // Must solve this  par of simultaneous equations
             // radius * radius = ( center.0 - current_x ) * ( center.0 - current_x ) + ( center.1 - current_y ) * ( center.1 - current_y )
             // radians * radius = (current_x - center.0) * (current_x - center.0) + (current_y - center.1) * (current_y - center.1)
