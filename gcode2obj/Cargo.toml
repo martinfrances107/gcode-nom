@@ -10,7 +10,7 @@ license = "MIT"
 readme = "README.md"
 repository = { workspace = true }
 rust-version = { workspace = true }
-version = "0.6.2"
+version = "0.6.3"
 
 [[bin]]
 name = "gcode2obj"
