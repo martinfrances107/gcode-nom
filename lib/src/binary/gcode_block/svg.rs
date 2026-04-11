@@ -166,9 +166,9 @@ impl FromIterator<String> for Svg {
                         };
                     }
 
-                    let proj_x = (origin_y + current_y) / 2. + (origin_x + current_x) / 2.;
-                    let proj_y = -(origin_z + current_z) - (origin_y + current_y) / 2.
-                        + (origin_x + current_x) / 2.;
+                    let proj_x = f64::midpoint(origin_y, current_y) + f64::midpoint(origin_x, current_x);
+                    let proj_y = -(origin_z + current_z) - f64::midpoint(origin_y, current_y)
+                        + f64::midpoint(origin_x, current_x);
                     svg.update_view_box(proj_x, proj_y);
 
                     if is_extruding && part_id.is_some() {
@@ -220,7 +220,7 @@ impl FromIterator<String> for Svg {
 
                         let proj_x = (origin_x + x + origin_y + y) / 2_f64;
                         let proj_y =
-                            -(origin_z + current_z) - (origin_y + y) / 2. + (origin_x + x) / 2.;
+                            -(origin_z + current_z) - f64::midpoint(origin_y, y) + f64::midpoint(origin_x, x);
                         svg.update_view_box(proj_x, proj_y);
                         match position_mode {
                             PositionMode::Absolute => {
@@ -277,7 +277,7 @@ impl FromIterator<String> for Svg {
 
                         let proj_x = (origin_x + x + origin_y + y) / 2.;
                         let proj_y =
-                            -(origin_z + current_z) - (origin_y + y) / 2. + (origin_x + x) / 2.;
+                            -(origin_z + current_z) - f64::midpoint(origin_y, y) + f64::midpoint(origin_x, x);
                         svg.update_view_box(proj_x, proj_y);
                         match position_mode {
                             PositionMode::Absolute => {
@@ -341,8 +341,8 @@ impl FromIterator<String> for Svg {
 
                     // Set Position is by definition a move only.
                     let proj_x = (origin_x + current_x + origin_y + current_y) / 2.;
-                    let proj_y = -(origin_z + current_z) - (origin_y + current_y) / 2.
-                        + (origin_x + current_x) / 2.;
+                    let proj_y = -(origin_z + current_z) - f64::midpoint(origin_y, current_y)
+                        + f64::midpoint(origin_x, current_x);
                     svg.update_view_box(proj_x, proj_y);
 
                     svg.parts.push(format!("M{proj_x} {proj_y}"));
