@@ -12,12 +12,12 @@ default-members = ["./lib"]
 
 [workspace.package]
 authors = ["martin <martinfrances107@hotmail.com>"]
-edition = "2021"
+edition = "2024"
 homepage = "https://github.com/martinfrances107/gcode-nom"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/martinfrances107/gcode-nom"
-rust-version = "1.93"
+rust-version = "1.94"
 
 [workspace.dependencies]
 clap = { version = "4.5.48", features = ["derive"] }
