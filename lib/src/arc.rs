@@ -2,12 +2,12 @@ use core::hash::Hash;
 use core::hash::Hasher;
 use std::collections::HashSet;
 
+use nom::IResult;
+use nom::Parser;
 use nom::bytes::complete::tag;
 use nom::character::complete::space0;
 use nom::combinator::map;
 use nom::sequence::preceded;
-use nom::IResult;
-use nom::Parser;
 
 /// G2/G3 Arc Command
 ///

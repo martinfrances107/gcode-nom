@@ -20,11 +20,10 @@
 
 extern crate clap;
 
-use std::{
-    fs::{self, File},
-    io::Read,
-    path::PathBuf,
-};
+use std::fs;
+use std::fs::File;
+use std::io::Read;
+use std::path::PathBuf;
 
 use clap::Parser;
 use gcode_nom::binary::bgcode_parser;

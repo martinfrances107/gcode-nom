@@ -1,12 +1,12 @@
 use core::hash::Hash;
 use core::hash::Hasher;
 
+use nom::IResult;
+use nom::Parser;
 use nom::bytes::complete::tag;
 use nom::character::complete::space0;
 use nom::combinator::map;
 use nom::sequence::preceded;
-use nom::IResult;
-use nom::Parser;
 
 /// Parameters for `Command::G0` and `Command::G1`
 #[derive(Clone, Debug)]

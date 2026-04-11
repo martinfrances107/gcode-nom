@@ -1,16 +1,19 @@
 use core::fmt::Display;
 
-use nom::{
-    bytes::streaming::take,
-    combinator::verify,
-    number::streaming::{le_u16, le_u32},
-    sequence::preceded,
-    IResult, Parser,
-};
+use nom::IResult;
+use nom::Parser;
+use nom::bytes::streaming::take;
+use nom::combinator::verify;
+use nom::number::streaming::le_u16;
+use nom::number::streaming::le_u32;
+use nom::sequence::preceded;
 
-use super::{block_header::block_header_parser, block_header::BlockHeader};
-use super::{default_params::param_parser, BlockError};
-use super::{default_params::Param, inflate::decompress_data_block};
+use super::BlockError;
+use super::block_header::BlockHeader;
+use super::block_header::block_header_parser;
+use super::default_params::Param;
+use super::default_params::param_parser;
+use super::inflate::decompress_data_block;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrintMetadataBlock<'a> {

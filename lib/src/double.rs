@@ -1,3 +1,12 @@
+use nom::AsBytes;
+use nom::AsChar;
+use nom::Compare;
+use nom::IResult;
+use nom::Input;
+use nom::Offset;
+use nom::ParseTo;
+use nom::Parser;
+use nom::branch::alt;
 /// This is a bodge
 ///
 /// It is a copy of `double()` from nom.
@@ -6,14 +15,22 @@
 /// exponent part of the float.
 ///
 /// This allows parameters blocks with a "E" tag to be processes correctly.
-use nom::character::complete::{char, digit1};
-use nom::{
-    branch::alt,
-    combinator::{map, opt, recognize},
-    error::{ErrorKind, ParseError},
-    sequence::pair,
-    AsBytes, AsChar, Compare, IResult, Input, Offset, ParseTo, Parser,
-};
+use nom::character::complete::char;
+/// This is a bodge
+///
+/// It is a copy of `double()` from nom.
+///
+/// The only difference is that it does not parse the optional
+/// exponent part of the float.
+///
+/// This allows parameters blocks with a "E" tag to be processes correctly.
+use nom::character::complete::digit1;
+use nom::combinator::map;
+use nom::combinator::opt;
+use nom::combinator::recognize;
+use nom::error::ErrorKind;
+use nom::error::ParseError;
+use nom::sequence::pair;
 
 /// Recognizes floating point number in text format and returns a f64.
 ///

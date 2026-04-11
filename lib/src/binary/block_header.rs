@@ -1,8 +1,10 @@
+use nom::IResult;
 use nom::Parser;
-use nom::{combinator::map, number::streaming::le_u32, IResult};
+use nom::combinator::map;
+use nom::number::streaming::le_u32;
 
-use super::compression_type::compression_parser;
 use super::compression_type::CompressionType;
+use super::compression_type::compression_parser;
 
 /// Block header
 ///

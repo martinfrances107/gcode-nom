@@ -1,25 +1,25 @@
 use core::fmt::Display;
 use std::fmt::Write;
 
-use super::{
-    block_header::{block_header_parser, BlockHeader},
-    BlockError,
-};
+use super::BlockError;
+use super::block_header::BlockHeader;
+use super::block_header::block_header_parser;
 
-use nom::{
-    bytes::streaming::take,
-    combinator::verify,
-    error::Error,
-    number::streaming::{le_u16, le_u32},
-    sequence::preceded,
-    IResult, Parser,
-};
+use nom::IResult;
+use nom::Parser;
+use nom::bytes::streaming::take;
+use nom::combinator::verify;
+use nom::error::Error;
+use nom::number::streaming::le_u16;
+use nom::number::streaming::le_u32;
+use nom::sequence::preceded;
 
 mod param;
-use param::param_parser;
 use param::Param;
+use param::param_parser;
 
-use crate::binary::{CompressionType, Markdown};
+use crate::binary::CompressionType;
+use crate::binary::Markdown;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ThumbnailBlock<'a> {

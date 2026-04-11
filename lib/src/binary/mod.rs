@@ -35,27 +35,37 @@ mod thumbnail_block;
 
 use core::fmt::Display;
 
-use file_handler::{file_header_parser, FileHeader};
-use file_metadata_block::{
-    file_metadata_parser, file_metadata_parser_with_checksum, FileMetadataBlock,
-};
-use nom::{
-    combinator::{eof, map, opt},
-    error::{ErrorKind, ParseError},
-    multi::{many0, many_till},
-    IResult, Parser,
-};
+use file_handler::FileHeader;
+use file_handler::file_header_parser;
+use file_metadata_block::FileMetadataBlock;
+use file_metadata_block::file_metadata_parser;
+use file_metadata_block::file_metadata_parser_with_checksum;
+use nom::IResult;
+use nom::Parser;
+use nom::combinator::eof;
+use nom::combinator::map;
+use nom::combinator::opt;
+use nom::error::ErrorKind;
+use nom::error::ParseError;
+use nom::multi::many_till;
+use nom::multi::many0;
 
 use compression_type::CompressionType;
-use gcode_block::{gcode_parser, gcode_parser_with_checksum, GCodeBlock};
-use print_metadata_block::{
-    print_metadata_parser, print_metadata_parser_with_checksum, PrintMetadataBlock,
-};
+use gcode_block::GCodeBlock;
+use gcode_block::gcode_parser;
+use gcode_block::gcode_parser_with_checksum;
+use print_metadata_block::PrintMetadataBlock;
+use print_metadata_block::print_metadata_parser;
+use print_metadata_block::print_metadata_parser_with_checksum;
 use printer_metadata_block::PrinterMetadataBlock;
-use printer_metadata_block::{printer_metadata_parser, printer_metadata_parser_with_checksum};
-use slicer_block::{slicer_parser, slicer_parser_with_checksum, SlicerBlock};
+use printer_metadata_block::printer_metadata_parser;
+use printer_metadata_block::printer_metadata_parser_with_checksum;
+use slicer_block::SlicerBlock;
+use slicer_block::slicer_parser;
+use slicer_block::slicer_parser_with_checksum;
 use thumbnail_block::ThumbnailBlock;
-use thumbnail_block::{thumbnail_parser, thumbnail_parser_with_checksum};
+use thumbnail_block::thumbnail_parser;
+use thumbnail_block::thumbnail_parser_with_checksum;
 
 /// A trait for markdown formatting.
 pub trait Markdown {

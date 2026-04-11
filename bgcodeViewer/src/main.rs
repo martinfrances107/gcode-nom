@@ -21,9 +21,12 @@
 extern crate env_logger;
 extern crate gcode_nom;
 
-use gcode_nom::binary::bgcode_parser_with_checksum;
+use std::io::BufReader;
+use std::io::Read;
+use std::io::stdin;
+
 use gcode_nom::binary::Markdown;
-use std::io::{stdin, BufReader, Read};
+use gcode_nom::binary::bgcode_parser_with_checksum;
 
 fn main() -> std::io::Result<()> {
     env_logger::init();

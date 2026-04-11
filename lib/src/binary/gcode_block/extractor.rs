@@ -1,17 +1,22 @@
-use nom::{
-    combinator::{eof, map, opt},
-    multi::{many0, many_till},
-    sequence::preceded,
-    IResult, Parser,
-};
+use nom::IResult;
+use nom::Parser;
+use nom::combinator::eof;
+use nom::combinator::map;
+use nom::combinator::opt;
+use nom::multi::many_till;
+use nom::multi::many0;
+use nom::sequence::preceded;
 
-use crate::binary::{
-    file_handler::file_header_parser, file_metadata_block::file_metadata_parser,
-    print_metadata_block::print_metadata_parser, printer_metadata_block::printer_metadata_parser,
-    slicer_block::slicer_parser, thumbnail_block::thumbnail_parser, BlockError,
-};
+use crate::binary::BlockError;
+use crate::binary::file_handler::file_header_parser;
+use crate::binary::file_metadata_block::file_metadata_parser;
+use crate::binary::print_metadata_block::print_metadata_parser;
+use crate::binary::printer_metadata_block::printer_metadata_parser;
+use crate::binary::slicer_block::slicer_parser;
+use crate::binary::thumbnail_block::thumbnail_parser;
 
-use super::{gcode_parser, GCodeBlock};
+use super::GCodeBlock;
+use super::gcode_parser;
 
 /// Extracts gcode block from a binary gcode file.
 ///

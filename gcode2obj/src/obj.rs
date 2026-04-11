@@ -14,15 +14,15 @@ use core::panic;
 
 use hashbrown::HashMap;
 
+use gcode_nom::ArcParams;
+use gcode_nom::MM_PER_ARC_SEGMENT;
+use gcode_nom::PositionMode;
 use gcode_nom::binary::gcode_block::GCodeBlock;
 use gcode_nom::binary::inflate::decompress_data_block;
 use gcode_nom::command::Command;
 use gcode_nom::compute_arc;
 use gcode_nom::params::head::PosVal;
 use gcode_nom::params::mp::MultiPartVal;
-use gcode_nom::ArcParams;
-use gcode_nom::PositionMode;
-use gcode_nom::MM_PER_ARC_SEGMENT;
 
 #[derive(Debug, Clone)]
 struct Vertex(f64, f64, f64);

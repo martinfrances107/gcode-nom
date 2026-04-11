@@ -1,17 +1,17 @@
 use std::sync::LazyLock;
 
-use heatshrink::decode;
 use heatshrink::Config;
+use heatshrink::decode;
 use meatpack::MeatPackResult;
 use meatpack::Unpacker;
-use nom::bytes::streaming::take;
 use nom::Err::Error;
 use nom::IResult;
+use nom::bytes::streaming::take;
 
-use super::block_header::BlockHeader;
-use super::default_params::Encoding;
 use super::BlockError;
 use super::CompressionType;
+use super::block_header::BlockHeader;
+use super::default_params::Encoding;
 
 use inflate::inflate_bytes_zlib;
 
@@ -86,7 +86,9 @@ pub fn decompress_data_block<'a>(
                     Encoding::None => scratch,
                     Encoding::MeatPackAlgorithm => {
                         log::error!("Must decode with standard meat packing algorithm");
-                        unimplemented!("Decoding with the meatpacking algorithm is not yet support please create an issue.");
+                        unimplemented!(
+                            "Decoding with the meatpacking algorithm is not yet support please create an issue."
+                        );
                     }
                     Encoding::MeatPackModifiedAlgorithm => {
                         let mut data = vec![];

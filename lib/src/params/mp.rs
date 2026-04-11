@@ -1,5 +1,7 @@
 use core::hash::Hash;
 
+use nom::IResult;
+use nom::Parser;
 use nom::bytes::complete::tag;
 use nom::bytes::complete::take_until;
 use nom::character::complete::char;
@@ -8,8 +10,6 @@ use nom::combinator::complete;
 use nom::combinator::map;
 use nom::sequence::delimited;
 use nom::sequence::preceded;
-use nom::IResult;
-use nom::Parser;
 
 /// Parameters used in M486 Commands
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

@@ -1,8 +1,10 @@
 use nom::error::ErrorKind;
 use nom::number::streaming::le_u32;
 
+use nom::IResult;
 use nom::Parser;
-use nom::{combinator::map_res, error::Error, IResult};
+use nom::combinator::map_res;
+use nom::error::Error;
 
 // First 32 bits of valid bgcode file.
 static HEADER: u32 = 0x4544_4347;

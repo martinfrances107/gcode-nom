@@ -14,10 +14,10 @@
 #![warn(missing_docs)]
 #![allow(clippy::many_single_char_names)]
 use std::fs::File;
-use std::io::stdin;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Read;
+use std::io::stdin;
 use std::path::PathBuf;
 
 use clap::Parser;

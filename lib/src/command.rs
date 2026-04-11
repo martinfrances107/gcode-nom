@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use nom::IResult;
+use nom::Parser;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::digit1;
@@ -11,9 +13,9 @@ use nom::combinator::map_res;
 use nom::multi::many;
 use nom::sequence::preceded;
 use nom::sequence::terminated;
-use nom::IResult;
-use nom::Parser;
 
+use crate::arc::ArcVal;
+use crate::arc::Form as ArcForm;
 use crate::arc::parse_arc_a;
 use crate::arc::parse_arc_b;
 use crate::arc::parse_arc_c;
@@ -28,9 +30,8 @@ use crate::arc::parse_arc_w;
 use crate::arc::parse_arc_x;
 use crate::arc::parse_arc_y;
 use crate::arc::parse_arc_z;
-use crate::arc::ArcVal;
-use crate::arc::Form as ArcForm;
 
+use crate::params::head::PosVal;
 use crate::params::head::parse_a;
 use crate::params::head::parse_b;
 use crate::params::head::parse_c;
@@ -43,14 +44,13 @@ use crate::params::head::parse_w;
 use crate::params::head::parse_x;
 use crate::params::head::parse_y;
 use crate::params::head::parse_z;
-use crate::params::head::PosVal;
 
+use crate::params::mp::MultiPartVal;
 use crate::params::mp::parse_mp_c;
 use crate::params::mp::parse_mp_p;
 use crate::params::mp::parse_mp_s;
 use crate::params::mp::parse_mp_t;
 use crate::params::mp::parse_mp_u;
-use crate::params::mp::MultiPartVal;
 
 /// Commands: -
 ///

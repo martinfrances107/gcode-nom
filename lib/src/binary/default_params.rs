@@ -1,9 +1,11 @@
 use core::fmt::Display;
 
-use nom::combinator::map_res;
-use nom::error::{Error, ErrorKind};
+use nom::IResult;
 use nom::Parser;
-use nom::{number::streaming::le_u16, IResult};
+use nom::combinator::map_res;
+use nom::error::Error;
+use nom::error::ErrorKind;
+use nom::number::streaming::le_u16;
 
 // Default Parameter encoding
 //

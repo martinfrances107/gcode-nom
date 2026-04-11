@@ -3,8 +3,10 @@ use core::fmt::Display;
 use nom::error::ErrorKind;
 use nom::number::streaming::le_u32;
 
+use nom::IResult;
 use nom::Parser;
-use nom::{combinator::map_res, error::Error, IResult};
+use nom::combinator::map_res;
+use nom::error::Error;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct Version(pub(super) u16);

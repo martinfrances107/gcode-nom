@@ -1,9 +1,9 @@
-use nom::{
-    combinator::map_res,
-    error::{Error, ErrorKind},
-    number::streaming::le_u16,
-    IResult, Parser,
-};
+use nom::IResult;
+use nom::Parser;
+use nom::combinator::map_res;
+use nom::error::Error;
+use nom::error::ErrorKind;
+use nom::number::streaming::le_u16;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub(super) enum CompressionType {

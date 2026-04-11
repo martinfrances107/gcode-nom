@@ -2,9 +2,12 @@ use core::f64;
 use core::f64::consts::TAU;
 use core::fmt::Display;
 
+use crate::ArcParams;
+use crate::MM_PER_ARC_SEGMENT;
+use crate::PositionMode;
 use crate::command::Command;
+use crate::compute_arc;
 use crate::params::head::PosVal;
-use crate::{compute_arc, ArcParams, PositionMode, MM_PER_ARC_SEGMENT};
 
 /// SVG representation of a G-Code file.
 ///
@@ -166,7 +169,8 @@ impl FromIterator<String> for Svg {
                         };
                     }
 
-                    let proj_x = f64::midpoint(origin_y, current_y) + f64::midpoint(origin_x, current_x);
+                    let proj_x =
+                        f64::midpoint(origin_y, current_y) + f64::midpoint(origin_x, current_x);
                     let proj_y = -(origin_z + current_z) - f64::midpoint(origin_y, current_y)
                         + f64::midpoint(origin_x, current_x);
                     svg.update_view_box(proj_x, proj_y);
@@ -219,8 +223,8 @@ impl FromIterator<String> for Svg {
                         y = radius.mul_add(theta.sin(), center.1);
 
                         let proj_x = (origin_x + x + origin_y + y) / 2_f64;
-                        let proj_y =
-                            -(origin_z + current_z) - f64::midpoint(origin_y, y) + f64::midpoint(origin_x, x);
+                        let proj_y = -(origin_z + current_z) - f64::midpoint(origin_y, y)
+                            + f64::midpoint(origin_x, x);
                         svg.update_view_box(proj_x, proj_y);
                         match position_mode {
                             PositionMode::Absolute => {
@@ -276,8 +280,8 @@ impl FromIterator<String> for Svg {
                         y = radius.mul_add(theta.sin(), center.1);
 
                         let proj_x = (origin_x + x + origin_y + y) / 2.;
-                        let proj_y =
-                            -(origin_z + current_z) - f64::midpoint(origin_y, y) + f64::midpoint(origin_x, x);
+                        let proj_y = -(origin_z + current_z) - f64::midpoint(origin_y, y)
+                            + f64::midpoint(origin_x, x);
                         svg.update_view_box(proj_x, proj_y);
                         match position_mode {
                             PositionMode::Absolute => {

@@ -1,12 +1,11 @@
 use core::fmt::Display;
 
+use nom::IResult;
 use nom::Parser;
-use nom::{
-    combinator::map_res,
-    error::{Error, ErrorKind},
-    number::streaming::le_u16,
-    IResult,
-};
+use nom::combinator::map_res;
+use nom::error::Error;
+use nom::error::ErrorKind;
+use nom::number::streaming::le_u16;
 
 // type    size    description
 // Format	 uint16	 Image format

@@ -4,18 +4,22 @@ use nom::combinator::map;
 
 use nom::sequence::preceded;
 
+use nom::IResult;
 use nom::Parser;
-use nom::{sequence::pair, IResult};
+use nom::sequence::pair;
 
 mod checksum_type;
 mod preamble;
 mod version;
 
-use checksum_type::{checksum_type_parser, ChecksumType};
+use checksum_type::ChecksumType;
+use checksum_type::checksum_type_parser;
 use preamble::preamble;
-use version::{version_parser, Version};
+use version::Version;
+use version::version_parser;
 
-use super::{BlockError, Markdown};
+use super::BlockError;
+use super::Markdown;
 
 //  Current value for Version is 1
 //
