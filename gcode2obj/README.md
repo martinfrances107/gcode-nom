@@ -1,6 +1,6 @@
 # gcodeToObj
 
-Rust 2021 Edition.
+Rust 2024 Edition.
 
 <div align="center">
 
