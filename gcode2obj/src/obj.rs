@@ -279,8 +279,7 @@ impl FromIterator<String> for Obj {
                                     obj_line_store.push(complete_line);
                                 } else {
                                     // Otherwise create a new entry in the lines_store.
-                                    // obj.lines_store.insert(id, vec![complete_line]);
-                                    panic!("failed to get line buffer for object id {id}");
+                                    obj.lines_store.insert(id, vec![complete_line]);
                                 }
 
                                 // The first entry in the new line buffer is current position.
