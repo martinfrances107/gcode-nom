@@ -116,7 +116,7 @@ where
     }
 
     fn from_char(input: I, c: char) -> Self {
-        let message = format!("'{c}':\t{input:?}\n",);
+        let message = format!("'{c}':\t{input:?}\n");
         println!("{message}");
         // big match statement append message to existing message
         Self::ParseError

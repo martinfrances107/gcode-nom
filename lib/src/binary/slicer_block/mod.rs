@@ -69,7 +69,7 @@ impl SlicerBlock<'_> {
         writeln!(f, "<details>")?;
         writeln!(f, "<summary>DataBlock</summary>")?;
         writeln!(f, "<br>")?;
-        writeln!(f, "{datablock:?}",)?;
+        writeln!(f, "{datablock:?}")?;
         writeln!(f, "</details>")?;
         writeln!(f)?;
         match self.checksum {
