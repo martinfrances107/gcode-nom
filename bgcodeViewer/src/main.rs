@@ -8,15 +8,6 @@
 //! RUST_BACKTRACE=1 RUST_LOG=trace cargo run  < ../assets/both\ parts.bgcode
 //! ````
 //!
-#![deny(clippy::all)]
-#![warn(clippy::cargo)]
-#![warn(clippy::complexity)]
-#![warn(clippy::pedantic)]
-#![warn(clippy::nursery)]
-#![warn(clippy::perf)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-#![allow(clippy::many_single_char_names)]
 
 extern crate env_logger;
 extern crate gcode_nom;

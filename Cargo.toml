@@ -19,6 +19,18 @@ readme = "README.md"
 repository = "https://github.com/martinfrances107/gcode-nom"
 rust-version = "1.94"
 
+[workspace.lints]
+[workspace.lints.clippy]
+all =  {level = "deny",priority = -1}
+cargo= {  level ="warn",priority = -1}
+complexity = {level ="warn", priority = -1}
+nursery = { level ="warn", priority = -1}
+pedantic = { level ="warn", priority = -2}
+many_single_char_names = {level ="allow", priority = -3}
+
+[workspace.lints.rust]
+missing_debug_implementations = { level ="warn", priority = -1}
+
 [workspace.dependencies]
 clap = { version = "4.5.48", features = ["derive"] }
 env_logger = "0.11.8"

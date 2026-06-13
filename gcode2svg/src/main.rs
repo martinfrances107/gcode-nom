@@ -4,15 +4,6 @@
 //!
 //! Pass a gcode file into stdin a obj file will be output to `StdOut`
 //!
-#![deny(clippy::all)]
-#![warn(clippy::cargo)]
-#![warn(clippy::complexity)]
-#![warn(clippy::pedantic)]
-#![warn(clippy::nursery)]
-#![warn(clippy::perf)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_docs)]
-#![allow(clippy::many_single_char_names)]
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
