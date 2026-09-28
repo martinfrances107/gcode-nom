@@ -408,7 +408,7 @@ impl FromIterator<String> for Obj {
                             // For loop: f64 has a problem with numerical accuracy
                             // specifically the comparing limit.
                             // rust idiomatically insists on indexed here
-                            for i in 0..=n_steps as u64 {
+                            for i in 0..=n_steps as u32 {
                                 let theta = (i as f64).mul_add(theta_step, theta_start) % TAU;
                                 x = radius.mul_add(theta.cos(), center.0);
                                 y = radius.mul_add(theta.sin(), center.1);
@@ -453,8 +453,8 @@ impl FromIterator<String> for Obj {
                                     //
                                     // TODO: set the capacity of the complete_line
                                     // to the last good capacity.
-                                    if let Some(id) = object_id {
-                                        if let Some(line_buffer) = line_buffer_store.get_mut(&id) {
+                                    if let Some(id) = object_id
+                                        && let Some(line_buffer) = line_buffer_store.get_mut(&id) {
                                             let mut complete_line = vec![];
                                             mem::swap(line_buffer, &mut complete_line);
                                             // obj.lines.push(complete_line);
@@ -469,7 +469,6 @@ impl FromIterator<String> for Obj {
                                                 obj.lines_store.insert(id, vec![complete_line]);
                                             }
                                         }
-                                    }
                                 } else {
                                     // Starting to extrude
                                     // debug_assert!(line_buffer.is_empty());
@@ -514,11 +513,10 @@ impl FromIterator<String> for Obj {
                 Command::M486(val) => {
                     match val {
                         MultiPartVal::A(new_name) => {
-                            if let Some(id) = object_id {
-                                if let Some(name) = obj.name_store.get_mut(&id) {
+                            if let Some(id) = object_id
+                                && let Some(name) = obj.name_store.get_mut(&id) {
                                     *name = new_name;
                                 }
-                            }
                         }
                         MultiPartVal::C => {
                             // Cancel job
@@ -565,9 +563,9 @@ impl FromIterator<String> for Obj {
             }
         }
 
-        if let Some(id) = object_id {
-            if let Some(line_buffer) = line_buffer_store.get_mut(&id) {
-                if !line_buffer.is_empty() {
+        if let Some(id) = object_id
+            && let Some(line_buffer) = line_buffer_store.get_mut(&id)
+                && !line_buffer.is_empty() {
                     // Print head is still extruding at end.
 
                     if let Some(obj_line_store) = obj.lines_store.get_mut(&id) {
@@ -579,8 +577,6 @@ impl FromIterator<String> for Obj {
                         obj.lines_store.insert(id, vec![line_buffer.clone()]);
                     }
                 }
-            }
-        }
 
         obj
     }

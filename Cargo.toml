@@ -13,7 +13,6 @@ default-members = ["./lib"]
 [workspace.package]
 authors = ["martin <martinfrances107@hotmail.com>"]
 edition = "2024"
-homepage = "https://github.com/martinfrances107/gcode-nom"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/martinfrances107/gcode-nom"

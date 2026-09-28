@@ -4,7 +4,6 @@ edition = { workspace = true }
 name = "bgcodeValidator"
 categories = ["Parsing tools"]
 description = "[Wavefront obj] Visualization tool for inspecting a g-code file."
-homepage = { workspace = true }
 keywords = ["visualization"]
 license = { workspace = true }
 readme = { workspace = true }

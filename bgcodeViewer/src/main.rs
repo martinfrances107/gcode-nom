@@ -31,7 +31,7 @@ fn main() -> std::io::Result<()> {
                 bgcode
                     .markdown(&mut out)
                     .expect("failed to generate markdown");
-                println!("{}", &out);
+                println!("{out}");
             }
             Err(e) => {
                 log::error!("Unhandled error decoding file {e}");

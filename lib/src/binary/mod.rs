@@ -157,7 +157,7 @@ impl Display for Bgcode<'_> {
             writeln!(f, "No optional file metadata block")?;
         }
 
-        writeln!(f, "{}", &self.printer_metadata)?;
+        writeln!(f, "{}", self.printer_metadata)?;
 
         if self.thumbnails.is_empty() {
             writeln!(f, "No optional thumbnail block")?;

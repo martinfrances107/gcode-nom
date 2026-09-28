@@ -56,7 +56,7 @@ impl TryFrom<u16> for Encoding {
             0u16 => Self::None,
             bad_value => {
                 let msg = format!("Discarding version {bad_value:?}");
-                log::error!("{}", &msg);
+                log::error!("{msg}");
                 return Err(msg);
             }
         })

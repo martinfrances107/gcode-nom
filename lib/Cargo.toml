@@ -4,7 +4,6 @@ edition = { workspace = true }
 name = "gcode-nom"
 categories = []
 description = "Visualization tool for inspecting a g-code file."
-homepage = "https://github.com/martinfrances107/gcode-nom"
 keywords = ["visualization", "parser-combinator"]
 license = { workspace = true }
 readme = "../README.md"

@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
 
     let metadata = fs::metadata(&args.input)?;
-    let buffer_size = usize::try_from(metadata.len()).map_or(usize::MAX, |v| v);
+    let buffer_size = usize::try_from(metadata.len()).unwrap_or(usize::MAX);
     let mut buffer = Vec::with_capacity(buffer_size);
 
     log::info!("Loading filename {} ... ", args.input.display());

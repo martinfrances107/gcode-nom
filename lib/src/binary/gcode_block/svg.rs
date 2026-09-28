@@ -1,4 +1,3 @@
-use core::f64;
 use core::f64::consts::TAU;
 use core::fmt::Display;
 

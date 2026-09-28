@@ -2,8 +2,6 @@
 //!
 #![allow(clippy::many_single_char_names)]
 
-use core::f64;
-
 use crate::arc::ArcVal;
 use crate::arc::Form as ArcForm;
 
@@ -94,7 +92,8 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
             // atan2 returns a value in the range [ -PI, PI].
             // Want a range to be [0,2PI]
             if theta_start < 0_f64 {
-                theta_start += 2_f64 * f64::consts::PI;
+                // theta_start += 2_f64 * core::f64::consts::PI;
+                theta_start += core::f64::consts::TAU;
             }
 
             let delta_end_x = x - center.0;
@@ -103,7 +102,7 @@ pub fn compute_arc(current_x: f64, current_y: f64, form: &ArcForm) -> ArcParams 
             // atan2 returns a value in the range [ -PI, PI].
             // Want a range to be [0,2PI]
             if theta_end < 0_f64 {
-                theta_end += 2_f64 * f64::consts::PI;
+                theta_end += core::f64::consts::TAU;
             }
         }
         ArcForm::R(arc_values) => {
