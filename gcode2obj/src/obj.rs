@@ -454,21 +454,20 @@ impl FromIterator<String> for Obj {
                                     // TODO: set the capacity of the complete_line
                                     // to the last good capacity.
                                     if let Some(id) = object_id
-                                        && let Some(line_buffer) = line_buffer_store.get_mut(&id) {
-                                            let mut complete_line = vec![];
-                                            mem::swap(line_buffer, &mut complete_line);
-                                            // obj.lines.push(complete_line);
-                                            if let Some(obj_line_store) =
-                                                obj.lines_store.get_mut(&id)
-                                            {
-                                                // If the line store already has a line for this part_id
-                                                // then append to it.
-                                                obj_line_store.push(complete_line);
-                                            } else {
-                                                // Otherwise create a new entry in the lines_store.
-                                                obj.lines_store.insert(id, vec![complete_line]);
-                                            }
+                                        && let Some(line_buffer) = line_buffer_store.get_mut(&id)
+                                    {
+                                        let mut complete_line = vec![];
+                                        mem::swap(line_buffer, &mut complete_line);
+                                        // obj.lines.push(complete_line);
+                                        if let Some(obj_line_store) = obj.lines_store.get_mut(&id) {
+                                            // If the line store already has a line for this part_id
+                                            // then append to it.
+                                            obj_line_store.push(complete_line);
+                                        } else {
+                                            // Otherwise create a new entry in the lines_store.
+                                            obj.lines_store.insert(id, vec![complete_line]);
                                         }
+                                    }
                                 } else {
                                     // Starting to extrude
                                     // debug_assert!(line_buffer.is_empty());
@@ -514,9 +513,10 @@ impl FromIterator<String> for Obj {
                     match val {
                         MultiPartVal::A(new_name) => {
                             if let Some(id) = object_id
-                                && let Some(name) = obj.name_store.get_mut(&id) {
-                                    *name = new_name;
-                                }
+                                && let Some(name) = obj.name_store.get_mut(&id)
+                            {
+                                *name = new_name;
+                            }
                         }
                         MultiPartVal::C => {
                             // Cancel job
@@ -565,18 +565,19 @@ impl FromIterator<String> for Obj {
 
         if let Some(id) = object_id
             && let Some(line_buffer) = line_buffer_store.get_mut(&id)
-                && !line_buffer.is_empty() {
-                    // Print head is still extruding at end.
+            && !line_buffer.is_empty()
+        {
+            // Print head is still extruding at end.
 
-                    if let Some(obj_line_store) = obj.lines_store.get_mut(&id) {
-                        // If the line store already has a line for this part_id
-                        // then append to it.
-                        obj_line_store.push(line_buffer.clone());
-                    } else {
-                        // Otherwise create a new entry in the lines_store.
-                        obj.lines_store.insert(id, vec![line_buffer.clone()]);
-                    }
-                }
+            if let Some(obj_line_store) = obj.lines_store.get_mut(&id) {
+                // If the line store already has a line for this part_id
+                // then append to it.
+                obj_line_store.push(line_buffer.clone());
+            } else {
+                // Otherwise create a new entry in the lines_store.
+                obj.lines_store.insert(id, vec![line_buffer.clone()]);
+            }
+        }
 
         obj
     }
